@@ -342,6 +342,74 @@ public sealed class DialogService : IDialogService
     public Task<List<int>?> ShowBrPickerAsync(string title, IReadOnlyList<(int Id, string Numero, DateTime Date, string MontantLabel)> availableBrs, CancellationToken cancellationToken = default) =>
         ShowBlPickerAsync(title, availableBrs, cancellationToken);
 
+    public async Task<CategorieChargeDialogResult?> ShowCategorieChargeEditAsync(
+        string title,
+        string nomLabel,
+        string actifLabel,
+        string cancelLabel,
+        string saveLabel,
+        string? initialNom = null,
+        bool initialActif = true,
+        CancellationToken cancellationToken = default)
+    {
+        var owner = GetMainWindow();
+        var w = new Window
+        {
+            Title = title,
+            MinWidth = 320,
+            MaxWidth = 420,
+            SizeToContent = SizeToContent.WidthAndHeight,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            CanResize = false
+        };
+
+        CategorieChargeDialogResult? result = null;
+        var panel = new StackPanel { Margin = new Avalonia.Thickness(16), Spacing = 12 };
+
+        panel.Children.Add(new TextBlock { Text = nomLabel, Opacity = 0.75 });
+        var nomInput = new TextBox
+        {
+            MinWidth = 280,
+            Text = initialNom ?? string.Empty,
+            Watermark = nomLabel
+        };
+        panel.Children.Add(nomInput);
+
+        var actifCheck = new CheckBox
+        {
+            Content = actifLabel,
+            IsChecked = initialActif
+        };
+        panel.Children.Add(actifCheck);
+
+        var buttons = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Spacing = 8
+        };
+
+        var cancel = new Button { Content = cancelLabel };
+        cancel.Click += (_, _) => w.Close();
+        var save = new Button { Content = saveLabel, IsDefault = true };
+        save.Click += (_, _) =>
+        {
+            result = new CategorieChargeDialogResult(nomInput.Text ?? string.Empty, actifCheck.IsChecked == true);
+            w.Close();
+        };
+        buttons.Children.Add(cancel);
+        buttons.Children.Add(save);
+        panel.Children.Add(buttons);
+        w.Content = panel;
+
+        if (owner != null)
+            await w.ShowDialog(owner);
+        else
+            w.Show();
+
+        return result;
+    }
+
     public async Task<(DateTime from, DateTime to)?> PickDateRangeAsync(string title, CancellationToken cancellationToken = default)
     {
         var owner = GetMainWindow();

@@ -20,6 +20,7 @@ public sealed class CurrentUserSession : ICurrentUserSession
     public bool CanAccessFacturation => IsAuthenticated && Role is Models.Role.Admin or Models.Role.Comptable;
     public bool CanAccessAvoir => IsAuthenticated && Role is Models.Role.Admin or Models.Role.Comptable;
     public bool CanAccessReporting => IsAuthenticated && Role is Models.Role.Admin or Models.Role.Comptable;
+    public bool CanAccessCharges => IsAuthenticated && Role is Models.Role.Admin or Models.Role.Comptable;
     public bool CanAccessUsers => false;
     public bool CanAccessSettings => IsAuthenticated && Role == Models.Role.Admin;
 

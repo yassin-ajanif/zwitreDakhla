@@ -1,5 +1,7 @@
 namespace GestionCommerciale.Shared.Services;
 
+public sealed record CategorieChargeDialogResult(string Nom, bool Actif);
+
 public interface IDialogService
 {
     Task ShowInfoAsync(string title, string message, CancellationToken cancellationToken = default, int autoCloseMs = 0);
@@ -15,4 +17,13 @@ public interface IDialogService
     Task<(DateTime from, DateTime to)?> PickDateRangeAsync(string title, CancellationToken cancellationToken = default);
     Task<List<int>?> ShowBlPickerAsync(string title, IReadOnlyList<(int Id, string Numero, DateTime Date, string MontantLabel)> availableBls, CancellationToken cancellationToken = default);
     Task<List<int>?> ShowBrPickerAsync(string title, IReadOnlyList<(int Id, string Numero, DateTime Date, string MontantLabel)> availableBrs, CancellationToken cancellationToken = default);
+    Task<CategorieChargeDialogResult?> ShowCategorieChargeEditAsync(
+        string title,
+        string nomLabel,
+        string actifLabel,
+        string cancelLabel,
+        string saveLabel,
+        string? initialNom = null,
+        bool initialActif = true,
+        CancellationToken cancellationToken = default);
 }

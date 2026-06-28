@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GestionCommerciale.Modules.Charges.ViewModels;
 using GestionCommerciale.Modules.AvoirFournisseur.ViewModels;
 using GestionCommerciale.Modules.Auth.Services;
 using GestionCommerciale.Modules.Devis.ViewModels;
@@ -76,6 +77,9 @@ public partial class AppShellViewModel : BaseViewModel
     [ObservableProperty] private string _navProduits = string.Empty;
     [ObservableProperty] private string _navReports = string.Empty;
     [ObservableProperty] private string _navSettings = string.Empty;
+    [ObservableProperty] private string _navChargesGroup = string.Empty;
+    [ObservableProperty] private string _navCharges = string.Empty;
+    [ObservableProperty] private string _navCategoriesCharge = string.Empty;
 
     [ObservableProperty] private bool _isTestRunning;
     [ObservableProperty] private string _testProgress = string.Empty;
@@ -97,6 +101,8 @@ public partial class AppShellViewModel : BaseViewModel
     [ObservableProperty] private bool _isNavProduitsActive;
     [ObservableProperty] private bool _isNavReportsActive;
     [ObservableProperty] private bool _isNavSettingsActive;
+    [ObservableProperty] private bool _isNavChargesActive;
+    [ObservableProperty] private bool _isNavCategoriesChargeActive;
 
     private void RefreshShellLabels()
     {
@@ -120,20 +126,26 @@ public partial class AppShellViewModel : BaseViewModel
         NavProduits = _locale.T("Nav_Produits");
         NavReports = _locale.T("Nav_Reports");
         NavSettings = _locale.T("Nav_Settings");
+        NavChargesGroup = _locale.T("Nav_ChargesGroup");
+        NavCharges = _locale.T("Nav_Charges");
+        NavCategoriesCharge = _locale.T("Nav_CategoriesCharge");
         Title = NavHome;
     }
 
     [ObservableProperty] private bool _venteNavExpanded = true;
     [ObservableProperty] private bool _achatNavExpanded = true;
     [ObservableProperty] private bool _footerNavExpanded = true;
+    [ObservableProperty] private bool _chargesNavExpanded = true;
 
     public string VenteNavArrow => VenteNavExpanded ? "\u25BC" : "\u25B6";
     public string AchatNavArrow => AchatNavExpanded ? "\u25BC" : "\u25B6";
     public string FooterNavArrow => FooterNavExpanded ? "\u25BC" : "\u25B6";
+    public string ChargesNavArrow => ChargesNavExpanded ? "\u25BC" : "\u25B6";
 
     partial void OnVenteNavExpandedChanged(bool value) => OnPropertyChanged(nameof(VenteNavArrow));
     partial void OnAchatNavExpandedChanged(bool value) => OnPropertyChanged(nameof(AchatNavArrow));
     partial void OnFooterNavExpandedChanged(bool value) => OnPropertyChanged(nameof(FooterNavArrow));
+    partial void OnChargesNavExpandedChanged(bool value) => OnPropertyChanged(nameof(ChargesNavArrow));
 
     [RelayCommand]
     private void ToggleVenteNav() => VenteNavExpanded = !VenteNavExpanded;
@@ -143,6 +155,9 @@ public partial class AppShellViewModel : BaseViewModel
 
     [RelayCommand]
     private void ToggleFooterNav() => FooterNavExpanded = !FooterNavExpanded;
+
+    [RelayCommand]
+    private void ToggleChargesNav() => ChargesNavExpanded = !ChargesNavExpanded;
 
     public bool ShowNavClients => _session.CanAccessClients;
     public bool ShowNavFournisseurs => _session.CanAccessFournisseurs;
@@ -159,6 +174,8 @@ public partial class AppShellViewModel : BaseViewModel
     public bool ShowNavAvoirFournisseur => _session.CanAccessAvoir;
     public bool ShowNavReports => _session.CanAccessReporting;
     public bool ShowNavSettings => _session.CanAccessSettings;
+    public bool ShowNavCharges => _session.CanAccessCharges;
+    public bool ShowNavCategoriesCharge => _session.CanAccessCharges;
 
     [RelayCommand]
     private void GoHome() => _workspace.Open(_sp.GetRequiredService<HomeViewModel>());
@@ -237,6 +254,12 @@ public partial class AppShellViewModel : BaseViewModel
     private void GoSettings() => _workspace.Open(_sp.GetRequiredService<SettingsViewModel>());
 
     [RelayCommand]
+    private void GoCharges() => _workspace.Open(_sp.GetRequiredService<ChargeListViewModel>());
+
+    [RelayCommand]
+    private void GoCategoriesCharge() => _workspace.Open(_sp.GetRequiredService<CategorieChargeListViewModel>());
+
+    [RelayCommand]
     private async Task RunPerfTestAsync(CancellationToken ct)
     {
         if (IsTestRunning) return;
@@ -276,5 +299,7 @@ public partial class AppShellViewModel : BaseViewModel
         IsNavProduitsActive = p is ProduitsViewModel;
         IsNavReportsActive = p is ReportsListViewModel;
         IsNavSettingsActive = p is SettingsViewModel;
+        IsNavChargesActive = p is ChargeListViewModel or ChargeEditViewModel;
+        IsNavCategoriesChargeActive = p is CategorieChargeListViewModel;
     }
 }

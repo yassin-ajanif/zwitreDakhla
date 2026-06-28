@@ -262,6 +262,9 @@ internal static class UiTranslationExtras
         ["BR_ErrDifferentSuppliers"] = ("Les BR sélectionnés doivent être du même fournisseur.", "يجب أن تكون إيصالات الاستلام المحددة من نفس المورد."),
         ["SupplierLedger_FactureFmt"] = ("FACTURE FOURNISSEUR N°{0}", "فاتورة مورد رقم {0}"),
         ["Avoir_DraftPlaceholder"] = ("(brouillon)", "(مسودة)"),
+        ["Btn_NewCharge"] = ("Nouvelle charge", "مصروف جديد"),
+        ["Wm_SearchCategorieCharge"] = ("Rechercher un type…", "بحث عن نوع…"),
+        ["Wm_SearchCharges"] = ("Rechercher par n°, libellé, bénéficiaire…", "بحث برقم أو وصف أو مستفيد…"),
 
         ["Login_AppTitle"] = ("faturati", "faturati"),
         ["Login_Subtitle"] = ("Connexion", "تسجيل الدخول"),
