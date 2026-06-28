@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionCommerciale.Modules.Auth.Services;
 using GestionCommerciale.Modules.Production.Models;
+using GestionCommerciale.Modules.Production.Services;
 using GestionCommerciale.Shared.Database;
 using GestionCommerciale.Shared.Services;
 using GestionCommerciale.Shared.ViewModels;
@@ -17,6 +18,7 @@ public partial class ProductionListViewModel : BaseViewModel
     private readonly IDialogService _dialog;
     private readonly ILocaleService _locale;
     private readonly ICurrentUserSession _session;
+    private readonly IProductionStockService _productionStock;
 
     private DateTime? _dateFrom;
     private DateTime? _dateTo;
@@ -25,12 +27,14 @@ public partial class ProductionListViewModel : BaseViewModel
         IDbContextFactory<AppDbContext> dbFactory,
         IDialogService dialog,
         ILocaleService locale,
-        ICurrentUserSession session)
+        ICurrentUserSession session,
+        IProductionStockService productionStock)
     {
         _dbFactory = dbFactory;
         _dialog = dialog;
         _locale = locale;
         _session = session;
+        _productionStock = productionStock;
         _dateFrom = DateTime.Today;
         _dateTo = DateTime.Today;
         _locale.CultureApplied += (_, _) => RefreshUi();
@@ -177,6 +181,13 @@ public partial class ProductionListViewModel : BaseViewModel
         var entity = await db.OperationsProduction.FirstOrDefaultAsync(o => o.Id == operation.Id, cancellationToken);
         if (entity == null) return;
 
+        await _productionStock.RemoveOperationStockAsync(
+            db,
+            entity.Id,
+            entity.OperationAt,
+            _session.UserId,
+            cancellationToken);
+
         db.OperationsProduction.Remove(entity);
         await db.SaveChangesAsync(cancellationToken);
         await LoadAsync(cancellationToken);
@@ -239,10 +250,11 @@ public partial class ProductionListViewModel : BaseViewModel
 
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
         int savedId;
+        OperationProduction entity;
 
         if (existing == null)
         {
-            var entity = new OperationProduction();
+            entity = new OperationProduction();
             vm.ApplyTo(entity, savedAt);
             db.OperationsProduction.Add(entity);
             await db.SaveChangesAsync(cancellationToken);
@@ -250,11 +262,20 @@ public partial class ProductionListViewModel : BaseViewModel
         }
         else
         {
-            var entity = await db.OperationsProduction.FirstAsync(o => o.Id == existing.Id, cancellationToken);
+            entity = await db.OperationsProduction.FirstAsync(o => o.Id == existing.Id, cancellationToken);
             vm.ApplyTo(entity);
-            await db.SaveChangesAsync(cancellationToken);
             savedId = entity.Id;
         }
+
+        await _productionStock.SyncOperationStockAsync(
+            db,
+            savedId,
+            vm.PochetteGrand,
+            entity.OperationAt,
+            _session.UserId,
+            cancellationToken);
+
+        await db.SaveChangesAsync(cancellationToken);
 
         await LoadAsync(cancellationToken);
         Selected = Operations.FirstOrDefault(o => o.Id == savedId);

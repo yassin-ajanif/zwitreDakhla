@@ -1,5 +1,8 @@
 namespace GestionCommerciale.Shared.Database;
 
+using GestionCommerciale.Modules.Production.Services;
+using GestionCommerciale.Modules.Stock.Models;
+
 public static class DbSeeder
 {
     public const string DefaultAdminEmail = "admin@local";
@@ -20,6 +23,18 @@ public static class DbSeeder
             {
                 Nom = DefaultClientName,
                 Type = GestionCommerciale.Modules.Tiers.Models.TypeTiers.Client,
+                Actif = true
+            });
+            db.SaveChanges();
+        }
+
+        if (!db.Produits.Any(p => p.Reference == ProductionStockService.ZwittreGrandReference))
+        {
+            db.Produits.Add(new Produit
+            {
+                Reference = ProductionStockService.ZwittreGrandReference,
+                Designation = ProductionStockService.ZwittreGrandDesignation,
+                Unite = "U",
                 Actif = true
             });
             db.SaveChanges();

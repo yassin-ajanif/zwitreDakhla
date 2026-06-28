@@ -313,6 +313,7 @@ public static class UiTranslations
         ["Prod_ColTotal"] = ("Zwitres", "Zwittre"),
         ["Prod_LblTotalOperation"] = ("Total opération:", "مجموع العملية:"),
         ["Prod_LblModifiedFmt"] = ("modifié le {0}", "عُدّل في {0}"),
+        ["Prod_StockNoteFmt"] = ("Production {0}", "إنتاج {0}"),
         ["Prod_LblTotalPreview"] = ("Total zwitres", "مجموع Zwittre"),
     };
 

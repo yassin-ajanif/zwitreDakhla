@@ -12,6 +12,7 @@ public sealed class StockMovementService : IStockMovementService
     public const string OrigineTypeAvoir = "Avoir";
     public const string OrigineTypeAvoirFournisseur = "AvoirFournisseur";
     public const string OrigineTypeImport = "Import";
+    public const string OrigineTypeProduction = "Production";
 
     private readonly ILocaleService _locale;
 
@@ -174,6 +175,31 @@ public sealed class StockMovementService : IStockMovementService
             db,
             OrigineTypeAvoirFournisseur,
             avoirFournisseurId,
+            noteDetail,
+            desired,
+            createdByUserId,
+            useModificationNoteOnEdit: true,
+            onPositiveEntreeDelta: null,
+            cancellationToken);
+    }
+
+    public Task SyncProductionStockAsync(
+        AppDbContext db,
+        int operationProductionId,
+        int produitId,
+        decimal totalZwitres,
+        string noteDetail,
+        int? createdByUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var desired = totalZwitres > 0
+            ? new Dictionary<int, decimal> { [produitId] = totalZwitres }
+            : [];
+
+        return SyncDocumentStockAsync(
+            db,
+            OrigineTypeProduction,
+            operationProductionId,
             noteDetail,
             desired,
             createdByUserId,

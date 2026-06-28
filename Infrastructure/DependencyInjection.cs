@@ -1,3 +1,4 @@
+using GestionCommerciale.Modules.Production.Services;
 using GestionCommerciale.Modules.Production.ViewModels;
 using GestionCommerciale.Modules.Charges.ViewModels;
 using GestionCommerciale.Modules.AvoirFournisseur.ViewModels;
@@ -48,6 +49,7 @@ public static class DependencyInjection
         services.AddSingleton<ILocaleService, LocaleService>();
         services.AddSingleton<IDocumentNumberService, DocumentNumberService>();
         services.AddSingleton<IStockMovementService, StockMovementService>();
+        services.AddSingleton<IProductionStockService, ProductionStockService>();
         services.AddSingleton<IPosService, PosService>();
         services.AddSingleton<IBonLivraisonWorkflowService, BonLivraisonWorkflowService>();
         services.AddSingleton<IBonReceptionWorkflowService, BonReceptionWorkflowService>();

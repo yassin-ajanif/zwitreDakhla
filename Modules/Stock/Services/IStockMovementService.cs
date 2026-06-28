@@ -49,4 +49,13 @@ public interface IStockMovementService
         IEnumerable<(int ProduitId, decimal Quantite)> lines,
         int? createdByUserId,
         CancellationToken cancellationToken = default);
+
+    Task SyncProductionStockAsync(
+        AppDbContext db,
+        int operationProductionId,
+        int produitId,
+        decimal totalZwitres,
+        string noteDetail,
+        int? createdByUserId,
+        CancellationToken cancellationToken = default);
 }
