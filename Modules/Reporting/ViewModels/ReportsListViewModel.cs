@@ -39,6 +39,10 @@ public partial class ReportsListViewModel : BaseViewModel
     [ObservableProperty] private string _lblDateTo = string.Empty;
     [ObservableProperty] private string _lblApply = string.Empty;
     [ObservableProperty] private string _lblLoading = string.Empty;
+    [ObservableProperty] private string _btnToday = string.Empty;
+    [ObservableProperty] private string _btnThisWeek = string.Empty;
+    [ObservableProperty] private string _btnThisMonth = string.Empty;
+    [ObservableProperty] private string _btnThisYear = string.Empty;
 
     [ObservableProperty] private string _btnSaleByProduct = string.Empty;
     [ObservableProperty] private string _btnSaleByCustomer = string.Empty;
@@ -97,6 +101,10 @@ public partial class ReportsListViewModel : BaseViewModel
         LblDateTo = _locale.T("Reports_To");
         LblApply = _locale.T("Reports_Apply");
         LblLoading = _locale.T("Report_Loading");
+        BtnToday = _locale.T("Btn_Today");
+        BtnThisWeek = _locale.T("Btn_ThisWeek");
+        BtnThisMonth = _locale.T("Btn_ThisMonth");
+        BtnThisYear = _locale.T("Btn_ThisYear");
         BtnSaleByProduct = _locale.T("Reports_BtnSaleByProduct");
         BtnSaleByCustomer = _locale.T("Reports_BtnSaleByCustomer");
         BtnRefunds = _locale.T("Reports_BtnRefunds");
@@ -129,6 +137,47 @@ public partial class ReportsListViewModel : BaseViewModel
     [RelayCommand] private void GoDailySales() => SelectedReportIndex = 3;
     [RelayCommand] private void GoUnpaid() => SelectedReportIndex = 4;
     [RelayCommand] private void GoStockMovements() => SelectedReportIndex = 5;
+
+    private void SetDateRange(DateTime from, DateTime to)
+    {
+        DateFrom = new DateTimeOffset(from.Date);
+        DateTo = new DateTimeOffset(to.Date);
+    }
+
+    [RelayCommand]
+    private async Task FilterTodayAsync(CancellationToken cancellationToken)
+    {
+        SetDateRange(DateTime.Today, DateTime.Today);
+        await LoadReportAsync(cancellationToken);
+    }
+
+    [RelayCommand]
+    private async Task FilterThisWeekAsync(CancellationToken cancellationToken)
+    {
+        var today = DateTime.Today;
+        var diff = ((int)today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+        var monday = today.AddDays(-diff);
+        SetDateRange(monday, monday.AddDays(6));
+        await LoadReportAsync(cancellationToken);
+    }
+
+    [RelayCommand]
+    private async Task FilterThisMonthAsync(CancellationToken cancellationToken)
+    {
+        var today = DateTime.Today;
+        var first = new DateTime(today.Year, today.Month, 1);
+        var last = first.AddMonths(1).AddDays(-1);
+        SetDateRange(first, last);
+        await LoadReportAsync(cancellationToken);
+    }
+
+    [RelayCommand]
+    private async Task FilterThisYearAsync(CancellationToken cancellationToken)
+    {
+        var today = DateTime.Today;
+        SetDateRange(new DateTime(today.Year, 1, 1), new DateTime(today.Year, 12, 31));
+        await LoadReportAsync(cancellationToken);
+    }
 
     [RelayCommand]
     private void ToggleCustomerExpand(ReportSaleByCustomerRow? row)

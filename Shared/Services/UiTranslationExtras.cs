@@ -70,6 +70,9 @@ internal static class UiTranslationExtras
         ["Btn_BackList"] = ("Retour liste", "العودة للقائمة"),
         ["Btn_FilterDate"] = ("Filtrer par date", "تصفية حسب التاريخ"),
         ["Btn_Today"] = ("Aujourd'hui", "اليوم"),
+        ["Btn_ThisWeek"] = ("Cette semaine", "هذا الأسبوع"),
+        ["Btn_ThisMonth"] = ("Ce mois", "هذا الشهر"),
+        ["Btn_ThisYear"] = ("Cette année", "هذه السنة"),
 
         ["Pag_First"] = ("Premier", "الأول"),
         ["Pag_Previous"] = ("Précédent", "السابق"),

@@ -49,15 +49,26 @@
         </StackPanel>
 
         <!-- Date range (hidden for unpaid) -->
-        <Grid ColumnDefinitions="Auto,*,Auto,*,Auto" IsVisible="{Binding ShowDateFilter}"
-              VerticalAlignment="Center">
-          <TextBlock Grid.Column="0" Text="{Binding LblDateFrom}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-          <DatePicker Grid.Column="1" SelectedDate="{Binding DateFrom}" VerticalAlignment="Center"/>
-          <TextBlock Grid.Column="2" Text="{Binding LblDateTo}" VerticalAlignment="Center" Margin="12,0,8,0"/>
-          <DatePicker Grid.Column="3" SelectedDate="{Binding DateTo}" VerticalAlignment="Center"/>
-          <Button Grid.Column="4" Content="{Binding LblApply}" Command="{Binding LoadReportCommand}"
-                  Margin="12,0,0,0" VerticalAlignment="Center"/>
-        </Grid>
+        <StackPanel Spacing="8" IsVisible="{Binding ShowDateFilter}">
+          <WrapPanel>
+            <Button Content="{Binding BtnToday}" Command="{Binding FilterTodayCommand}"
+                    Margin="0,0,6,6" Padding="12,6" MinHeight="32"/>
+            <Button Content="{Binding BtnThisWeek}" Command="{Binding FilterThisWeekCommand}"
+                    Margin="0,0,6,6" Padding="12,6" MinHeight="32"/>
+            <Button Content="{Binding BtnThisMonth}" Command="{Binding FilterThisMonthCommand}"
+                    Margin="0,0,6,6" Padding="12,6" MinHeight="32"/>
+            <Button Content="{Binding BtnThisYear}" Command="{Binding FilterThisYearCommand}"
+                    Margin="0,0,6,6" Padding="12,6" MinHeight="32"/>
+          </WrapPanel>
+          <Grid ColumnDefinitions="Auto,*,Auto,*,Auto" VerticalAlignment="Center">
+            <TextBlock Grid.Column="0" Text="{Binding LblDateFrom}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <DatePicker Grid.Column="1" SelectedDate="{Binding DateFrom}" VerticalAlignment="Center"/>
+            <TextBlock Grid.Column="2" Text="{Binding LblDateTo}" VerticalAlignment="Center" Margin="12,0,8,0"/>
+            <DatePicker Grid.Column="3" SelectedDate="{Binding DateTo}" VerticalAlignment="Center"/>
+            <Button Grid.Column="4" Content="{Binding LblApply}" Command="{Binding LoadReportCommand}"
+                    Margin="12,0,0,0" VerticalAlignment="Center"/>
+          </Grid>
+        </StackPanel>
 
         <!-- Sale by product table -->
         <StackPanel Spacing="8" IsVisible="{Binding ShowSaleByProduct}">
