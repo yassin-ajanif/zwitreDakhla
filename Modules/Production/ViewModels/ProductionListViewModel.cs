@@ -196,7 +196,11 @@ public partial class ProductionListViewModel : BaseViewModel
     [RelayCommand]
     private async Task FilterDateAsync(CancellationToken cancellationToken)
     {
-        var range = await _dialog.PickDateRangeAsync(_locale.T("Btn_FilterDate"), cancellationToken);
+        var range = await _dialog.PickDateRangeAsync(
+            _locale.T("Btn_FilterDate"),
+            cancellationToken,
+            _dateFrom,
+            _dateTo);
         if (range == null) return;
 
         if (range.Value.from == DateTime.MinValue && range.Value.to == DateTime.MinValue)

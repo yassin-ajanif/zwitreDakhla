@@ -530,14 +530,18 @@ public sealed class DialogService : IDialogService
         return result;
     }
 
-    public async Task<(DateTime from, DateTime to)?> PickDateRangeAsync(string title, CancellationToken cancellationToken = default)
+    public async Task<(DateTime from, DateTime to)?> PickDateRangeAsync(
+        string title,
+        CancellationToken cancellationToken = default,
+        DateTime? initialFrom = null,
+        DateTime? initialTo = null)
     {
         var owner = GetMainWindow();
         var w = new Window
         {
             Title = title,
-            MinWidth = 340,
-            MaxWidth = 480,
+            MinWidth = 420,
+            MaxWidth = 520,
             SizeToContent = SizeToContent.WidthAndHeight,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             CanResize = false
@@ -545,8 +549,6 @@ public sealed class DialogService : IDialogService
 
         (DateTime from, DateTime to)? result = null;
         var panel = new StackPanel { Margin = new Avalonia.Thickness(16), Spacing = 12 };
-
-        var presets = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Center };
 
         var dpFrom = new DatePicker();
         var dpTo = new DatePicker();
@@ -557,31 +559,53 @@ public sealed class DialogService : IDialogService
             dpTo.SelectedDate = new DateTimeOffset(to.Year, to.Month, to.Day, 0, 0, 0, TimeSpan.Zero);
         }
 
-        var btnToday = new Button { Content = "Aujourd'hui" };
-        btnToday.Click += (_, _) => SetRange(DateTime.Today, DateTime.Today);
+        static Button CreateChip(string label, Action onClick)
+        {
+            var btn = new Button
+            {
+                Content = label,
+                Padding = new Avalonia.Thickness(12, 6),
+                Margin = new Avalonia.Thickness(0, 0, 6, 6),
+                MinHeight = 32
+            };
+            btn.Click += (_, _) => onClick();
+            return btn;
+        }
 
-        var btnThisWeek = new Button { Content = "Cette semaine" };
-        btnThisWeek.Click += (_, _) =>
+        var presets = new WrapPanel
+        {
+            MaxWidth = 460,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+
+        presets.Children.Add(CreateChip("Aujourd'hui", () => SetRange(DateTime.Today, DateTime.Today)));
+
+        presets.Children.Add(CreateChip("Cette semaine", () =>
         {
             var today = DateTime.Today;
             var diff = ((int)today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
             var monday = today.AddDays(-diff);
             SetRange(monday, monday.AddDays(6));
-        };
+        }));
 
-        var btnThisMonth = new Button { Content = "Ce mois" };
-        btnThisMonth.Click += (_, _) =>
+        presets.Children.Add(CreateChip("Ce mois", () =>
         {
             var today = DateTime.Today;
             var first = new DateTime(today.Year, today.Month, 1);
             var last = first.AddMonths(1).AddDays(-1);
             SetRange(first, last);
-        };
+        }));
 
-        presets.Children.Add(btnToday);
-        presets.Children.Add(btnThisWeek);
-        presets.Children.Add(btnThisMonth);
+        presets.Children.Add(CreateChip("Cette année", () =>
+        {
+            var today = DateTime.Today;
+            SetRange(new DateTime(today.Year, 1, 1), new DateTime(today.Year, 12, 31));
+        }));
+
         panel.Children.Add(presets);
+
+        if (initialFrom.HasValue && initialTo.HasValue)
+            SetRange(initialFrom.Value.Date, initialTo.Value.Date);
 
         var dateGrid = new StackPanel { Spacing = 8 };
         var fromRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
