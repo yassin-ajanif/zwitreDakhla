@@ -25,5 +25,6 @@ public interface ICurrentUserSession
     bool CanAccessReporting { get; }
     bool CanAccessUsers { get; }
     bool CanAccessCharges { get; }
+    bool CanAccessProduction { get; }
     bool CanAccessSettings { get; }
 }

@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GestionCommerciale.Modules.Production.ViewModels;
 using GestionCommerciale.Modules.Charges.ViewModels;
 using GestionCommerciale.Modules.AvoirFournisseur.ViewModels;
 using GestionCommerciale.Modules.Auth.Services;
@@ -78,6 +79,7 @@ public partial class AppShellViewModel : BaseViewModel
     [ObservableProperty] private string _navReports = string.Empty;
     [ObservableProperty] private string _navSettings = string.Empty;
     [ObservableProperty] private string _navCharges = string.Empty;
+    [ObservableProperty] private string _navProduction = string.Empty;
 
     [ObservableProperty] private bool _isTestRunning;
     [ObservableProperty] private string _testProgress = string.Empty;
@@ -100,6 +102,7 @@ public partial class AppShellViewModel : BaseViewModel
     [ObservableProperty] private bool _isNavReportsActive;
     [ObservableProperty] private bool _isNavSettingsActive;
     [ObservableProperty] private bool _isNavChargesActive;
+    [ObservableProperty] private bool _isNavProductionActive;
 
     private void RefreshShellLabels()
     {
@@ -124,6 +127,7 @@ public partial class AppShellViewModel : BaseViewModel
         NavReports = _locale.T("Nav_Reports");
         NavSettings = _locale.T("Nav_Settings");
         NavCharges = _locale.T("Nav_Charges");
+        NavProduction = _locale.T("Nav_Production");
         Title = NavHome;
     }
 
@@ -163,6 +167,7 @@ public partial class AppShellViewModel : BaseViewModel
     public bool ShowNavReports => _session.CanAccessReporting;
     public bool ShowNavSettings => _session.CanAccessSettings;
     public bool ShowNavCharges => _session.CanAccessCharges;
+    public bool ShowNavProduction => _session.CanAccessProduction;
 
     [RelayCommand]
     private void GoHome() => _workspace.Open(_sp.GetRequiredService<HomeViewModel>());
@@ -244,6 +249,9 @@ public partial class AppShellViewModel : BaseViewModel
     private void GoCharges() => _workspace.Open(_sp.GetRequiredService<ChargeListViewModel>());
 
     [RelayCommand]
+    private void GoProduction() => _workspace.Open(_sp.GetRequiredService<ProductionListViewModel>());
+
+    [RelayCommand]
     private async Task RunPerfTestAsync(CancellationToken ct)
     {
         if (IsTestRunning) return;
@@ -284,5 +292,6 @@ public partial class AppShellViewModel : BaseViewModel
         IsNavReportsActive = p is ReportsListViewModel;
         IsNavSettingsActive = p is SettingsViewModel;
         IsNavChargesActive = p is ChargeListViewModel or ChargeEditViewModel;
+        IsNavProductionActive = p is ProductionListViewModel;
     }
 }

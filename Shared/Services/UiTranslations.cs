@@ -292,6 +292,27 @@ public static class UiTranslations
         ["Chg_MenuDeleteCategory"] = ("Supprimer le type…", "حذف النوع…"),
         ["Chg_ConfirmDeleteCategory"] = ("Supprimer définitivement le type « {0} » ?", "حذف النوع « {0} » نهائياً؟"),
         ["Chg_ErrCategoryInUse"] = ("Ce type est utilisé par au moins une charge et ne peut pas être supprimé.", "لا يمكن حذف هذا النوع لأنه مستخدم في مصروف واحد على الأقل."),
+
+        ["Nav_Production"] = ("Production", "الإنتاج"),
+        ["Prod_ListTitle"] = ("Production", "الإنتاج"),
+        ["Prod_BtnNew"] = ("Nouvelle saisie", "إدخال جديد"),
+        ["Prod_NewTitle"] = ("Nouvelle saisie production", "إدخال إنتاج جديد"),
+        ["Prod_EditTitleFmt"] = ("Modifier saisie — {0}", "تعديل الإدخال — {0}"),
+        ["Prod_MenuDelete"] = ("Supprimer la saisie…", "حذف الإدخال…"),
+        ["Prod_ConfirmDelete"] = ("Supprimer définitivement la saisie du {0} ?", "حذف إدخال {0} نهائياً؟"),
+        ["Prod_ColTables"] = ("Tables", "الطاولات"),
+        ["Prod_HdrVendre"] = ("Pochette à vendre", "أكياس للبيع"),
+        ["Prod_HdrRetourner"] = ("Pochette à retourner", "أكياس للإرجاع"),
+        ["Prod_ColGrand"] = ("Zwittre Grand", "Zwittre كبير"),
+        ["Prod_ColMoyenne"] = ("Zwittre Moyenne", "Zwittre متوسط"),
+        ["Prod_ColPetit"] = ("Zwittre Petit", "Zwittre صغير"),
+        ["Prod_LblGrandPochets"] = ("Zwittre Grand pochets", "أكياس Zwittre كبير"),
+        ["Prod_LblMoyennePochets"] = ("Zwittre Moyenne pochets", "أكياس Zwittre متوسط"),
+        ["Prod_LblPetitPochets"] = ("Zwittre Petit pochets", "أكياس Zwittre صغير"),
+        ["Prod_ColPochette"] = ("Pochettes", "أكياس"),
+        ["Prod_ColTotal"] = ("Zwitres", "Zwittre"),
+        ["Prod_LblTotalOperation"] = ("Total opération:", "مجموع العملية:"),
+        ["Prod_LblTotalPreview"] = ("Total zwitres", "مجموع Zwittre"),
     };
 
     public static string Get(string key, string languageTag)

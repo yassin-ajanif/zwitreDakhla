@@ -410,6 +410,126 @@ public sealed class DialogService : IDialogService
         return result;
     }
 
+    public async Task<ProductionOperationDialogResult?> ShowProductionOperationEditAsync(
+        string title,
+        string tablesLabel,
+        string grandLabel,
+        string moyenneLabel,
+        string petitLabel,
+        string totalPreviewLabel,
+        string cancelLabel,
+        string saveLabel,
+        int initialTables,
+        int initialGrand,
+        int initialMoyenne,
+        int initialPetit,
+        CancellationToken cancellationToken = default)
+    {
+        var owner = GetMainWindow();
+        var w = new Window
+        {
+            Title = title,
+            MinWidth = 360,
+            MaxWidth = 440,
+            SizeToContent = SizeToContent.WidthAndHeight,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            CanResize = false
+        };
+
+        ProductionOperationDialogResult? result = null;
+        var panel = new StackPanel { Margin = new Avalonia.Thickness(16), Spacing = 10 };
+
+        void AddField(string label, Control input)
+        {
+            panel.Children.Add(new TextBlock { Text = label, Opacity = 0.75 });
+            panel.Children.Add(input);
+        }
+
+        var tablesInput = new NumericUpDown
+        {
+            Minimum = 0,
+            Maximum = 99999,
+            Value = initialTables,
+            FormatString = "N0"
+        };
+        AddField(tablesLabel, tablesInput);
+
+        var grandInput = new NumericUpDown
+        {
+            Minimum = 0,
+            Maximum = 999999,
+            Value = initialGrand,
+            FormatString = "N0"
+        };
+        AddField(grandLabel, grandInput);
+
+        var moyenneInput = new NumericUpDown
+        {
+            Minimum = 0,
+            Maximum = 999999,
+            Value = initialMoyenne,
+            FormatString = "N0"
+        };
+        AddField(moyenneLabel, moyenneInput);
+
+        var petitInput = new NumericUpDown
+        {
+            Minimum = 0,
+            Maximum = 999999,
+            Value = initialPetit,
+            FormatString = "N0"
+        };
+        AddField(petitLabel, petitInput);
+
+        var totalPreview = new TextBlock { FontWeight = Avalonia.Media.FontWeight.SemiBold, Opacity = 0.85 };
+        void RefreshTotal()
+        {
+            var g = (int)(grandInput.Value ?? 0);
+            var m = (int)(moyenneInput.Value ?? 0);
+            var p = (int)(petitInput.Value ?? 0);
+            var total = g * 160 + m * 160 + p * 60;
+            totalPreview.Text = $"{totalPreviewLabel}: {total:N0}";
+        }
+
+        grandInput.ValueChanged += (_, _) => RefreshTotal();
+        moyenneInput.ValueChanged += (_, _) => RefreshTotal();
+        petitInput.ValueChanged += (_, _) => RefreshTotal();
+        RefreshTotal();
+        panel.Children.Add(totalPreview);
+
+        var buttons = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Spacing = 8,
+            Margin = new Avalonia.Thickness(0, 8, 0, 0)
+        };
+
+        var cancel = new Button { Content = cancelLabel };
+        cancel.Click += (_, _) => w.Close();
+        var save = new Button { Content = saveLabel, IsDefault = true };
+        save.Click += (_, _) =>
+        {
+            result = new ProductionOperationDialogResult(
+                (int)(tablesInput.Value ?? 0),
+                (int)(grandInput.Value ?? 0),
+                (int)(moyenneInput.Value ?? 0),
+                (int)(petitInput.Value ?? 0));
+            w.Close();
+        };
+        buttons.Children.Add(cancel);
+        buttons.Children.Add(save);
+        panel.Children.Add(buttons);
+        w.Content = panel;
+
+        if (owner != null)
+            await w.ShowDialog(owner);
+        else
+            w.Show();
+
+        return result;
+    }
+
     public async Task<(DateTime from, DateTime to)?> PickDateRangeAsync(string title, CancellationToken cancellationToken = default)
     {
         var owner = GetMainWindow();

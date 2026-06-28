@@ -2,6 +2,12 @@ namespace GestionCommerciale.Shared.Services;
 
 public sealed record CategorieChargeDialogResult(string Nom, bool Actif);
 
+public sealed record ProductionOperationDialogResult(
+    int Tables,
+    int PochetteGrand,
+    int PochetteMoyenne,
+    int PochettePetit);
+
 public interface IDialogService
 {
     Task ShowInfoAsync(string title, string message, CancellationToken cancellationToken = default, int autoCloseMs = 0);
@@ -25,5 +31,19 @@ public interface IDialogService
         string saveLabel,
         string? initialNom = null,
         bool initialActif = true,
+        CancellationToken cancellationToken = default);
+    Task<ProductionOperationDialogResult?> ShowProductionOperationEditAsync(
+        string title,
+        string tablesLabel,
+        string grandLabel,
+        string moyenneLabel,
+        string petitLabel,
+        string totalPreviewLabel,
+        string cancelLabel,
+        string saveLabel,
+        int initialTables,
+        int initialGrand,
+        int initialMoyenne,
+        int initialPetit,
         CancellationToken cancellationToken = default);
 }

@@ -90,6 +90,10 @@
                   Background="{Binding IsNavChargesActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=bg}"
                   Foreground="{Binding IsNavChargesActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=fg}"
                   BorderBrush="{Binding IsNavChargesActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=border}"/>
+          <Button Content="{Binding NavProduction}" Command="{Binding GoProductionCommand}" HorizontalAlignment="Stretch" IsVisible="{Binding ShowNavProduction}"
+                  Background="{Binding IsNavProductionActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=bg}"
+                  Foreground="{Binding IsNavProductionActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=fg}"
+                  BorderBrush="{Binding IsNavProductionActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=border}"/>
 
           <Border Height="14"/>
           <Button Command="{Binding ToggleFooterNavCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"

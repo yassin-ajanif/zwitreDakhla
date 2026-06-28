@@ -1,3 +1,4 @@
+using GestionCommerciale.Modules.Production.ViewModels;
 using GestionCommerciale.Modules.Charges.ViewModels;
 using GestionCommerciale.Modules.AvoirFournisseur.ViewModels;
 using GestionCommerciale.Modules.Auth.Services;
@@ -98,6 +99,7 @@ public static class DependencyInjection
         services.AddTransient<ReportsListViewModel>();
         services.AddTransient<ChargeListViewModel>();
         services.AddTransient<ChargeEditViewModel>();
+        services.AddTransient<ProductionListViewModel>();
         services.AddTransient<SettingsViewModel>();
 
         return services;
