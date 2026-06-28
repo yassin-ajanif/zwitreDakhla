@@ -84,8 +84,7 @@ public partial class ChargeEditViewModel : BaseViewModel
     [ObservableProperty] private string _lblTypesPanel = string.Empty;
     [ObservableProperty] private string _wmNewCategory = string.Empty;
     [ObservableProperty] private string _btnAddCategory = string.Empty;
-    [ObservableProperty] private string _btnUseCategory = string.Empty;
-    [ObservableProperty] private string _btnEditCategory = string.Empty;
+    [ObservableProperty] private string _menuDeleteCategory = string.Empty;
     [ObservableProperty] private string _colCategoryNom = string.Empty;
     [ObservableProperty] private string _colCategoryActif = string.Empty;
 
@@ -109,8 +108,7 @@ public partial class ChargeEditViewModel : BaseViewModel
         LblTypesPanel = _locale.T("Chg_TypesPanel");
         WmNewCategory = _locale.T("Chg_WmNewCategory");
         BtnAddCategory = _locale.T("Chg_BtnAddCategory");
-        BtnUseCategory = _locale.T("Chg_BtnUseCategory");
-        BtnEditCategory = _locale.T("Chg_BtnEditCategory");
+        MenuDeleteCategory = _locale.T("Chg_MenuDeleteCategory");
         ColCategoryNom = _locale.T("Lbl_ColNom");
         ColCategoryActif = _locale.T("Lbl_ColActif");
     }
@@ -326,15 +324,6 @@ public partial class ChargeEditViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    private void UsePanelCategory()
-    {
-        if (SelectedPanelCategory == null) return;
-        SelectedCategorie = Categories.FirstOrDefault(c => c.Id == SelectedPanelCategory.Id)
-            ?? SelectedPanelCategory;
-        CategorieChargeId = SelectedPanelCategory.Id;
-    }
-
-    [RelayCommand]
     private async Task EditPanelCategoryAsync(CancellationToken cancellationToken)
     {
         if (SelectedPanelCategory == null) return;
@@ -370,6 +359,49 @@ public partial class ChargeEditViewModel : BaseViewModel
             if (SelectedCategorie != null)
                 CategorieChargeId = SelectedCategorie.Id;
             SelectedPanelCategory = AllCategories.FirstOrDefault(c => c.Id == entity.Id);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeletePanelCategoryAsync(CategorieCharge? category, CancellationToken cancellationToken)
+    {
+        if (category == null || !_session.CanAccessCharges) return;
+
+        var ok = await _dialog.ConfirmAsync(
+            _locale.T("CategorieCharge_Title"),
+            _locale.Tf("Chg_ConfirmDeleteCategory", category.Nom),
+            cancellationToken);
+        if (!ok) return;
+
+        IsBusy = true;
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+            if (await db.Charges.AsNoTracking().AnyAsync(c => c.CategorieChargeId == category.Id, cancellationToken))
+            {
+                await _dialog.ShowErrorAsync(_locale.T("Dlg_Validation"), _locale.T("Chg_ErrCategoryInUse"), cancellationToken);
+                return;
+            }
+
+            var entity = await db.CategoriesCharges.FirstOrDefaultAsync(c => c.Id == category.Id, cancellationToken);
+            if (entity == null) return;
+
+            db.CategoriesCharges.Remove(entity);
+            await db.SaveChangesAsync(cancellationToken);
+
+            var wasSelected = CategorieChargeId == category.Id;
+            await LoadLookupsAsync(db, cancellationToken);
+            if (wasSelected)
+            {
+                SelectedCategorie = Categories.FirstOrDefault();
+                CategorieChargeId = SelectedCategorie?.Id ?? 0;
+            }
+
+            SelectedPanelCategory = AllCategories.FirstOrDefault(c => c.Id == CategorieChargeId);
         }
         finally
         {

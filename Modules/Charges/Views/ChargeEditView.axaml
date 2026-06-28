@@ -6,6 +6,7 @@
              xmlns:conv="using:GestionCommerciale.Shared.Converters"
              xmlns:beh="using:GestionCommerciale.Shared.Behaviors"
              x:Class="GestionCommerciale.Modules.Charges.Views.ChargeEditView"
+             x:Name="ChargeEditRoot"
              x:DataType="vm:ChargeEditViewModel">
   <Grid ColumnDefinitions="*,280" Margin="0,0,0,8">
     <ScrollViewer Grid.Column="0">
@@ -59,7 +60,7 @@
 
         <StackPanel Spacing="3">
           <TextBlock Text="{Binding LblFournisseur}"/>
-          <AutoCompleteBox MinWidth="280" MaxWidth="420"
+          <AutoCompleteBox HorizontalAlignment="Stretch"
                            MinimumPrefixLength="1" MaxDropDownHeight="320"
                            Watermark="{Binding WmFournisseurSearch}"
                            ItemsSource="{Binding Fournisseurs}"
@@ -122,19 +123,23 @@
                    beh:ListBoxOpenOnDoubleClick.OpenCommand="{Binding EditPanelCategoryCommand}">
             <ListBox.ItemTemplate>
               <DataTemplate DataType="m:CategorieCharge">
-                <Grid ColumnDefinitions="*,Auto">
-                  <TextBlock Grid.Column="0" Text="{Binding Nom}" TextTrimming="CharacterEllipsis"/>
-                  <TextBlock Grid.Column="1" Text="{Binding Actif, Converter={x:Static conv:BoolActifLabelConverter.Instance}}" Opacity="0.85"/>
-                </Grid>
+                <Border Padding="4,6" Background="Transparent">
+                  <Border.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="{Binding #ChargeEditRoot.((vm:ChargeEditViewModel)DataContext).MenuDeleteCategory}"
+                                Command="{Binding #ChargeEditRoot.((vm:ChargeEditViewModel)DataContext).DeletePanelCategoryCommand}"
+                                CommandParameter="{Binding}"/>
+                    </ContextMenu>
+                  </Border.ContextMenu>
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding Nom}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Grid.Column="1" Text="{Binding Actif, Converter={x:Static conv:BoolActifLabelConverter.Instance}}" Opacity="0.85"/>
+                  </Grid>
+                </Border>
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
         </Grid>
-
-        <StackPanel DockPanel.Dock="Bottom" Spacing="8">
-          <Button Content="{Binding BtnUseCategory}" Command="{Binding UsePanelCategoryCommand}" HorizontalAlignment="Stretch"/>
-          <Button Content="{Binding BtnEditCategory}" Command="{Binding EditPanelCategoryCommand}" HorizontalAlignment="Stretch"/>
-        </StackPanel>
       </DockPanel>
     </Border>
   </Grid>

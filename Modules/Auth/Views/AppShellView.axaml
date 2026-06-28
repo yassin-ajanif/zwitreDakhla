@@ -86,23 +86,10 @@
                     BorderBrush="{Binding IsNavAvoirFournisseurActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=border}"/>
           </StackPanel>
 
-          <Button Command="{Binding ToggleChargesNavCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                  Background="Transparent" BorderThickness="0" Padding="0,10,0,0" Margin="0,2,0,0">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <TextBlock Text="{Binding ChargesNavArrow}" VerticalAlignment="Center" Opacity="0.85" FontSize="11"/>
-              <TextBlock Text="{Binding NavChargesGroup}" FontWeight="SemiBold" FontSize="12" Classes="subtle" VerticalAlignment="Center"/>
-            </StackPanel>
-          </Button>
-          <StackPanel Spacing="8" IsVisible="{Binding ChargesNavExpanded}">
-            <Button Content="{Binding NavCategoriesCharge}" Command="{Binding GoCategoriesChargeCommand}" HorizontalAlignment="Stretch" IsVisible="{Binding ShowNavCategoriesCharge}"
-                    Background="{Binding IsNavCategoriesChargeActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=bg}"
-                    Foreground="{Binding IsNavCategoriesChargeActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=fg}"
-                    BorderBrush="{Binding IsNavCategoriesChargeActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=border}"/>
-            <Button Content="{Binding NavCharges}" Command="{Binding GoChargesCommand}" HorizontalAlignment="Stretch" IsVisible="{Binding ShowNavCharges}"
-                    Background="{Binding IsNavChargesActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=bg}"
-                    Foreground="{Binding IsNavChargesActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=fg}"
-                    BorderBrush="{Binding IsNavChargesActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=border}"/>
-          </StackPanel>
+          <Button Content="{Binding NavCharges}" Command="{Binding GoChargesCommand}" HorizontalAlignment="Stretch" IsVisible="{Binding ShowNavCharges}"
+                  Background="{Binding IsNavChargesActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=bg}"
+                  Foreground="{Binding IsNavChargesActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=fg}"
+                  BorderBrush="{Binding IsNavChargesActive, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=border}"/>
 
           <Border Height="14"/>
           <Button Command="{Binding ToggleFooterNavCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"

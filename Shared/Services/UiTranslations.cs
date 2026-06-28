@@ -286,6 +286,12 @@ public static class UiTranslations
         ["Chg_FilterAll"] = ("Toutes", "الكل"),
         ["Chg_LblBeneficiaireLibre"] = ("Ou saisie libre", "أو إدخال يدوي"),
         ["Chg_WmBeneficiaireLibre"] = ("Nom du bénéficiaire…", "اسم المستفيد…"),
+        ["Chg_TypesPanel"] = ("Types de charges", "أنواع المصاريف"),
+        ["Chg_WmNewCategory"] = ("Nouveau type…", "نوع جديد…"),
+        ["Chg_BtnAddCategory"] = ("Ajouter", "إضافة"),
+        ["Chg_MenuDeleteCategory"] = ("Supprimer le type…", "حذف النوع…"),
+        ["Chg_ConfirmDeleteCategory"] = ("Supprimer définitivement le type « {0} » ?", "حذف النوع « {0} » نهائياً؟"),
+        ["Chg_ErrCategoryInUse"] = ("Ce type est utilisé par au moins une charge et ne peut pas être supprimé.", "لا يمكن حذف هذا النوع لأنه مستخدم في مصروف واحد على الأقل."),
     };
 
     public static string Get(string key, string languageTag)
