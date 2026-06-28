@@ -1,36 +1,42 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionCommerciale.Modules.Auth.Services;
+using GestionCommerciale.Modules.Production.Models;
+using GestionCommerciale.Shared.Database;
 using GestionCommerciale.Shared.Services;
 using GestionCommerciale.Shared.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace GestionCommerciale.Modules.Production.ViewModels;
 
 public partial class ProductionListViewModel : BaseViewModel
 {
+    private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly IDialogService _dialog;
     private readonly ILocaleService _locale;
     private readonly ICurrentUserSession _session;
 
-    private readonly List<ProductionOperation> _allOperations = [];
     private DateTime? _dateFrom;
     private DateTime? _dateTo;
-    private int _nextId = 1;
 
     public ProductionListViewModel(
+        IDbContextFactory<AppDbContext> dbFactory,
         IDialogService dialog,
         ILocaleService locale,
         ICurrentUserSession session)
     {
+        _dbFactory = dbFactory;
         _dialog = dialog;
         _locale = locale;
         _session = session;
+        _dateFrom = DateTime.Today;
+        _dateTo = DateTime.Today;
         _locale.CultureApplied += (_, _) => RefreshUi();
         RefreshUi();
-        SeedMockData();
-        ApplyFilter();
         Title = _locale.T("Prod_ListTitle");
+        _ = LoadAsync(CancellationToken.None);
     }
 
     public ObservableCollection<ProductionOperation> Operations { get; } = [];
@@ -64,43 +70,75 @@ public partial class ProductionListViewModel : BaseViewModel
         ColTotal = _locale.T("Prod_ColTotal");
         LblTotalOperation = _locale.T("Prod_LblTotalOperation");
         Title = _locale.T("Prod_ListTitle");
+        RefreshModifiedLabels();
+    }
+
+    private void RefreshModifiedLabels()
+    {
+        foreach (var op in Operations)
+        {
+            if (!op.WasModified) continue;
+            var dt = op.UpdatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture);
+            op.ModifiedAtLabel = _locale.Tf("Prod_LblModifiedFmt", dt);
+        }
+    }
+
+    private ProductionOperation MapOperation(OperationProduction entity)
+    {
+        var op = ProductionOperation.FromEntity(entity);
+        if (op.WasModified)
+        {
+            var dt = entity.UpdatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture);
+            op.ModifiedAtLabel = _locale.Tf("Prod_LblModifiedFmt", dt);
+        }
+        return op;
     }
 
     private void UpdateBtnFilterDateText()
     {
-        BtnFilterDate = _dateFrom is { } from && _dateTo is { } to
-            ? $"{from:dd/MM/yy} — {to:dd/MM/yy}"
-            : _locale.T("Btn_FilterDate");
-    }
-
-    private void SeedMockData()
-    {
-        _allOperations.Clear();
-        _allOperations.Add(CreateOperation(new DateTime(2026, 6, 28, 9, 0, 0), 64, 512, 100, 50));
-        _allOperations.Add(CreateOperation(new DateTime(2026, 6, 28, 17, 30, 0), 58, 400, 80, 30));
-        _allOperations.Add(CreateOperation(new DateTime(2026, 6, 27, 10, 0, 0), 60, 480, 90, 40));
-    }
-
-    private ProductionOperation CreateOperation(DateTime date, int tables, int grand, int moyenne, int petit) =>
-        new()
+        if (_dateFrom is { } from && _dateTo is { } to)
         {
-            Id = _nextId++,
-            Date = date.Date,
-            CreatedAt = date,
-            Tables = tables,
-            PochetteGrand = grand,
-            PochetteMoyenne = moyenne,
-            PochettePetit = petit
-        };
+            BtnFilterDate = from.Date == DateTime.Today && to.Date == DateTime.Today
+                ? _locale.T("Btn_Today")
+                : $"{from:dd/MM/yy} — {to:dd/MM/yy}";
+        }
+        else
+        {
+            BtnFilterDate = _locale.T("Btn_FilterDate");
+        }
+    }
 
-    private void ApplyFilter()
+    private async Task LoadAsync(CancellationToken cancellationToken)
     {
-        Operations.Clear();
-        foreach (var op in _allOperations
-                     .Where(o => (!_dateFrom.HasValue || o.Date >= _dateFrom.Value.Date)
-                              && (!_dateTo.HasValue || o.Date <= _dateTo.Value.Date))
-                     .OrderByDescending(o => o.CreatedAt))
-            Operations.Add(op);
+        if (!_session.CanAccessProduction)
+        {
+            Operations.Clear();
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+            var q = db.OperationsProduction.AsNoTracking().AsQueryable();
+
+            if (_dateFrom.HasValue)
+                q = q.Where(o => o.OperationAt.Date >= _dateFrom.Value.Date);
+            if (_dateTo.HasValue)
+                q = q.Where(o => o.OperationAt.Date <= _dateTo.Value.Date);
+
+            var rows = await q
+                .OrderByDescending(o => o.UpdatedAt)
+                .ToListAsync(cancellationToken);
+
+            Operations.Clear();
+            foreach (var row in rows)
+                Operations.Add(MapOperation(row));
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
@@ -135,8 +173,13 @@ public partial class ProductionListViewModel : BaseViewModel
             cancellationToken);
         if (!ok) return;
 
-        _allOperations.RemoveAll(o => o.Id == operation.Id);
-        ApplyFilter();
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+        var entity = await db.OperationsProduction.FirstOrDefaultAsync(o => o.Id == operation.Id, cancellationToken);
+        if (entity == null) return;
+
+        db.OperationsProduction.Remove(entity);
+        await db.SaveChangesAsync(cancellationToken);
+        await LoadAsync(cancellationToken);
     }
 
     [RelayCommand]
@@ -144,10 +187,20 @@ public partial class ProductionListViewModel : BaseViewModel
     {
         var range = await _dialog.PickDateRangeAsync(_locale.T("Btn_FilterDate"), cancellationToken);
         if (range == null) return;
-        _dateFrom = range.Value.from.Date;
-        _dateTo = range.Value.to.Date;
+
+        if (range.Value.from == DateTime.MinValue && range.Value.to == DateTime.MinValue)
+        {
+            _dateFrom = DateTime.Today;
+            _dateTo = DateTime.Today;
+        }
+        else
+        {
+            _dateFrom = range.Value.from.Date;
+            _dateTo = range.Value.to.Date;
+        }
+
         UpdateBtnFilterDateText();
-        ApplyFilter();
+        await LoadAsync(cancellationToken);
     }
 
     private async Task ShowEditDialogAsync(ProductionOperation? existing, CancellationToken cancellationToken)
@@ -176,40 +229,34 @@ public partial class ProductionListViewModel : BaseViewModel
         if (result == null) return;
 
         var savedAt = DateTime.Now;
+        var vm = new ProductionOperation
+        {
+            Tables = result.Tables,
+            PochetteGrand = result.PochetteGrand,
+            PochetteMoyenne = result.PochetteMoyenne,
+            PochettePetit = result.PochettePetit
+        };
+
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+        int savedId;
 
         if (existing == null)
         {
-            _allOperations.Add(new ProductionOperation
-            {
-                Id = _nextId++,
-                Date = savedAt.Date,
-                CreatedAt = savedAt,
-                Tables = result.Tables,
-                PochetteGrand = result.PochetteGrand,
-                PochetteMoyenne = result.PochetteMoyenne,
-                PochettePetit = result.PochettePetit
-            });
+            var entity = new OperationProduction();
+            vm.ApplyTo(entity, savedAt);
+            db.OperationsProduction.Add(entity);
+            await db.SaveChangesAsync(cancellationToken);
+            savedId = entity.Id;
         }
         else
         {
-            var idx = _allOperations.FindIndex(o => o.Id == existing.Id);
-            if (idx >= 0)
-            {
-                _allOperations[idx] = new ProductionOperation
-                {
-                    Id = existing.Id,
-                    Date = savedAt.Date,
-                    CreatedAt = savedAt,
-                    Tables = result.Tables,
-                    PochetteGrand = result.PochetteGrand,
-                    PochetteMoyenne = result.PochetteMoyenne,
-                    PochettePetit = result.PochettePetit
-                };
-            }
+            var entity = await db.OperationsProduction.FirstAsync(o => o.Id == existing.Id, cancellationToken);
+            vm.ApplyTo(entity);
+            await db.SaveChangesAsync(cancellationToken);
+            savedId = entity.Id;
         }
 
-        var savedId = existing?.Id ?? _allOperations[^1].Id;
-        ApplyFilter();
+        await LoadAsync(cancellationToken);
         Selected = Operations.FirstOrDefault(o => o.Id == savedId);
     }
 }

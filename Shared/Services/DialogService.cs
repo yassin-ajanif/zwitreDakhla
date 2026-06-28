@@ -487,7 +487,7 @@ public sealed class DialogService : IDialogService
             var g = (int)(grandInput.Value ?? 0);
             var m = (int)(moyenneInput.Value ?? 0);
             var p = (int)(petitInput.Value ?? 0);
-            var total = g * 160 + m * 160 + p * 60;
+            var total = g * 160 + m * 160 + p * 160;
             totalPreview.Text = $"{totalPreviewLabel}: {total:N0}";
         }
 

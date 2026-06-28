@@ -69,6 +69,7 @@ internal static class UiTranslationExtras
         ["Btn_NewAvoir"] = ("Nouvel avoir", "إشعار دائن جديد"),
         ["Btn_BackList"] = ("Retour liste", "العودة للقائمة"),
         ["Btn_FilterDate"] = ("Filtrer par date", "تصفية حسب التاريخ"),
+        ["Btn_Today"] = ("Aujourd'hui", "اليوم"),
 
         ["Pag_First"] = ("Premier", "الأول"),
         ["Pag_Previous"] = ("Précédent", "السابق"),

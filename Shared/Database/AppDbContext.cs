@@ -1,4 +1,5 @@
 using GestionCommerciale.Modules.Charges.Models;
+using GestionCommerciale.Modules.Production.Models;
 using GestionCommerciale.Modules.Devis.Models;
 using GestionCommerciale.Modules.Facturation.Models;
 using GestionCommerciale.Modules.Livraison.Models;
@@ -43,6 +44,7 @@ public class AppDbContext : DbContext
     public DbSet<AvoirFournisseurLigne> AvoirFournisseurLignes => Set<AvoirFournisseurLigne>();
     public DbSet<CategorieCharge> CategoriesCharges => Set<CategorieCharge>();
     public DbSet<Charge> Charges => Set<Charge>();
+    public DbSet<OperationProduction> OperationsProduction => Set<OperationProduction>();
     public DbSet<AppSettingsRow> AppSettings => Set<AppSettingsRow>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -172,6 +174,12 @@ public class AppDbContext : DbContext
             e.HasIndex(c => c.CategorieChargeId);
             e.HasIndex(c => c.FournisseurId);
             e.HasIndex(c => c.Date);
+        });
+
+        modelBuilder.Entity<OperationProduction>(e =>
+        {
+            e.ToTable("OperationsProduction");
+            e.HasIndex(o => o.OperationAt);
         });
 
         modelBuilder.Entity<AppSettingsRow>(e =>
