@@ -28,15 +28,22 @@ public static class DbSeeder
             db.SaveChanges();
         }
 
-        if (!db.Produits.Any(p => p.Reference == ProductionStockService.ZwittreGrandReference))
+        var zwittre = db.Produits.FirstOrDefault(p => p.Reference == ProductionStockService.ZwittreGrandReference);
+        if (zwittre == null)
         {
             db.Produits.Add(new Produit
             {
                 Reference = ProductionStockService.ZwittreGrandReference,
                 Designation = ProductionStockService.ZwittreGrandDesignation,
                 Unite = "U",
+                TauxTVA = 20,
                 Actif = true
             });
+            db.SaveChanges();
+        }
+        else if (zwittre.TauxTVA == 0)
+        {
+            zwittre.TauxTVA = 20;
             db.SaveChanges();
         }
     }
