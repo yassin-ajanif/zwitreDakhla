@@ -1,7 +1,6 @@
 using System.Globalization;
 using ChargeEntity = GestionCommerciale.Modules.Charges.Models.Charge;
 using GestionCommerciale.Shared.Helpers;
-using GestionCommerciale.Shared.Services;
 
 namespace GestionCommerciale.Modules.Charges.ViewModels;
 
@@ -11,7 +10,6 @@ public sealed class ChargeListRow
     public string CategorieNom { get; init; } = string.Empty;
     public string BeneficiaireNom { get; init; } = string.Empty;
     public string DateShort { get; init; } = string.Empty;
-    public string StatutLabel { get; init; } = string.Empty;
     public string MontantLabel { get; init; } = string.Empty;
     public string LibellePreview { get; init; } = string.Empty;
 
@@ -19,8 +17,7 @@ public sealed class ChargeListRow
         ChargeEntity charge,
         string categorieNom,
         string beneficiaireNom,
-        string devise,
-        ILocaleService locale)
+        string devise)
     {
         return new ChargeListRow
         {
@@ -28,7 +25,6 @@ public sealed class ChargeListRow
             CategorieNom = categorieNom,
             BeneficiaireNom = beneficiaireNom,
             DateShort = charge.Date.ToString("d", CultureInfo.CurrentCulture),
-            StatutLabel = charge.EstPayee ? locale.T("Chg_Paid") : locale.T("Chg_Unpaid"),
             MontantLabel = $"{charge.MontantTtc:N2} {devise}",
             LibellePreview = DocumentListFormat.NotePreview(charge.Libelle),
         };

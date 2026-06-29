@@ -60,7 +60,6 @@ public partial class ChargeEditViewModel : BaseViewModel
     [ObservableProperty] private int? _fournisseurId;
     [ObservableProperty] private string _fournisseur = string.Empty;
     [ObservableProperty] private decimal _montantTtc;
-    [ObservableProperty] private bool _estPayee;
     [ObservableProperty] private string _note = string.Empty;
 
     [ObservableProperty] private string _btnBack = string.Empty;
@@ -74,9 +73,6 @@ public partial class ChargeEditViewModel : BaseViewModel
     [ObservableProperty] private string _wmFournisseurLibre = string.Empty;
     [ObservableProperty] private string _lblMontant = string.Empty;
     [ObservableProperty] private string _lblNote = string.Empty;
-    [ObservableProperty] private string _lblFactPayee = string.Empty;
-    [ObservableProperty] private string _lblPaid = string.Empty;
-    [ObservableProperty] private string _lblUnpaid = string.Empty;
     [ObservableProperty] private string _menuDeleteCharge = string.Empty;
     [ObservableProperty] private bool _showDelete;
     [ObservableProperty] private string _newCategoryNom = string.Empty;
@@ -101,9 +97,6 @@ public partial class ChargeEditViewModel : BaseViewModel
         WmFournisseurLibre = _locale.T("Chg_WmBeneficiaireLibre");
         LblMontant = _locale.T("DevisList_ColTtc");
         LblNote = _locale.T("DevisList_ColNote");
-        LblFactPayee = _locale.T("Faf_LblPayee");
-        LblPaid = _locale.T("Chg_Paid");
-        LblUnpaid = _locale.T("Chg_Unpaid");
         MenuDeleteCharge = _locale.T("Chg_MenuDelete");
         LblTypesPanel = _locale.T("Chg_TypesPanel");
         WmNewCategory = _locale.T("Chg_WmNewCategory");
@@ -157,7 +150,6 @@ public partial class ChargeEditViewModel : BaseViewModel
             FournisseurId = null;
             Fournisseur = string.Empty;
             MontantTtc = 0;
-            EstPayee = false;
             Note = string.Empty;
             CategorieChargeId = 0;
             Title = _locale.T("Chg_NewTitle");
@@ -175,7 +167,6 @@ public partial class ChargeEditViewModel : BaseViewModel
         FournisseurId = c.FournisseurId;
         Fournisseur = c.Fournisseur;
         MontantTtc = c.MontantTtc;
-        EstPayee = c.EstPayee;
         Note = c.Note;
         Title = _locale.Tf("Chg_TitleNum", Numero);
         await LoadLookupsAsync(db, cancellationToken);
@@ -249,7 +240,6 @@ public partial class ChargeEditViewModel : BaseViewModel
                     FournisseurId = FournisseurId,
                     Fournisseur = ResolveFournisseurText(),
                     MontantTtc = MontantTtc,
-                    EstPayee = EstPayee,
                     Note = Note.Trim(),
                     CreatedByUserId = _session.UserId
                 };
@@ -266,7 +256,6 @@ public partial class ChargeEditViewModel : BaseViewModel
                 entity.FournisseurId = FournisseurId;
                 entity.Fournisseur = ResolveFournisseurText();
                 entity.MontantTtc = MontantTtc;
-                entity.EstPayee = EstPayee;
                 entity.Note = Note.Trim();
                 await db.SaveChangesAsync(cancellationToken);
             }

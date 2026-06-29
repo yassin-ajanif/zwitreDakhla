@@ -17,7 +17,7 @@
         </StackPanel>
 
         <Border Background="{DynamicResource CourseraSurfaceBrush}" CornerRadius="8,8,0,0" Padding="10,8">
-          <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+          <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
             <TextBlock Grid.Column="0"
                        Text="{Binding Numero}"
                        FontWeight="Bold"
@@ -36,12 +36,6 @@
                   </DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>
-            </StackPanel>
-            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" Margin="16,0,0,0">
-              <TextBlock Text="{Binding LblFactPayee}" VerticalAlignment="Center" Opacity="0.7"/>
-              <ToggleSwitch IsChecked="{Binding EstPayee, Mode=TwoWay}"
-                            OnContent="{Binding LblPaid}"
-                            OffContent="{Binding LblUnpaid}"/>
             </StackPanel>
           </Grid>
         </Border>

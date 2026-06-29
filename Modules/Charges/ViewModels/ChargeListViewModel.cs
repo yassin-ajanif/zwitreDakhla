@@ -50,44 +50,31 @@ public partial class ChargeListViewModel : BaseViewModel
 
     [ObservableProperty] private string _btnNew = string.Empty;
     [ObservableProperty] private string _btnFilterDate = string.Empty;
-    [ObservableProperty] private string _wmFilterPayee = string.Empty;
     [ObservableProperty] private string _menuDeleteCharge = string.Empty;
     [ObservableProperty] private string _colHeaderRef = string.Empty;
     [ObservableProperty] private string _colHeaderCategorie = string.Empty;
     [ObservableProperty] private string _colHeaderBeneficiaire = string.Empty;
     [ObservableProperty] private string _colHeaderDate = string.Empty;
-    [ObservableProperty] private string _colHeaderPayee = string.Empty;
     [ObservableProperty] private string _colHeaderMontant = string.Empty;
     [ObservableProperty] private string _colHeaderLibelle = string.Empty;
     [ObservableProperty] private string _searchWatermark = string.Empty;
-    [ObservableProperty] private string _lblPayeeFilterAll = string.Empty;
-    [ObservableProperty] private string _lblPayeeFilterUnpaid = string.Empty;
-    [ObservableProperty] private string _lblPayeeFilterPaid = string.Empty;
-
     public PaginationHelper Pagination { get; }
 
     public ObservableCollection<ChargeListRow> Items { get; } = [];
     [ObservableProperty] private ChargeListRow? _selected;
-    [ObservableProperty] private int _payeeFilterIndex;
     [ObservableProperty] private string _searchText = string.Empty;
 
-    partial void OnPayeeFilterIndexChanged(int value) => _ = LoadPageAsync(CancellationToken.None, true);
     partial void OnSearchTextChanged(string value) => _ = LoadPageAsync(CancellationToken.None, true);
 
     private void RefreshListToolbar()
     {
         BtnNew = _locale.T("Btn_NewCharge");
         UpdateBtnFilterDateText();
-        WmFilterPayee = _locale.T("Chg_FilterPayee");
-        LblPayeeFilterAll = _locale.T("Chg_FilterAll");
-        LblPayeeFilterUnpaid = _locale.T("Chg_Unpaid");
-        LblPayeeFilterPaid = _locale.T("Chg_Paid");
         MenuDeleteCharge = _locale.T("Chg_MenuDelete");
         ColHeaderRef = _locale.T("DevisList_ColRef");
         ColHeaderCategorie = _locale.T("Chg_ColCategorie");
         ColHeaderBeneficiaire = _locale.T("Chg_ColBeneficiaire");
         ColHeaderDate = _locale.T("DevisList_ColDate");
-        ColHeaderPayee = _locale.T("Chg_ColPayee");
         ColHeaderMontant = _locale.T("DevisList_ColTtc");
         ColHeaderLibelle = _locale.T("Chg_ColLibelle");
         SearchWatermark = _locale.T("Wm_SearchCharges");
@@ -113,12 +100,6 @@ public partial class ChargeListViewModel : BaseViewModel
             var devise = string.IsNullOrWhiteSpace(cfg.Devise) ? "MAD" : cfg.Devise.Trim();
             await using var db = await _dbFactory.CreateDbContextAsync(ct);
             var q = db.Charges.AsNoTracking().AsQueryable();
-            q = PayeeFilterIndex switch
-            {
-                1 => q.Where(c => !c.EstPayee),
-                2 => q.Where(c => c.EstPayee),
-                _ => q,
-            };
             if (_dateFrom.HasValue)
                 q = q.Where(c => c.Date >= _dateFrom.Value);
             if (_dateTo.HasValue)
@@ -163,8 +144,7 @@ public partial class ChargeListViewModel : BaseViewModel
                     c,
                     cats.GetValueOrDefault(c.CategorieChargeId) ?? string.Empty,
                     beneficiaire,
-                    devise,
-                    _locale));
+                    devise));
             }
 
             Pagination.TotalCount = total;

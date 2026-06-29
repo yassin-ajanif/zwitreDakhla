@@ -12,6 +12,5 @@ public class Charge : BaseEntity
     public int? FournisseurId { get; set; }
     public string Fournisseur { get; set; } = string.Empty;
     public decimal MontantTtc { get; set; }
-    public bool EstPayee { get; set; }
     public string Note { get; set; } = string.Empty;
 }
