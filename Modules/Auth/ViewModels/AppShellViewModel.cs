@@ -19,6 +19,7 @@ using GestionCommerciale.Modules.Tiers.ViewModels;
 using GestionCommerciale.Shared.Services;
 using GestionCommerciale.Shared.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using Velopack;
 
 namespace GestionCommerciale.Modules.Auth.ViewModels;
 
@@ -29,19 +30,28 @@ public partial class AppShellViewModel : BaseViewModel
     private readonly ICurrentUserSession _session;
     private readonly ILocaleService _locale;
     private readonly PerformanceTestService _testService;
+    private readonly IAppUpdateService _updateService;
+    private readonly IDialogService _dialog;
+
+    private UpdateInfo? _pendingUpdate;
+    private VelopackAsset? _pendingRestartAsset;
 
     public AppShellViewModel(
         WorkspaceNavigator workspaceNavigator,
         IServiceProvider sp,
         ICurrentUserSession session,
         ILocaleService locale,
-        PerformanceTestService testService)
+        PerformanceTestService testService,
+        IAppUpdateService updateService,
+        IDialogService dialog)
     {
         _workspace = workspaceNavigator;
         _sp = sp;
         _session = session;
         _locale = locale;
         _testService = testService;
+        _updateService = updateService;
+        _dialog = dialog;
         UserLabel = session.Nom ?? string.Empty;
         _workspace.CurrentPageChanged += (_, _) =>
         {
@@ -52,6 +62,82 @@ public partial class AppShellViewModel : BaseViewModel
         RefreshShellLabels();
         _workspace.Open(_sp.GetRequiredService<HomeViewModel>());
         UpdateActiveNav();
+        _ = RunStartupUpdateCheckAsync();
+    }
+
+    private async Task RunStartupUpdateCheckAsync()
+    {
+        try
+        {
+            if (!_updateService.IsUpdateSupported)
+                return;
+
+            var pendingRestart = _updateService.PendingRestart;
+            if (pendingRestart is not null)
+            {
+                _pendingRestartAsset = pendingRestart;
+                AvailableUpdateVersion = pendingRestart.Version.ToString();
+                IsUpdateAvailable = true;
+                RefreshUpdateButtonLabel();
+                return;
+            }
+
+            var result = await _updateService.CheckForUpdatesAsync();
+            if (result.Status != AppUpdateStatus.UpdateAvailable || result.VelopackUpdate is null)
+                return;
+
+            _pendingUpdate = result.VelopackUpdate;
+            AvailableUpdateVersion = result.Update?.Version ?? "?";
+            IsUpdateAvailable = true;
+            RefreshUpdateButtonLabel();
+        }
+        catch
+        {
+            // Ignore update check failures on startup.
+        }
+    }
+
+    [ObservableProperty] private bool _isUpdateAvailable;
+    [ObservableProperty] private bool _isUpdateInstalling;
+    [ObservableProperty] private string _updateButtonLabel = string.Empty;
+    [ObservableProperty] private string _availableUpdateVersion = string.Empty;
+
+    private void RefreshUpdateButtonLabel()
+    {
+        UpdateButtonLabel = IsUpdateInstalling
+            ? _locale.T("Update_Installing")
+            : string.Format(_locale.T("Update_InstallBtn"), AvailableUpdateVersion);
+    }
+
+    [RelayCommand]
+    private async Task InstallUpdateAsync(CancellationToken cancellationToken)
+    {
+        if (IsUpdateInstalling)
+            return;
+
+        IsUpdateInstalling = true;
+        RefreshUpdateButtonLabel();
+
+        try
+        {
+            if (_pendingRestartAsset is not null)
+            {
+                _updateService.ApplyPendingRestart(_pendingRestartAsset);
+                return;
+            }
+
+            if (_pendingUpdate is not null)
+                await _updateService.DownloadAndApplyUpdatesAsync(_pendingUpdate, progress: null, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            IsUpdateInstalling = false;
+            RefreshUpdateButtonLabel();
+            await _dialog.ShowErrorAsync(
+                _locale.T("Update_Title"),
+                string.Format(_locale.T("Update_DownloadFailed"), ex.Message),
+                cancellationToken);
+        }
     }
 
     public BaseViewModel? WorkspaceCurrentPage => _workspace.CurrentPage;
@@ -128,6 +214,7 @@ public partial class AppShellViewModel : BaseViewModel
         NavSettings = _locale.T("Nav_Settings");
         NavCharges = _locale.T("Nav_Charges");
         NavProduction = _locale.T("Nav_Production");
+        RefreshUpdateButtonLabel();
         Title = NavHome;
     }
 

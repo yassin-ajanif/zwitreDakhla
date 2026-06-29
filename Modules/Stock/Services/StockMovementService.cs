@@ -187,13 +187,13 @@ public sealed class StockMovementService : IStockMovementService
         AppDbContext db,
         int operationProductionId,
         int produitId,
-        decimal totalZwitres,
+        decimal totalHuitres,
         string noteDetail,
         int? createdByUserId,
         CancellationToken cancellationToken = default)
     {
-        var desired = totalZwitres > 0
-            ? new Dictionary<int, decimal> { [produitId] = totalZwitres }
+        var desired = totalHuitres > 0
+            ? new Dictionary<int, decimal> { [produitId] = totalHuitres }
             : [];
 
         return SyncDocumentStockAsync(

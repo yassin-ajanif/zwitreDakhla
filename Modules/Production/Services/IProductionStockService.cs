@@ -4,7 +4,7 @@ namespace GestionCommerciale.Modules.Production.Services;
 
 public interface IProductionStockService
 {
-    Task<int> EnsureZwittreGrandProductAsync(AppDbContext db, CancellationToken cancellationToken = default);
+    Task<int> EnsureHuitreGrandProductAsync(AppDbContext db, CancellationToken cancellationToken = default);
 
     Task SyncOperationStockAsync(
         AppDbContext db,

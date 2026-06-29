@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionCommerciale.Modules.Auth.Services;
 using GestionCommerciale.Shared.Database;
+using GestionCommerciale.Shared.Helpers;
 using GestionCommerciale.Shared.Services;
 using GestionCommerciale.Shared.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,7 +46,7 @@ public partial class LoginViewModel : BaseViewModel
     private void RefreshLoginUi()
     {
         Title = _locale.T("Login_Title");
-        LAppTitle = _locale.T("Login_AppTitle");
+        LAppTitle = AppInfo.WindowTitle;
         LSubtitle = _locale.T("Login_Subtitle");
         WmEmail = _locale.T("Wm_Email");
         WmPassword = _locale.T("Wm_Password");

@@ -9,8 +9,10 @@ namespace GestionCommerciale.Modules.Production.Services;
 
 public sealed class ProductionStockService : IProductionStockService
 {
-    public const string ZwittreGrandReference = "ZWITTRE-GRAND";
-    public const string ZwittreGrandDesignation = "Zwittre Grand";
+    public const string LegacyHuitreGrandReference = "ZWITTRE-GRAND";
+
+    public const string HuitreGrandReference = "HUITRE-GRAND";
+    public const string HuitreGrandDesignation = "Huître Grand";
 
     private readonly IStockMovementService _stock;
     private readonly ILocaleService _locale;
@@ -21,17 +23,27 @@ public sealed class ProductionStockService : IProductionStockService
         _locale = locale;
     }
 
-    public async Task<int> EnsureZwittreGrandProductAsync(AppDbContext db, CancellationToken cancellationToken = default)
+    public async Task<int> EnsureHuitreGrandProductAsync(AppDbContext db, CancellationToken cancellationToken = default)
     {
         var existing = await db.Produits
-            .FirstOrDefaultAsync(p => p.Reference == ZwittreGrandReference, cancellationToken);
+            .FirstOrDefaultAsync(p =>
+                p.Reference == HuitreGrandReference || p.Reference == LegacyHuitreGrandReference,
+                cancellationToken);
         if (existing != null)
+        {
+            if (existing.Reference != HuitreGrandReference)
+                existing.Reference = HuitreGrandReference;
+            if (existing.Designation != HuitreGrandDesignation)
+                existing.Designation = HuitreGrandDesignation;
+            if (existing.Reference != HuitreGrandReference || existing.Designation != HuitreGrandDesignation)
+                await db.SaveChangesAsync(cancellationToken);
             return existing.Id;
+        }
 
         var product = new Produit
         {
-            Reference = ZwittreGrandReference,
-            Designation = ZwittreGrandDesignation,
+            Reference = HuitreGrandReference,
+            Designation = HuitreGrandDesignation,
             Unite = "U",
             Actif = true
         };
@@ -48,15 +60,15 @@ public sealed class ProductionStockService : IProductionStockService
         int? createdByUserId,
         CancellationToken cancellationToken = default)
     {
-        var produitId = await EnsureZwittreGrandProductAsync(db, cancellationToken);
-        var totalZwitres = pochetteGrand * ProductionOperation.MultiplierGrand;
+        var produitId = await EnsureHuitreGrandProductAsync(db, cancellationToken);
+        var totalHuitres = pochetteGrand * ProductionOperation.MultiplierGrand;
         var note = BuildNote(operationAt);
 
         await _stock.SyncProductionStockAsync(
             db,
             operationId,
             produitId,
-            totalZwitres,
+            totalHuitres,
             note,
             createdByUserId,
             cancellationToken);
@@ -69,7 +81,7 @@ public sealed class ProductionStockService : IProductionStockService
         int? createdByUserId,
         CancellationToken cancellationToken = default)
     {
-        var produitId = await EnsureZwittreGrandProductAsync(db, cancellationToken);
+        var produitId = await EnsureHuitreGrandProductAsync(db, cancellationToken);
         var note = BuildNote(operationAt);
 
         await _stock.SyncProductionStockAsync(

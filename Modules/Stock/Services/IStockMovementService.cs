@@ -54,7 +54,7 @@ public interface IStockMovementService
         AppDbContext db,
         int operationProductionId,
         int produitId,
-        decimal totalZwitres,
+        decimal totalHuitres,
         string noteDetail,
         int? createdByUserId,
         CancellationToken cancellationToken = default);

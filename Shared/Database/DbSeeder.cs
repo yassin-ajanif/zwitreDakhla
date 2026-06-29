@@ -28,23 +28,43 @@ public static class DbSeeder
             db.SaveChanges();
         }
 
-        var zwittre = db.Produits.FirstOrDefault(p => p.Reference == ProductionStockService.ZwittreGrandReference);
-        if (zwittre == null)
+        var legacyHuitre = db.Produits.FirstOrDefault(p =>
+            p.Reference == ProductionStockService.LegacyHuitreGrandReference);
+        if (legacyHuitre != null)
+        {
+            legacyHuitre.Reference = ProductionStockService.HuitreGrandReference;
+            legacyHuitre.Designation = ProductionStockService.HuitreGrandDesignation;
+            db.SaveChanges();
+        }
+
+        var huitre = db.Produits.FirstOrDefault(p => p.Reference == ProductionStockService.HuitreGrandReference);
+        if (huitre == null)
         {
             db.Produits.Add(new Produit
             {
-                Reference = ProductionStockService.ZwittreGrandReference,
-                Designation = ProductionStockService.ZwittreGrandDesignation,
+                Reference = ProductionStockService.HuitreGrandReference,
+                Designation = ProductionStockService.HuitreGrandDesignation,
                 Unite = "U",
                 TauxTVA = 20,
                 Actif = true
             });
             db.SaveChanges();
         }
-        else if (zwittre.TauxTVA == 0)
+        else
         {
-            zwittre.TauxTVA = 20;
-            db.SaveChanges();
+            var changed = false;
+            if (huitre.Designation != ProductionStockService.HuitreGrandDesignation)
+            {
+                huitre.Designation = ProductionStockService.HuitreGrandDesignation;
+                changed = true;
+            }
+            if (huitre.TauxTVA == 0)
+            {
+                huitre.TauxTVA = 20;
+                changed = true;
+            }
+            if (changed)
+                db.SaveChanges();
         }
     }
 }

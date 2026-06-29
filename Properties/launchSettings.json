@@ -4,6 +4,10 @@
     "GestionCommerciale": {
       "commandName": "Project",
       "hotReloadEnabled": true
+    },
+    "Huitres": {
+      "commandName": "Project",
+      "hotReloadEnabled": true
     }
   }
 }

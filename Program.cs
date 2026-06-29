@@ -1,12 +1,13 @@
 using Avalonia;
 using System;
 using System.Threading;
+using Velopack;
 
 namespace GestionCommerciale;
 
 sealed class Program
 {
-    private const string MutexName = "Global\\GestionCommerciale_SingleInstance";
+    private const string MutexName = "Global\\Huitres_SingleInstance";
 
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -14,6 +15,10 @@ sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        VelopackApp.Build()
+            .SetAutoApplyOnStartup(false)
+            .Run();
+
         using var mutex = new Mutex(true, MutexName, out var createdNew);
         if (!createdNew)
             return;

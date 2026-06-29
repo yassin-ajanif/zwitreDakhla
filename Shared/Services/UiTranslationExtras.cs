@@ -394,6 +394,11 @@ internal static class UiTranslationExtras
         ["Settings_BackupNoDir"] = ("Veuillez d'abord choisir un dossier de sauvegarde.", "الرجاء اختيار مجلد للنسخ الاحتياطي أولاً."),
         ["Settings_BackupDone"] = ("Sauvegarde effectuée avec succès.", "تم النسخ الاحتياطي بنجاح."),
 
+        ["Update_Title"] = ("Mises à jour", "التحديثات"),
+        ["Update_InstallBtn"] = ("Nouvelle version {0} — Installer", "إصدار جديد {0} — تثبيت"),
+        ["Update_Installing"] = ("Installation en cours…", "جاري التثبيت…"),
+        ["Update_DownloadFailed"] = ("Échec du téléchargement de la mise à jour : {0}", "فشل تحميل التحديث: {0}"),
+
         ["Stock_DefaultMotif"] = ("Inventaire", "جرد"),
         ["Stock_ImportNote"] = ("Import CSV", "استيراد CSV"),
         ["Stock_AnnulationNote"] = ("Annulation {0}", "إلغاء {0}"),

@@ -5,9 +5,28 @@
              xmlns:controls="using:GestionCommerciale.Shared.Controls"
              x:Class="GestionCommerciale.Modules.Auth.Views.AppShellView"
              x:DataType="vm:AppShellViewModel">
-  <Grid>
-    <Grid ColumnDefinitions="200,*" Margin="12">
-      <Border Grid.Column="0" Padding="10" Background="{DynamicResource CourseraSurfaceBrush}" CornerRadius="12" BorderThickness="1">
+  <Grid RowDefinitions="Auto,*">
+    <Border Grid.Row="0" Padding="8,6,12,6" Margin="12,12,12,0"
+            Background="{DynamicResource CourseraSurfaceBrush}"
+            CornerRadius="12" BorderThickness="1"
+            BorderBrush="{DynamicResource CourseraBorderBrush}"
+            IsVisible="{Binding IsUpdateAvailable}">
+      <Grid ColumnDefinitions="*,Auto">
+        <Button Grid.Column="1"
+                Content="{Binding UpdateButtonLabel}"
+                Command="{Binding InstallUpdateCommand}"
+                IsEnabled="{Binding !IsUpdateInstalling}"
+                Background="#2E7D32"
+                Foreground="White"
+                BorderBrush="#1B5E20"
+                FontWeight="SemiBold"
+                Padding="14,8"
+                CornerRadius="8"
+                HorizontalAlignment="Right"/>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" ColumnDefinitions="200,*" Margin="12">      <Border Grid.Column="0" Padding="10" Background="{DynamicResource CourseraSurfaceBrush}" CornerRadius="12" BorderThickness="1">
       <ScrollViewer>
         <StackPanel Spacing="8">
           <TextBlock Text="{Binding UserLabel}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,4"/>
