@@ -568,17 +568,26 @@ public sealed class ReportService : IReportService
         var charges = await db.Charges.AsNoTracking()
             .Where(c => c.Date >= from && c.Date < toEnd)
             .OrderBy(c => c.Date)
-            .Select(c => new { c.Date, c.Numero, c.Libelle, c.MontantTtc })
+            .Select(c => new { c.Date, c.Numero, c.Libelle, c.MontantTtc, c.CategorieChargeId })
             .ToListAsync(ct);
+
+        var chargeCatIds = charges.Select(c => c.CategorieChargeId).Distinct().ToList();
+        var chargeCategories = await db.CategoriesCharges.AsNoTracking()
+            .Where(cat => chargeCatIds.Contains(cat.Id))
+            .Select(cat => new { cat.Id, cat.Nom })
+            .ToListAsync(ct);
+        var chargeCatMap = chargeCategories.ToDictionary(c => c.Id);
 
         foreach (var c in charges)
         {
+            var categorieNom = chargeCatMap.GetValueOrDefault(c.CategorieChargeId)?.Nom;
+            var typeLabel = !string.IsNullOrWhiteSpace(categorieNom) ? categorieNom : typeCharge;
             var libelle = !string.IsNullOrWhiteSpace(c.Libelle)
                 ? c.Libelle
                 : c.Numero;
             rows.Add(new ReportProfitChargeRow(
                 ReportProfitChargeKind.Charge,
-                typeCharge,
+                typeLabel,
                 libelle,
                 c.Date,
                 null,
