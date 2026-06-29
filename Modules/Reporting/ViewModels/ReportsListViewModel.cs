@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionCommerciale.Modules.Reporting.Services;
@@ -44,12 +45,18 @@ public partial class ReportsListViewModel : BaseViewModel
     [ObservableProperty] private string _btnThisMonth = string.Empty;
     [ObservableProperty] private string _btnThisYear = string.Empty;
 
+    [ObservableProperty] private bool _isDatePresetToday;
+    [ObservableProperty] private bool _isDatePresetThisWeek;
+    [ObservableProperty] private bool _isDatePresetThisMonth;
+    [ObservableProperty] private bool _isDatePresetThisYear;
+
     [ObservableProperty] private string _btnSaleByProduct = string.Empty;
     [ObservableProperty] private string _btnSaleByCustomer = string.Empty;
     [ObservableProperty] private string _btnRefunds = string.Empty;
     [ObservableProperty] private string _btnDailySales = string.Empty;
     [ObservableProperty] private string _btnUnpaid = string.Empty;
     [ObservableProperty] private string _btnStockMovements = string.Empty;
+    [ObservableProperty] private string _btnProfitCharges = string.Empty;
 
     [ObservableProperty] private int _selectedReportIndex;
     [ObservableProperty] private DateTimeOffset _dateFrom = new(DateTime.Today.AddDays(-30));
@@ -62,6 +69,7 @@ public partial class ReportsListViewModel : BaseViewModel
     [ObservableProperty] private bool _showDailySales;
     [ObservableProperty] private bool _showUnpaid;
     [ObservableProperty] private bool _showStockMovements;
+    [ObservableProperty] private bool _showProfitCharges;
 
     [ObservableProperty] private bool _showEmpty;
     [ObservableProperty] private bool _showDateFilter = true;
@@ -77,6 +85,19 @@ public partial class ReportsListViewModel : BaseViewModel
     [ObservableProperty] private string _lblStockValTtcLabel = string.Empty;
     [ObservableProperty] private string _lblStockValHt = string.Empty;
     [ObservableProperty] private string _lblStockValTtc = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesColType = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesColLibelle = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesColDate = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesColMontantHt = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesColAmount = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesTotalMarginsLabel = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesTotalChargesLabel = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesNetResultLabel = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesTotalMargins = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesTotalCharges = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesNetResult = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesPeriod = string.Empty;
+    [ObservableProperty] private decimal _profitChargesNetResultAmount;
     [ObservableProperty] private bool _showPagination;
 
     private List<ReportSaleByProductRow> _allSalesByProduct = [];
@@ -85,6 +106,7 @@ public partial class ReportsListViewModel : BaseViewModel
     private List<ReportDailySaleRow> _allDailySales = [];
     private List<ReportUnpaidRow> _allUnpaidSales = [];
     private List<ReportStockMovementRow> _allStockMovements = [];
+    private List<ReportProfitChargeRow> _allProfitCharges = [];
 
     public ObservableCollection<ReportSaleByProductRow> SalesByProduct { get; } = [];
     public ObservableCollection<ReportSaleByCustomerRow> SalesByCustomer { get; } = [];
@@ -92,6 +114,7 @@ public partial class ReportsListViewModel : BaseViewModel
     public ObservableCollection<ReportDailySaleRow> DailySales { get; } = [];
     public ObservableCollection<ReportUnpaidRow> UnpaidSales { get; } = [];
     public ObservableCollection<ReportStockMovementRow> StockMovements { get; } = [];
+    public ObservableCollection<ReportProfitChargeRow> ProfitCharges { get; } = [];
 
     private void RefreshLabels()
     {
@@ -111,12 +134,70 @@ public partial class ReportsListViewModel : BaseViewModel
         BtnDailySales = _locale.T("Reports_BtnDailySales");
         BtnUnpaid = _locale.T("Reports_BtnUnpaid");
         BtnStockMovements = _locale.T("Reports_BtnStockMovements");
+        BtnProfitCharges = _locale.T("Reports_BtnProfitCharges");
         EmptyMessage = _locale.T("Reports_Empty");
         LblSaleByCustomerLabelHt = _locale.T("Reports_LblTotalHt");
         LblSaleByCustomerLabelTtc = _locale.T("Reports_LblTotalTtc");
         LblSaleByCustomerLabelProfit = _locale.T("Reports_LblTotalProfit");
         LblStockValHtLabel = _locale.T("Reports_LblStockValHt");
         LblStockValTtcLabel = _locale.T("Reports_LblStockValTtc");
+        LblProfitChargesColType = _locale.T("Reports_ColType");
+        LblProfitChargesColLibelle = _locale.T("Reports_ColLibelle");
+        LblProfitChargesColDate = _locale.T("Reports_ColDate");
+        LblProfitChargesColMontantHt = _locale.T("Reports_ColMontantHt");
+        LblProfitChargesColAmount = _locale.T("Reports_ColMargeCharge");
+        LblProfitChargesTotalMarginsLabel = _locale.T("Reports_LblTotalMargins");
+        LblProfitChargesTotalChargesLabel = _locale.T("Reports_LblTotalCharges");
+        LblProfitChargesNetResultLabel = _locale.T("Reports_LblNetResult");
+        UpdateDateFilterUi();
+    }
+
+    partial void OnDateFromChanged(DateTimeOffset value) => UpdateDateFilterUi();
+
+    partial void OnDateToChanged(DateTimeOffset value) => UpdateDateFilterUi();
+
+    private void UpdateDateFilterUi()
+    {
+        var from = DateFrom.Date;
+        var to = DateTo.Date;
+        var today = DateTime.Today;
+
+        IsDatePresetToday = from == today && to == today;
+
+        var diff = ((int)today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+        var monday = today.AddDays(-diff);
+        var sunday = monday.AddDays(6);
+        IsDatePresetThisWeek = from == monday && to == sunday;
+
+        var first = new DateTime(today.Year, today.Month, 1);
+        var last = first.AddMonths(1).AddDays(-1);
+        IsDatePresetThisMonth = from == first && to == last;
+
+        IsDatePresetThisYear = from == new DateTime(today.Year, 1, 1)
+                               && to == new DateTime(today.Year, 12, 31);
+
+        var reportName = _locale.T("Reports_BtnProfitCharges");
+        if (IsDatePresetToday)
+            LblProfitChargesPeriod = _locale.Tf("Reports_PeriodLabelFmt", reportName, BtnToday);
+        else if (IsDatePresetThisWeek)
+            LblProfitChargesPeriod = _locale.Tf("Reports_PeriodLabelFmt", reportName, BtnThisWeek);
+        else if (IsDatePresetThisMonth)
+            LblProfitChargesPeriod = _locale.Tf("Reports_PeriodLabelFmt", reportName, BtnThisMonth);
+        else if (IsDatePresetThisYear)
+            LblProfitChargesPeriod = _locale.Tf("Reports_PeriodLabelFmt", reportName, BtnThisYear);
+        else
+        {
+            var fromLabel = from.ToString("dd/MM/yyyy", CultureInfo.CurrentCulture);
+            var toLabel = to.ToString("dd/MM/yyyy", CultureInfo.CurrentCulture);
+            LblProfitChargesPeriod = _locale.Tf("Reports_PeriodFmt", reportName, fromLabel, toLabel);
+        }
+    }
+
+    private void SetDateRange(DateTime from, DateTime to)
+    {
+        DateFrom = new DateTimeOffset(from.Date);
+        DateTo = new DateTimeOffset(to.Date);
+        UpdateDateFilterUi();
     }
 
     partial void OnSelectedReportIndexChanged(int value)
@@ -127,6 +208,7 @@ public partial class ReportsListViewModel : BaseViewModel
         ShowDailySales = value == 3;
         ShowUnpaid = value == 4;
         ShowStockMovements = value == 5;
+        ShowProfitCharges = value == 6;
         ShowDateFilter = value != 4;
         LoadReportCommand.Execute(null);
     }
@@ -137,12 +219,7 @@ public partial class ReportsListViewModel : BaseViewModel
     [RelayCommand] private void GoDailySales() => SelectedReportIndex = 3;
     [RelayCommand] private void GoUnpaid() => SelectedReportIndex = 4;
     [RelayCommand] private void GoStockMovements() => SelectedReportIndex = 5;
-
-    private void SetDateRange(DateTime from, DateTime to)
-    {
-        DateFrom = new DateTimeOffset(from.Date);
-        DateTo = new DateTimeOffset(to.Date);
-    }
+    [RelayCommand] private void GoProfitCharges() => SelectedReportIndex = 6;
 
     [RelayCommand]
     private async Task FilterTodayAsync(CancellationToken cancellationToken)
@@ -231,6 +308,9 @@ public partial class ReportsListViewModel : BaseViewModel
                 case 5:
                     await LoadStockMovementsAsync(from, to, cancellationToken);
                     break;
+                case 6:
+                    await LoadProfitChargesAsync(from, to, cancellationToken);
+                    break;
             }
         }
         catch (Exception ex)
@@ -288,6 +368,20 @@ public partial class ReportsListViewModel : BaseViewModel
         FinishPagedLoad(_allStockMovements.Count);
     }
 
+    private async Task LoadProfitChargesAsync(DateTime from, DateTime to, CancellationToken ct)
+    {
+        _allProfitCharges = await Task.Run(() => _reportService.GetProfitChargesAsync(from, to, ct), ct);
+        var dev = _allProfitCharges.Count > 0 ? _allProfitCharges[0].Devise : "MAD";
+        var totalMargins = _allProfitCharges.Where(r => r.IsVente).Sum(r => r.SignedAmount);
+        var totalCharges = _allProfitCharges.Where(r => !r.IsVente).Sum(r => -r.SignedAmount);
+        var net = totalMargins - totalCharges;
+        LblProfitChargesTotalMargins = $"+{totalMargins:N0} {dev}";
+        LblProfitChargesTotalCharges = $"-{totalCharges:N0} {dev}";
+        LblProfitChargesNetResult = $"{(net >= 0 ? "+" : "")}{net:N0} {dev}";
+        ProfitChargesNetResultAmount = net;
+        FinishPagedLoad(_allProfitCharges.Count);
+    }
+
     private void FinishPagedLoad(int totalCount)
     {
         Pagination.CurrentPage = 1;
@@ -318,6 +412,9 @@ public partial class ReportsListViewModel : BaseViewModel
                 break;
             case 5:
                 ApplyPage(StockMovements, _allStockMovements);
+                break;
+            case 6:
+                ApplyPage(ProfitCharges, _allProfitCharges);
                 break;
         }
     }

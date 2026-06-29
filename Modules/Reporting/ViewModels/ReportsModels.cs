@@ -239,6 +239,44 @@ public sealed partial class ReportDailySaleRow : ObservableObject
     public ObservableCollection<ReportDailySaleDetailRow> Details => _details;
 }
 
+public sealed class ReportProfitChargeRow
+{
+    public ReportProfitChargeRow(
+        bool isVente,
+        string typeLabel,
+        string libelle,
+        DateTime date,
+        decimal? montantHt,
+        decimal signedAmount,
+        string devise)
+    {
+        IsVente = isVente;
+        TypeLabel = typeLabel;
+        Libelle = libelle;
+        Date = date;
+        MontantHt = montantHt;
+        SignedAmount = signedAmount;
+        Devise = devise;
+        LblDate = date.ToString("dd/MM/yyyy");
+        LblMontantHt = montantHt.HasValue ? $"{montantHt.Value:N0} {devise}" : "—";
+        var prefix = signedAmount >= 0 ? "+" : "";
+        LblAmount = $"{prefix}{signedAmount:N0} {devise}";
+    }
+
+    public decimal ColorSignal => IsVente ? 1m : -1m;
+
+    public bool IsVente { get; }
+    public string TypeLabel { get; }
+    public string Libelle { get; }
+    public DateTime Date { get; }
+    public decimal? MontantHt { get; }
+    public decimal SignedAmount { get; }
+    public string Devise { get; }
+    public string LblDate { get; }
+    public string LblMontantHt { get; }
+    public string LblAmount { get; }
+}
+
 public sealed class ReportStockMovementRow
 {
     public ReportStockMovementRow(DateTime date, string produitRef, string produitDesignation,

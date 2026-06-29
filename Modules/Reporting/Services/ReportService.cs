@@ -437,6 +437,108 @@ public sealed class ReportService : IReportService
         }).ToList();
     }
 
+    public async Task<List<ReportProfitChargeRow>> GetProfitChargesAsync(
+        DateTime from, DateTime to, CancellationToken ct = default)
+    {
+        var dev = await GetDeviseAsync(ct);
+        var typeVente = _locale.T("Reports_TypeVente");
+        var typeCharge = _locale.T("Reports_TypeCharge");
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var toEnd = to.Date.AddDays(1);
+
+        var factures = await db.Factures.AsNoTracking()
+            .Where(f => f.Date >= from && f.Date < toEnd)
+            .Select(f => new
+            {
+                f.ClientId,
+                f.Numero,
+                f.Date,
+                f.RemiseGlobale,
+                Lignes = f.Lignes!.Select(l => new
+                {
+                    l.ProduitId,
+                    l.Quantite,
+                    l.PrixUnitaireHT,
+                    l.Remise,
+                    l.TauxTVA
+                }).ToList()
+            })
+            .ToListAsync(ct);
+
+        var clientIds = factures.Select(f => f.ClientId).Distinct().ToList();
+        var clients = await db.Tiers.AsNoTracking()
+            .Where(t => clientIds.Contains(t.Id))
+            .Select(t => new { t.Id, t.Nom })
+            .ToListAsync(ct);
+        var clientMap = clients.ToDictionary(c => c.Id);
+
+        var allProdIds = factures.SelectMany(f => f.Lignes).Select(l => l.ProduitId).Distinct().ToList();
+        var produits = await db.Produits.AsNoTracking()
+            .Where(p => allProdIds.Contains(p.Id))
+            .Select(p => new { p.Id, p.PrixAchatHT })
+            .ToListAsync(ct);
+        var prodMap = produits.ToDictionary(p => p.Id);
+
+        var rows = new List<ReportProfitChargeRow>();
+
+        foreach (var f in factures.OrderBy(f => f.Date))
+        {
+            var factor = 1 - f.RemiseGlobale / 100m;
+            decimal ht = 0, cost = 0;
+            foreach (var l in f.Lignes)
+            {
+                var lht = DocumentTotalsHelper.LigneHT(l.Quantite, l.PrixUnitaireHT, l.Remise);
+                var prixAchat = prodMap.GetValueOrDefault(l.ProduitId)?.PrixAchatHT ?? 0;
+                ht += lht;
+                cost += l.Quantite * prixAchat;
+            }
+
+            ht *= factor;
+            cost *= factor;
+            var profit = ht - cost;
+            var client = clientMap.GetValueOrDefault(f.ClientId)?.Nom ?? string.Empty;
+            var numero = string.IsNullOrWhiteSpace(f.Numero) ? string.Empty : f.Numero;
+            var libelle = string.IsNullOrWhiteSpace(client)
+                ? $"Facture {numero}".Trim()
+                : $"Facture {numero} — {client}".Trim();
+
+            rows.Add(new ReportProfitChargeRow(
+                true,
+                typeVente,
+                libelle,
+                f.Date,
+                ht,
+                profit,
+                dev));
+        }
+
+        var charges = await db.Charges.AsNoTracking()
+            .Where(c => c.Date >= from && c.Date < toEnd)
+            .OrderBy(c => c.Date)
+            .Select(c => new { c.Date, c.Numero, c.Libelle, c.MontantTtc })
+            .ToListAsync(ct);
+
+        foreach (var c in charges)
+        {
+            var libelle = !string.IsNullOrWhiteSpace(c.Libelle)
+                ? c.Libelle
+                : c.Numero;
+            rows.Add(new ReportProfitChargeRow(
+                false,
+                typeCharge,
+                libelle,
+                c.Date,
+                null,
+                -c.MontantTtc,
+                dev));
+        }
+
+        return rows
+            .OrderBy(r => r.Date)
+            .ThenBy(r => r.IsVente ? 0 : 1)
+            .ToList();
+    }
+
     public async Task<(decimal ht, decimal ttc, string devise)> GetStockValuationAsync(CancellationToken ct = default)
     {
         var dev = await GetDeviseAsync(ct);

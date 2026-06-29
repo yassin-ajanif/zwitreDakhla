@@ -46,19 +46,36 @@
                   Foreground="{Binding ShowStockMovements, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=fg}"
                   BorderBrush="{Binding ShowStockMovements, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=border}"
                   Command="{Binding GoStockMovementsCommand}"/>
+          <Button Content="{Binding BtnProfitCharges}" Margin="0,0,6,0"
+                  Background="{Binding ShowProfitCharges, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=bg}"
+                  Foreground="{Binding ShowProfitCharges, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=fg}"
+                  BorderBrush="{Binding ShowProfitCharges, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=border}"
+                  Command="{Binding GoProfitChargesCommand}"/>
         </StackPanel>
 
         <!-- Date range (hidden for unpaid) -->
         <StackPanel Spacing="8" IsVisible="{Binding ShowDateFilter}">
           <WrapPanel>
             <Button Content="{Binding BtnToday}" Command="{Binding FilterTodayCommand}"
-                    Margin="0,0,6,6" Padding="12,6" MinHeight="32"/>
+                    Margin="0,0,6,6" Padding="12,6" MinHeight="32"
+                    Background="{Binding IsDatePresetToday, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=bg}"
+                    Foreground="{Binding IsDatePresetToday, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=fg}"
+                    BorderBrush="{Binding IsDatePresetToday, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=border}"/>
             <Button Content="{Binding BtnThisWeek}" Command="{Binding FilterThisWeekCommand}"
-                    Margin="0,0,6,6" Padding="12,6" MinHeight="32"/>
+                    Margin="0,0,6,6" Padding="12,6" MinHeight="32"
+                    Background="{Binding IsDatePresetThisWeek, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=bg}"
+                    Foreground="{Binding IsDatePresetThisWeek, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=fg}"
+                    BorderBrush="{Binding IsDatePresetThisWeek, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=border}"/>
             <Button Content="{Binding BtnThisMonth}" Command="{Binding FilterThisMonthCommand}"
-                    Margin="0,0,6,6" Padding="12,6" MinHeight="32"/>
+                    Margin="0,0,6,6" Padding="12,6" MinHeight="32"
+                    Background="{Binding IsDatePresetThisMonth, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=bg}"
+                    Foreground="{Binding IsDatePresetThisMonth, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=fg}"
+                    BorderBrush="{Binding IsDatePresetThisMonth, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=border}"/>
             <Button Content="{Binding BtnThisYear}" Command="{Binding FilterThisYearCommand}"
-                    Margin="0,0,6,6" Padding="12,6" MinHeight="32"/>
+                    Margin="0,0,6,6" Padding="12,6" MinHeight="32"
+                    Background="{Binding IsDatePresetThisYear, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=bg}"
+                    Foreground="{Binding IsDatePresetThisYear, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=fg}"
+                    BorderBrush="{Binding IsDatePresetThisYear, Converter={x:Static conv:NavTabHighlightConverter.Instance}, ConverterParameter=border}"/>
           </WrapPanel>
           <Grid ColumnDefinitions="Auto,*,Auto,*,Auto" VerticalAlignment="Center">
             <TextBlock Grid.Column="0" Text="{Binding LblDateFrom}" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -474,6 +491,99 @@
                   </StackPanel>
                 </StackPanel>
               </Border>
+
+              <Border Padding="20,18" CornerRadius="10"
+                      Background="{DynamicResource CourseraSurfaceMutedBrush}"
+                      IsVisible="{Binding ShowEmpty}">
+                <TextBlock Text="{Binding EmptyMessage}" Classes="subtle" TextWrapping="Wrap"
+                           TextAlignment="Center" FontSize="13.5" LineHeight="22"/>
+              </Border>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- Profit & charges table -->
+        <StackPanel Spacing="8" IsVisible="{Binding ShowProfitCharges}">
+          <Border Padding="16" Background="{DynamicResource CourseraSurfaceBrush}"
+                  BorderBrush="{DynamicResource CourseraBorderBrush}" BorderThickness="1" CornerRadius="12">
+            <StackPanel Spacing="8">
+              <Border Padding="12,8" CornerRadius="8" Margin="0,0,0,8"
+                      Background="#FFF7ED"
+                      BorderBrush="{DynamicResource CourseraWarningBrush}"
+                      BorderThickness="1">
+                <TextBlock Text="{Binding LblProfitChargesPeriod}"
+                           FontWeight="Bold" FontSize="16"
+                           Foreground="{DynamicResource CourseraWarningBrush}"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"/>
+              </Border>
+              <Border Padding="14,10" CornerRadius="8"
+                      Background="{DynamicResource CourseraSurfaceMutedBrush}"
+                      BorderBrush="{DynamicResource CourseraBorderBrush}" BorderThickness="1">
+                <Grid ColumnDefinitions="*,*,*">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding LblProfitChargesTotalMarginsLabel}" FontWeight="SemiBold"
+                               FontSize="12" Opacity="0.75"/>
+                    <TextBlock Text="{Binding LblProfitChargesTotalMargins}" FontSize="14" FontWeight="Bold"
+                               Foreground="{DynamicResource CourseraSuccessBrush}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding LblProfitChargesTotalChargesLabel}" FontWeight="SemiBold"
+                               FontSize="12" Opacity="0.75" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding LblProfitChargesTotalCharges}" FontSize="14" FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               Foreground="{DynamicResource CourseraDangerBrush}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="2" Spacing="4" HorizontalAlignment="Right">
+                    <TextBlock Text="{Binding LblProfitChargesNetResultLabel}" FontWeight="SemiBold"
+                               FontSize="12" Opacity="0.75" HorizontalAlignment="Right"/>
+                    <TextBlock Text="{Binding LblProfitChargesNetResult}" FontSize="15" FontWeight="Bold"
+                               HorizontalAlignment="Right"
+                               Foreground="{Binding ProfitChargesNetResultAmount, Converter={x:Static conv:PositiveNegativeForegroundConverter.Instance}}"/>
+                  </StackPanel>
+                </Grid>
+              </Border>
+
+              <Border Padding="10,8" Background="#12000000" CornerRadius="8,8,0,0"
+                      BorderBrush="{DynamicResource CourseraBorderBrush}" BorderThickness="0,0,0,1">
+                <Grid ColumnDefinitions="72,*,96,96,120">
+                  <TextBlock Text="{Binding LblProfitChargesColType}" FontWeight="SemiBold" FontSize="11"/>
+                  <TextBlock Grid.Column="1" Text="{Binding LblProfitChargesColLibelle}" FontWeight="SemiBold"
+                             FontSize="11" Margin="8,0,0,0"/>
+                  <TextBlock Grid.Column="2" Text="{Binding LblProfitChargesColDate}" FontWeight="SemiBold"
+                             FontSize="11" HorizontalAlignment="Center"/>
+                  <TextBlock Grid.Column="3" Text="{Binding LblProfitChargesColMontantHt}" FontWeight="SemiBold"
+                             FontSize="11" HorizontalAlignment="Right"/>
+                  <TextBlock Grid.Column="4" Text="{Binding LblProfitChargesColAmount}" FontWeight="SemiBold"
+                             FontSize="11" HorizontalAlignment="Right"/>
+                </Grid>
+              </Border>
+
+              <ItemsControl ItemsSource="{Binding ProfitCharges}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ReportProfitChargeRow">
+                    <Border Padding="10,8" Margin="0,0,0,4"
+                            Background="{DynamicResource CourseraSurfaceMutedBrush}"
+                            CornerRadius="8">
+                      <Grid ColumnDefinitions="72,*,96,96,120">
+                        <TextBlock Text="{Binding TypeLabel}" FontSize="12" FontWeight="SemiBold"
+                                   VerticalAlignment="Center"
+                                   Foreground="{Binding ColorSignal, Converter={x:Static conv:PositiveNegativeForegroundConverter.Instance}}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Libelle}" FontSize="13"
+                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                   Margin="8,0,0,0"/>
+                        <TextBlock Grid.Column="2" Text="{Binding LblDate}" FontSize="12"
+                                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBlock Grid.Column="3" Text="{Binding LblMontantHt}" FontSize="12"
+                                   VerticalAlignment="Center" HorizontalAlignment="Right" Opacity="0.85"/>
+                        <TextBlock Grid.Column="4" Text="{Binding LblAmount}" FontSize="13" FontWeight="SemiBold"
+                                   VerticalAlignment="Center" HorizontalAlignment="Right"
+                                   Foreground="{Binding SignedAmount, Converter={x:Static conv:PositiveNegativeForegroundConverter.Instance}}"/>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
 
               <Border Padding="20,18" CornerRadius="10"
                       Background="{DynamicResource CourseraSurfaceMutedBrush}"
