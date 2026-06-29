@@ -1,4 +1,5 @@
 using GestionCommerciale.Modules.Facturation.Models;
+using GestionCommerciale.Modules.FactureFournisseur.Models;
 using GestionCommerciale.Modules.Reporting.ViewModels;
 using GestionCommerciale.Modules.Stock.Models;
 using GestionCommerciale.Modules.Tiers.Models;
@@ -442,6 +443,7 @@ public sealed class ReportService : IReportService
     {
         var dev = await GetDeviseAsync(ct);
         var typeVente = _locale.T("Reports_TypeVente");
+        var typeAchat = _locale.T("Reports_TypeAchat");
         var typeCharge = _locale.T("Reports_TypeCharge");
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
         var toEnd = to.Date.AddDays(1);
@@ -503,12 +505,63 @@ public sealed class ReportService : IReportService
                 : $"Facture {numero} — {client}".Trim();
 
             rows.Add(new ReportProfitChargeRow(
-                true,
+                ReportProfitChargeKind.Vente,
                 typeVente,
                 libelle,
                 f.Date,
                 ht,
                 profit,
+                dev));
+        }
+
+        var facturesFournisseur = await db.FacturesFournisseurs.AsNoTracking()
+            .Where(f => f.Date >= from && f.Date < toEnd)
+            .Select(f => new
+            {
+                f.FournisseurId,
+                f.Numero,
+                f.Date,
+                f.RemiseGlobale,
+                Lignes = f.Lignes!.Select(l => new
+                {
+                    l.Quantite,
+                    l.PrixUnitaireHT,
+                    l.Remise,
+                    l.TauxTVA
+                }).ToList()
+            })
+            .ToListAsync(ct);
+
+        var fournisseurIds = facturesFournisseur.Select(f => f.FournisseurId).Distinct().ToList();
+        var fournisseurs = await db.Tiers.AsNoTracking()
+            .Where(t => fournisseurIds.Contains(t.Id))
+            .Select(t => new { t.Id, t.Nom })
+            .ToListAsync(ct);
+        var fournisseurMap = fournisseurs.ToDictionary(f => f.Id);
+
+        foreach (var f in facturesFournisseur.OrderBy(f => f.Date))
+        {
+            var lignes = f.Lignes.Select(l => new FactureFournisseurLigne
+            {
+                Quantite = l.Quantite,
+                PrixUnitaireHT = l.PrixUnitaireHT,
+                Remise = l.Remise,
+                TauxTVA = l.TauxTVA
+            }).ToList();
+            var (ht, _, ttc) = DocumentTotalsHelper.FactureFournisseurTotals(lignes, f.RemiseGlobale);
+            var fournisseur = fournisseurMap.GetValueOrDefault(f.FournisseurId)?.Nom ?? string.Empty;
+            var numero = string.IsNullOrWhiteSpace(f.Numero) ? string.Empty : f.Numero;
+            var libelle = string.IsNullOrWhiteSpace(fournisseur)
+                ? $"Facture {numero}".Trim()
+                : $"Facture {numero} — {fournisseur}".Trim();
+
+            rows.Add(new ReportProfitChargeRow(
+                ReportProfitChargeKind.Achat,
+                typeAchat,
+                libelle,
+                f.Date,
+                ht,
+                -ttc,
                 dev));
         }
 
@@ -524,7 +577,7 @@ public sealed class ReportService : IReportService
                 ? c.Libelle
                 : c.Numero;
             rows.Add(new ReportProfitChargeRow(
-                false,
+                ReportProfitChargeKind.Charge,
                 typeCharge,
                 libelle,
                 c.Date,
@@ -535,7 +588,12 @@ public sealed class ReportService : IReportService
 
         return rows
             .OrderBy(r => r.Date)
-            .ThenBy(r => r.IsVente ? 0 : 1)
+            .ThenBy(r => r.Kind switch
+            {
+                ReportProfitChargeKind.Vente => 0,
+                ReportProfitChargeKind.Achat => 1,
+                _ => 2
+            })
             .ToList();
     }
 

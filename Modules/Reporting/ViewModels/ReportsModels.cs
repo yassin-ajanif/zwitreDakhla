@@ -239,10 +239,17 @@ public sealed partial class ReportDailySaleRow : ObservableObject
     public ObservableCollection<ReportDailySaleDetailRow> Details => _details;
 }
 
+public enum ReportProfitChargeKind
+{
+    Vente,
+    Achat,
+    Charge
+}
+
 public sealed class ReportProfitChargeRow
 {
     public ReportProfitChargeRow(
-        bool isVente,
+        ReportProfitChargeKind kind,
         string typeLabel,
         string libelle,
         DateTime date,
@@ -250,7 +257,7 @@ public sealed class ReportProfitChargeRow
         decimal signedAmount,
         string devise)
     {
-        IsVente = isVente;
+        Kind = kind;
         TypeLabel = typeLabel;
         Libelle = libelle;
         Date = date;
@@ -263,9 +270,10 @@ public sealed class ReportProfitChargeRow
         LblAmount = $"{prefix}{signedAmount:N0} {devise}";
     }
 
-    public decimal ColorSignal => IsVente ? 1m : -1m;
+    public decimal ColorSignal => Kind == ReportProfitChargeKind.Vente ? 1m : -1m;
 
-    public bool IsVente { get; }
+    public ReportProfitChargeKind Kind { get; }
+    public bool IsVente => Kind == ReportProfitChargeKind.Vente;
     public string TypeLabel { get; }
     public string Libelle { get; }
     public DateTime Date { get; }
