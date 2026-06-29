@@ -29,8 +29,11 @@ public partial class ReportsListViewModel : BaseViewModel
         _locale = locale;
         _locale.CultureApplied += (_, _) => RefreshLabels();
         Pagination = new PaginationHelper(ApplyCurrentPage);
+        DateFrom = new DateTimeOffset(DateTime.Today);
+        DateTo = new DateTimeOffset(DateTime.Today);
         RefreshLabels();
         Title = _locale.T("Reports_Title");
+        SelectedReportIndex = 0;
     }
 
     public PaginationHelper Pagination { get; }
@@ -58,8 +61,8 @@ public partial class ReportsListViewModel : BaseViewModel
     [ObservableProperty] private string _btnStockMovements = string.Empty;
     [ObservableProperty] private string _btnProfitCharges = string.Empty;
 
-    [ObservableProperty] private int _selectedReportIndex;
-    [ObservableProperty] private DateTimeOffset _dateFrom = new(DateTime.Today.AddDays(-30));
+    [ObservableProperty] private int _selectedReportIndex = -1;
+    [ObservableProperty] private DateTimeOffset _dateFrom = new(DateTime.Today);
     [ObservableProperty] private DateTimeOffset _dateTo = new(DateTime.Today);
 
     // visible columns for each report — used in view
@@ -202,24 +205,29 @@ public partial class ReportsListViewModel : BaseViewModel
 
     partial void OnSelectedReportIndexChanged(int value)
     {
-        ShowSaleByProduct = value == 0;
-        ShowSaleByCustomer = value == 1;
-        ShowRefunds = value == 2;
-        ShowDailySales = value == 3;
-        ShowUnpaid = value == 4;
-        ShowStockMovements = value == 5;
-        ShowProfitCharges = value == 6;
-        ShowDateFilter = value != 4;
+        ApplyReportTab(value);
         LoadReportCommand.Execute(null);
     }
 
-    [RelayCommand] private void GoSaleByProduct() => SelectedReportIndex = 0;
-    [RelayCommand] private void GoSaleByCustomer() => SelectedReportIndex = 1;
-    [RelayCommand] private void GoRefunds() => SelectedReportIndex = 2;
-    [RelayCommand] private void GoDailySales() => SelectedReportIndex = 3;
-    [RelayCommand] private void GoUnpaid() => SelectedReportIndex = 4;
-    [RelayCommand] private void GoStockMovements() => SelectedReportIndex = 5;
-    [RelayCommand] private void GoProfitCharges() => SelectedReportIndex = 6;
+    private void ApplyReportTab(int value)
+    {
+        ShowProfitCharges = value == 0;
+        ShowSaleByProduct = value == 1;
+        ShowSaleByCustomer = value == 2;
+        ShowRefunds = value == 3;
+        ShowDailySales = value == 4;
+        ShowUnpaid = value == 5;
+        ShowStockMovements = value == 6;
+        ShowDateFilter = value != 5;
+    }
+
+    [RelayCommand] private void GoProfitCharges() => SelectedReportIndex = 0;
+    [RelayCommand] private void GoSaleByProduct() => SelectedReportIndex = 1;
+    [RelayCommand] private void GoSaleByCustomer() => SelectedReportIndex = 2;
+    [RelayCommand] private void GoRefunds() => SelectedReportIndex = 3;
+    [RelayCommand] private void GoDailySales() => SelectedReportIndex = 4;
+    [RelayCommand] private void GoUnpaid() => SelectedReportIndex = 5;
+    [RelayCommand] private void GoStockMovements() => SelectedReportIndex = 6;
 
     [RelayCommand]
     private async Task FilterTodayAsync(CancellationToken cancellationToken)
@@ -291,28 +299,29 @@ public partial class ReportsListViewModel : BaseViewModel
             switch (SelectedReportIndex)
             {
                 case 0:
-                    await LoadSalesByProductAsync(from, to, cancellationToken);
+                    await LoadProfitChargesAsync(from, to, cancellationToken);
                     break;
                 case 1:
-                    await LoadSalesByCustomerAsync(from, to, cancellationToken);
+                    await LoadSalesByProductAsync(from, to, cancellationToken);
                     break;
                 case 2:
-                    await LoadRefundsAsync(from, to, cancellationToken);
+                    await LoadSalesByCustomerAsync(from, to, cancellationToken);
                     break;
                 case 3:
-                    await LoadDailySalesAsync(from, to, cancellationToken);
+                    await LoadRefundsAsync(from, to, cancellationToken);
                     break;
                 case 4:
-                    await LoadUnpaidAsync(cancellationToken);
+                    await LoadDailySalesAsync(from, to, cancellationToken);
                     break;
                 case 5:
-                    await LoadStockMovementsAsync(from, to, cancellationToken);
+                    await LoadUnpaidAsync(cancellationToken);
                     break;
                 case 6:
-                    await LoadProfitChargesAsync(from, to, cancellationToken);
+                    await LoadStockMovementsAsync(from, to, cancellationToken);
                     break;
             }
         }
+        catch (OperationCanceledException) { }
         catch (Exception ex)
         {
             await _dialog.ShowErrorAsync(_locale.T("Report_Title"), ex.Message, cancellationToken);
@@ -396,25 +405,25 @@ public partial class ReportsListViewModel : BaseViewModel
         switch (SelectedReportIndex)
         {
             case 0:
-                ApplyPage(SalesByProduct, _allSalesByProduct);
+                ApplyPage(ProfitCharges, _allProfitCharges);
                 break;
             case 1:
-                ApplyPage(SalesByCustomer, _allSalesByCustomer);
+                ApplyPage(SalesByProduct, _allSalesByProduct);
                 break;
             case 2:
-                ApplyPage(Refunds, _allRefunds);
+                ApplyPage(SalesByCustomer, _allSalesByCustomer);
                 break;
             case 3:
-                ApplyPage(DailySales, _allDailySales);
+                ApplyPage(Refunds, _allRefunds);
                 break;
             case 4:
-                ApplyPage(UnpaidSales, _allUnpaidSales);
+                ApplyPage(DailySales, _allDailySales);
                 break;
             case 5:
-                ApplyPage(StockMovements, _allStockMovements);
+                ApplyPage(UnpaidSales, _allUnpaidSales);
                 break;
             case 6:
-                ApplyPage(ProfitCharges, _allProfitCharges);
+                ApplyPage(StockMovements, _allStockMovements);
                 break;
         }
     }

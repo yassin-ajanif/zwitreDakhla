@@ -202,7 +202,6 @@ public partial class AppShellViewModel : BaseViewModel
     {
         var vm = _sp.GetRequiredService<ReportsListViewModel>();
         _workspace.Open(vm);
-        vm.GoSaleByProductCommand.Execute(null);
     }
 
     [RelayCommand]
