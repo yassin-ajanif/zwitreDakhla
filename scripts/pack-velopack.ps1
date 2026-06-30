@@ -11,7 +11,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
-$version = "1.0.1"
+$version = "1.0.2"
 $repoUrl = "https://github.com/yassin-ajanif/zwitreDakhla"
 $publishDir = Join-Path $root "publish"
 $releasesDir = Join-Path $root "releases"
