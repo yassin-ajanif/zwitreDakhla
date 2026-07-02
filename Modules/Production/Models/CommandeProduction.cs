@@ -15,6 +15,8 @@ public class CommandeProduction : BaseEntity
     public int QuantiteNaissain { get; set; }
     public decimal TauxMortalite { get; set; }
     public DateTime DateCommande { get; set; }
+    public DateTime? DateExpiration { get; set; }
+    public bool EstTerminee { get; set; }
     public string Note { get; set; } = string.Empty;
     public List<OperationProduction> Operations { get; set; } = [];
 }

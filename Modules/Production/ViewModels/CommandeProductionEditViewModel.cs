@@ -27,6 +27,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     private readonly ICurrentUserSession _session;
     private readonly ILocaleService _locale;
     private readonly IProductionStockService _productionStock;
+    private bool _suppressEstTermineeExpirationSync;
 
     public CommandeProductionEditViewModel(
         IDbContextFactory<AppDbContext> dbFactory,
@@ -70,7 +71,9 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     [ObservableProperty] private TypeNaissain? _selectedTypeNaissain;
     [ObservableProperty] private CategorieCommande? _selectedCategorieCommande;
     [ObservableProperty] private int _quantiteNaissain;
+    [ObservableProperty] private bool _estTerminee;
     [ObservableProperty] private DateTimeOffset _dateCommande = DateTimeOffset.Now;
+    [ObservableProperty] private DateTimeOffset? _dateExpiration;
     [ObservableProperty] private string _note = string.Empty;
 
     [ObservableProperty] private string _btnBack = string.Empty;
@@ -84,6 +87,10 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     [ObservableProperty] private string _lblQuantiteNaissain = string.Empty;
     [ObservableProperty] private string _lblTauxMortalite = string.Empty;
     [ObservableProperty] private string _lblDateCommande = string.Empty;
+    [ObservableProperty] private string _lblDateExpiration = string.Empty;
+    [ObservableProperty] private string _lblEtat = string.Empty;
+    [ObservableProperty] private string _lblEnCours = string.Empty;
+    [ObservableProperty] private string _lblTerminee = string.Empty;
     [ObservableProperty] private string _lblNote = string.Empty;
     [ObservableProperty] private string _sectionOperations = string.Empty;
     [ObservableProperty] private string _lblTotalCommande = string.Empty;
@@ -123,7 +130,18 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     public string TauxMortaliteLabel =>
         TauxMortalite.ToString("N1", CultureInfo.CurrentCulture);
 
+    public bool ShowTauxMortalite => EstTerminee;
+
     partial void OnCommandeIdChanged(int? value) => OnPropertyChanged(nameof(CanAddOperation));
+
+    partial void OnEstTermineeChanged(bool value)
+    {
+        if (!_suppressEstTermineeExpirationSync)
+            DateExpiration = value ? DateTimeOffset.Now : null;
+
+        OnPropertyChanged(nameof(ShowTauxMortalite));
+        RefreshTauxMortalite();
+    }
 
     partial void OnQuantiteNaissainChanged(int value) => RefreshTauxMortalite();
 
@@ -142,7 +160,9 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         SelectedTypeNaissain = null;
         SelectedCategorieCommande = null;
         QuantiteNaissain = 0;
+        EstTerminee = false;
         DateCommande = DateTimeOffset.Now;
+        DateExpiration = null;
         Note = string.Empty;
         Operations.Clear();
         Title = _locale.T("CmdProd_NewTitle");
@@ -168,6 +188,10 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         LblQuantiteNaissain = _locale.T("CmdProd_LblQuantiteNaissain");
         LblTauxMortalite = _locale.T("CmdProd_LblTauxMortalite");
         LblDateCommande = _locale.T("CmdProd_LblDate");
+        LblDateExpiration = _locale.T("CmdProd_LblDateExpiration");
+        LblEtat = _locale.T("CmdProd_LblEtat");
+        LblEnCours = _locale.T("CmdProd_EnCours");
+        LblTerminee = _locale.T("CmdProd_Terminee");
         LblNote = _locale.T("Lbl_Note");
         SectionOperations = _locale.T("CmdProd_SectionOperations");
         LblTotalCommande = _locale.T("CmdProd_LblTotalCommande");
@@ -301,6 +325,11 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             DateCommande = entity.DateCommande;
             Note = entity.Note;
 
+            _suppressEstTermineeExpirationSync = true;
+            EstTerminee = entity.EstTerminee;
+            DateExpiration = entity.DateExpiration;
+            _suppressEstTermineeExpirationSync = false;
+
             Operations.Clear();
             foreach (var op in entity.Operations.OrderByDescending(o => o.OperationAt))
                 Operations.Add(MapOperation(op));
@@ -308,6 +337,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             Title = _locale.Tf("CmdProd_EditTitleFmt", Numero);
             OnPropertyChanged(nameof(TotalCommandeLabel));
             OnPropertyChanged(nameof(CanAddOperation));
+            OnPropertyChanged(nameof(ShowTauxMortalite));
             RefreshTauxMortalite();
         }
         finally
@@ -384,8 +414,10 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             entity.TypeNaissainId = SelectedTypeNaissain.Id;
             entity.CategorieCommandeId = SelectedCategorieCommande.Id;
             entity.QuantiteNaissain = QuantiteNaissain;
-            entity.TauxMortalite = TauxMortalite;
+            entity.EstTerminee = EstTerminee;
+            entity.TauxMortalite = EstTerminee ? TauxMortalite : 0;
             entity.DateCommande = DateCommande.DateTime;
+            entity.DateExpiration = DateExpiration?.DateTime;
             entity.Note = Note.Trim();
 
             await db.SaveChangesAsync(cancellationToken);

@@ -12,11 +12,14 @@ public sealed class CommandeProductionListItem
     public string TypeNaissainNom { get; init; } = string.Empty;
     public int QuantiteNaissain { get; init; }
     public decimal TauxMortalite { get; init; }
+    public bool EstTerminee { get; init; }
+    public DateTime? DateExpiration { get; init; }
     public int OperationCount { get; init; }
     public int TotalHuitres { get; init; }
     public DateTime? LastOperationAt { get; init; }
 
     public string DateLabel => DateCommande.ToString("dd/MM/yyyy", CultureInfo.CurrentCulture);
+    public string DateExpirationLabel => DateExpiration?.ToString("dd/MM/yyyy", CultureInfo.CurrentCulture) ?? "—";
     public string QuantiteNaissainLabel => QuantiteNaissain.ToString("N0", CultureInfo.CurrentCulture);
     public string TauxMortaliteLabel => TauxMortalite.ToString("N1", CultureInfo.CurrentCulture);
     public string OperationCountLabel => OperationCount.ToString("N0", CultureInfo.CurrentCulture);

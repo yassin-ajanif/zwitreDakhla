@@ -926,6 +926,12 @@ namespace GestionCommerciale.Shared.Database.Migrations
                     b.Property<DateTime>("DateCommande")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("DateExpiration")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("EstTerminee")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("FournisseurId")
                         .HasColumnType("INTEGER");
 

@@ -70,12 +70,18 @@ public partial class ProductionListViewModel : BaseViewModel
 
     private void ApplyItemLabels(CommandeProductionListItem item)
     {
-        item.SummaryLine2 = _locale.Tf(
-            "CmdProd_SummaryLine2Fmt",
-            item.CategorieCommandeNom,
-            item.TypeNaissainNom,
-            item.QuantiteNaissainLabel,
-            item.TauxMortaliteLabel);
+        item.SummaryLine2 = item.EstTerminee
+            ? _locale.Tf(
+                "CmdProd_SummaryLine2TermineeFmt",
+                item.CategorieCommandeNom,
+                item.TypeNaissainNom,
+                item.QuantiteNaissainLabel,
+                item.TauxMortaliteLabel)
+            : _locale.Tf(
+                "CmdProd_SummaryLine2EnCoursFmt",
+                item.CategorieCommandeNom,
+                item.TypeNaissainNom,
+                item.QuantiteNaissainLabel);
         item.SummaryLine3 = _locale.Tf(
             "CmdProd_SummaryLine3Fmt",
             item.OperationCountLabel,
@@ -145,9 +151,13 @@ public partial class ProductionListViewModel : BaseViewModel
                     CategorieCommandeNom = row.CategorieCommande?.Nom ?? "—",
                     TypeNaissainNom = row.TypeNaissain?.Nom ?? "—",
                     QuantiteNaissain = row.QuantiteNaissain,
-                    TauxMortalite = ProductionOperation.ComputeTauxMortalitePercent(
-                        row.QuantiteNaissain,
-                        ProductionOperation.SumGrandHuitres(row.Operations)),
+                    EstTerminee = row.EstTerminee,
+                    DateExpiration = row.DateExpiration,
+                    TauxMortalite = row.EstTerminee
+                        ? ProductionOperation.ComputeTauxMortalitePercent(
+                            row.QuantiteNaissain,
+                            ProductionOperation.SumGrandHuitres(row.Operations))
+                        : 0,
                     OperationCount = row.Operations.Count,
                     TotalHuitres = row.Operations.Sum(o =>
                         o.PochetteGrand * ProductionOperation.MultiplierGrand
