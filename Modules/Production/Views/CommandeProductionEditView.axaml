@@ -105,7 +105,23 @@
 
             <StackPanel Spacing="4">
               <TextBlock Text="{Binding LblNote}" Opacity="0.7" FontSize="12"/>
-              <TextBox Text="{Binding Note}" Watermark="{Binding LblNote}"/>
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0" Text="{Binding Note}" Watermark="{Binding LblNote}"/>
+                <Border Grid.Column="1" Margin="12,0,0,0"
+                        Padding="14,10" CornerRadius="8"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding ShowRemainingHuitresChip}"
+                        Background="#E0F2FE"
+                        BorderBrush="#7DD3FC"
+                        BorderThickness="1">
+                  <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding LblRemainingHuitresChipPrefix}" FontWeight="SemiBold"
+                               Foreground="#0369A1" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding RemainingHuitresAtWaterLabel}" FontSize="18" FontWeight="Bold"
+                               Foreground="#0369A1" VerticalAlignment="Center"/>
+                  </StackPanel>
+                </Border>
+              </Grid>
             </StackPanel>
           </StackPanel>
         </Border>

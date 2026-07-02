@@ -420,12 +420,15 @@ public sealed class DialogService : IDialogService
         string petitLabel,
         string totalPreviewLabel,
         string remainingPochetsHintFmt,
+        string maxRemainingWaterFmt,
+        string exceedsRemainingWaterLabel,
         string cancelLabel,
         string saveLabel,
         int initialTables,
         int initialGrand,
         int initialMoyenne,
         int initialPetit,
+        int maxRemainingHuitresAtWater,
         CancellationToken cancellationToken = default)
     {
         var owner = GetMainWindow();
@@ -506,6 +509,20 @@ public sealed class DialogService : IDialogService
 
         var totalPreview = new TextBlock { FontWeight = Avalonia.Media.FontWeight.SemiBold, Opacity = 0.85 };
         panel.Children.Add(totalPreview);
+        var maxWaterPreview = new TextBlock
+        {
+            FontSize = 12,
+            FontWeight = Avalonia.Media.FontWeight.SemiBold,
+            Foreground = Avalonia.Media.Brushes.IndianRed
+        };
+        panel.Children.Add(maxWaterPreview);
+        var exceedsWaterHint = new TextBlock
+        {
+            FontSize = 12,
+            Foreground = Avalonia.Media.Brushes.IndianRed,
+            IsVisible = false
+        };
+        panel.Children.Add(exceedsWaterHint);
 
         var buttons = new StackPanel
         {
@@ -527,7 +544,14 @@ public sealed class DialogService : IDialogService
             var total = ProductionOperation.ComputeTotalHuitres(g, m, p);
             var expected = ProductionOperation.ExpectedTotalHuitres(tables);
             totalPreview.Text = $"{totalPreviewLabel}: {total:N0} / {expected:N0}";
-            save.IsEnabled = ProductionOperation.TotalsMatchTables(tables, g, m, p);
+            maxWaterPreview.Text = string.Format(
+                CultureInfo.CurrentCulture,
+                maxRemainingWaterFmt,
+                maxRemainingHuitresAtWater.ToString("N0", CultureInfo.CurrentCulture));
+            var exceedsWater = total > maxRemainingHuitresAtWater;
+            exceedsWaterHint.Text = exceedsRemainingWaterLabel;
+            exceedsWaterHint.IsVisible = exceedsWater;
+            save.IsEnabled = ProductionOperation.CanSaveOperation(tables, g, m, p, maxRemainingHuitresAtWater);
 
             grandHint.IsVisible = false;
             moyenneHint.IsVisible = false;

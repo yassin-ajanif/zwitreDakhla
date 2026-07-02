@@ -5,10 +5,46 @@
              x:Class="GestionCommerciale.Modules.Production.Views.ProductionListView"
              x:Name="ProductionListRoot"
              x:DataType="vm:ProductionListViewModel">
+  <UserControl.Styles>
+    <Style Selector="ComboBox.prod-list-filter">
+      <Setter Property="MinWidth" Value="0"/>
+      <Setter Property="HorizontalAlignment" Value="Left"/>
+    </Style>
+  </UserControl.Styles>
   <Grid RowDefinitions="Auto,*">
-    <StackPanel Orientation="Horizontal" Spacing="8">
-      <Button Content="{Binding BtnNew}" Command="{Binding NewCommandeCommand}"/>
-      <Button Content="{Binding BtnFilterDate}" Command="{Binding FilterDateCommand}"/>
+    <StackPanel Spacing="8">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Content="{Binding BtnNew}" Command="{Binding NewCommandeCommand}"/>
+        <Button Content="{Binding BtnFilterDate}" Command="{Binding FilterDateCommand}"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <ComboBox Classes="prod-list-filter"
+                  PlaceholderText="{Binding WmFilterSupplier}"
+                  ItemsSource="{Binding FilterFournisseurs}"
+                  SelectedItem="{Binding SelectedFilterFournisseur, Mode=TwoWay}"/>
+        <ComboBox Classes="prod-list-filter"
+                  PlaceholderText="{Binding WmFilterCategorie}"
+                  ItemsSource="{Binding FilterCategories}"
+                  SelectedItem="{Binding SelectedFilterCategorie, Mode=TwoWay}"/>
+        <ComboBox Classes="prod-list-filter"
+                  PlaceholderText="{Binding WmFilterType}"
+                  ItemsSource="{Binding FilterTypes}"
+                  SelectedItem="{Binding SelectedFilterType, Mode=TwoWay}"/>
+        <ComboBox Classes="prod-list-filter"
+                  PlaceholderText="{Binding WmFilterExpiration}"
+                  SelectedIndex="{Binding ExpirationFilterIndex}">
+          <ComboBoxItem>
+            <TextBlock Text="{Binding #ProductionListRoot.((vm:ProductionListViewModel)DataContext).LblExpirationFilterAll}"/>
+          </ComboBoxItem>
+          <ComboBoxItem>
+            <TextBlock Text="{Binding #ProductionListRoot.((vm:ProductionListViewModel)DataContext).LblExpirationFilterEnCours}"/>
+          </ComboBoxItem>
+          <ComboBoxItem>
+            <TextBlock Text="{Binding #ProductionListRoot.((vm:ProductionListViewModel)DataContext).LblExpirationFilterTerminee}"/>
+          </ComboBoxItem>
+        </ComboBox>
+        <Button Content="{Binding BtnResetFilters}" Command="{Binding ResetFiltersCommand}"/>
+      </StackPanel>
     </StackPanel>
 
     <ListBox Grid.Row="1" Margin="0,12,0,0"

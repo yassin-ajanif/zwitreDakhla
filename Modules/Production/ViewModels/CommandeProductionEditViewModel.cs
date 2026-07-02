@@ -92,6 +92,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     [ObservableProperty] private string _lblEnCours = string.Empty;
     [ObservableProperty] private string _lblTerminee = string.Empty;
     [ObservableProperty] private string _lblNote = string.Empty;
+    [ObservableProperty] private string _lblRemainingHuitresChipPrefix = string.Empty;
     [ObservableProperty] private string _sectionOperations = string.Empty;
     [ObservableProperty] private string _lblTotalCommande = string.Empty;
     [ObservableProperty] private string _lblTotauxRow = string.Empty;
@@ -142,6 +143,12 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
 
     public bool ShowTauxMortalite => EstTerminee;
 
+    public bool ShowRemainingHuitresChip => QuantiteNaissain > 0;
+
+    public string RemainingHuitresAtWaterLabel =>
+        ProductionOperation.ComputeRemainingHuitresAtWater(QuantiteNaissain, SumGrandHuitres)
+            .ToString("N0", CultureInfo.CurrentCulture);
+
     partial void OnCommandeIdChanged(int? value) => OnPropertyChanged(nameof(CanAddOperation));
 
     partial void OnEstTermineeChanged(bool value)
@@ -153,7 +160,17 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         RefreshTauxMortalite();
     }
 
-    partial void OnQuantiteNaissainChanged(int value) => RefreshTauxMortalite();
+    partial void OnQuantiteNaissainChanged(int value)
+    {
+        RefreshTauxMortalite();
+        RefreshRemainingHuitresChip();
+    }
+
+    private void RefreshRemainingHuitresChip()
+    {
+        OnPropertyChanged(nameof(ShowRemainingHuitresChip));
+        OnPropertyChanged(nameof(RemainingHuitresAtWaterLabel));
+    }
 
     private void RefreshTauxMortalite()
     {
@@ -174,6 +191,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         OnPropertyChanged(nameof(TotalPetitHuitresLabel));
         OnPropertyChanged(nameof(TotalCommandeLabel));
         RefreshTauxMortalite();
+        RefreshRemainingHuitresChip();
     }
 
     public void LoadNew()
@@ -218,6 +236,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         LblEnCours = _locale.T("CmdProd_EnCours");
         LblTerminee = _locale.T("CmdProd_Terminee");
         LblNote = _locale.T("Lbl_Note");
+        LblRemainingHuitresChipPrefix = _locale.T("CmdProd_RemainingHuitresChipPrefix");
         SectionOperations = _locale.T("CmdProd_SectionOperations");
         LblTotalCommande = _locale.T("CmdProd_LblTotalCommande");
         LblTotauxRow = _locale.T("CmdProd_LblTotauxRow");
@@ -799,6 +818,13 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             ? _locale.T("Prod_NewTitle")
             : _locale.Tf("Prod_EditTitleFmt", existing.OperationTitle);
 
+        var sumGrandExcluding = existing == null
+            ? SumGrandHuitres
+            : SumGrandHuitres - existing.TotalGrand;
+        var maxRemainingAtWater = ProductionOperation.ComputeRemainingHuitresAtWater(
+            QuantiteNaissain,
+            sumGrandExcluding);
+
         var result = await _dialog.ShowProductionOperationEditAsync(
             title,
             _locale.T("Prod_ColTables"),
@@ -807,12 +833,15 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             _locale.T("Prod_LblPetitPochets"),
             _locale.T("Prod_LblTotalPreview"),
             _locale.T("Prod_RemainingPochetsFmt"),
+            _locale.T("Prod_OperationMaxRemainingWaterFmt"),
+            _locale.T("Prod_OperationExceedsRemainingWater"),
             _locale.T("Btn_Cancel"),
             _locale.T("Btn_Save"),
             existing?.Tables ?? 0,
             existing?.PochetteGrand ?? 0,
             existing?.PochetteMoyenne ?? 0,
             existing?.PochettePetit ?? 0,
+            maxRemainingAtWater,
             cancellationToken);
 
         if (result == null) return;

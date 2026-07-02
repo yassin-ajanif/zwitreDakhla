@@ -44,11 +44,14 @@ public interface IDialogService
         string petitLabel,
         string totalPreviewLabel,
         string remainingPochetsHintFmt,
+        string maxRemainingWaterFmt,
+        string exceedsRemainingWaterLabel,
         string cancelLabel,
         string saveLabel,
         int initialTables,
         int initialGrand,
         int initialMoyenne,
         int initialPetit,
+        int maxRemainingHuitresAtWater,
         CancellationToken cancellationToken = default);
 }

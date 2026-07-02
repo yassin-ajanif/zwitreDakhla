@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionCommerciale.Modules.Auth.Services;
 using GestionCommerciale.Modules.Production.Models;
+using GestionCommerciale.Modules.Tiers.Models;
 using GestionCommerciale.Shared.Database;
 using GestionCommerciale.Shared.Services;
 using GestionCommerciale.Shared.ViewModels;
@@ -23,6 +24,7 @@ public partial class ProductionListViewModel : BaseViewModel
 
     private DateTime? _dateFrom;
     private DateTime? _dateTo;
+    private bool _suppressFilterReload;
 
     public ProductionListViewModel(
         IDbContextFactory<AppDbContext> dbFactory,
@@ -47,11 +49,51 @@ public partial class ProductionListViewModel : BaseViewModel
     }
 
     public ObservableCollection<CommandeProductionListItem> Commandes { get; } = [];
+    public ObservableCollection<ProductionListFilterOption> FilterFournisseurs { get; } = [];
+    public ObservableCollection<ProductionListFilterOption> FilterCategories { get; } = [];
+    public ObservableCollection<ProductionListFilterOption> FilterTypes { get; } = [];
 
     [ObservableProperty] private CommandeProductionListItem? _selected;
     [ObservableProperty] private string _btnNew = string.Empty;
     [ObservableProperty] private string _btnFilterDate = string.Empty;
     [ObservableProperty] private string _menuDelete = string.Empty;
+    [ObservableProperty] private string _wmFilterSupplier = string.Empty;
+    [ObservableProperty] private string _wmFilterCategorie = string.Empty;
+    [ObservableProperty] private string _wmFilterType = string.Empty;
+    [ObservableProperty] private string _wmFilterExpiration = string.Empty;
+    [ObservableProperty] private string _lblExpirationFilterAll = string.Empty;
+    [ObservableProperty] private string _lblExpirationFilterEnCours = string.Empty;
+    [ObservableProperty] private string _lblExpirationFilterTerminee = string.Empty;
+    [ObservableProperty] private string _btnResetFilters = string.Empty;
+    /// <summary>0 = all, 1 = en cours, 2 = expirée (terminée).</summary>
+    [ObservableProperty] private int _expirationFilterIndex;
+    [ObservableProperty] private ProductionListFilterOption? _selectedFilterFournisseur;
+    [ObservableProperty] private ProductionListFilterOption? _selectedFilterCategorie;
+    [ObservableProperty] private ProductionListFilterOption? _selectedFilterType;
+
+    partial void OnSelectedFilterFournisseurChanged(ProductionListFilterOption? value)
+    {
+        if (_suppressFilterReload) return;
+        _ = LoadAsync(CancellationToken.None, reloadFilters: false);
+    }
+
+    partial void OnSelectedFilterCategorieChanged(ProductionListFilterOption? value)
+    {
+        if (_suppressFilterReload) return;
+        _ = LoadAsync(CancellationToken.None, reloadFilters: false);
+    }
+
+    partial void OnSelectedFilterTypeChanged(ProductionListFilterOption? value)
+    {
+        if (_suppressFilterReload) return;
+        _ = LoadAsync(CancellationToken.None, reloadFilters: false);
+    }
+
+    partial void OnExpirationFilterIndexChanged(int value)
+    {
+        if (_suppressFilterReload) return;
+        _ = LoadAsync(CancellationToken.None, reloadFilters: false);
+    }
 
     private void RefreshUi()
     {
@@ -59,8 +101,82 @@ public partial class ProductionListViewModel : BaseViewModel
         UpdateBtnFilterDateText();
         MenuDelete = _locale.T("CmdProd_MenuDelete");
         Title = _locale.T("CmdProd_ListTitle");
+        WmFilterSupplier = _locale.T("CmdProd_FilterSupplier");
+        WmFilterCategorie = _locale.T("CmdProd_FilterCategorie");
+        WmFilterType = _locale.T("CmdProd_FilterType");
+        WmFilterExpiration = _locale.T("CmdProd_FilterExpiration");
+        LblExpirationFilterAll = _locale.T("CmdProd_ExpirationFilterAll");
+        LblExpirationFilterEnCours = _locale.T("CmdProd_ExpirationFilterEnCours");
+        LblExpirationFilterTerminee = _locale.T("CmdProd_ExpirationFilterTerminee");
+        BtnResetFilters = _locale.T("CmdProd_BtnResetFilters");
+        UpdateFilterAllLabels();
         ApplyListLabels();
     }
+
+    private void UpdateFilterAllLabels()
+    {
+        var allLabel = _locale.T("CmdProd_FilterAll");
+        if (FilterFournisseurs.Count > 0)
+            FilterFournisseurs[0] = ProductionListFilterOption.All(allLabel);
+        if (FilterCategories.Count > 0)
+            FilterCategories[0] = ProductionListFilterOption.All(allLabel);
+        if (FilterTypes.Count > 0)
+            FilterTypes[0] = ProductionListFilterOption.All(allLabel);
+    }
+
+    private async Task LoadFiltersAsync(AppDbContext db, CancellationToken cancellationToken)
+    {
+        var allLabel = _locale.T("CmdProd_FilterAll");
+        var fournisseurId = SelectedFilterFournisseur?.Id;
+        var categorieId = SelectedFilterCategorie?.Id;
+        var typeId = SelectedFilterType?.Id;
+
+        FilterFournisseurs.Clear();
+        FilterFournisseurs.Add(ProductionListFilterOption.All(allLabel));
+        var fournisseurs = await db.Tiers.AsNoTracking()
+            .Where(t => t.Actif && (t.Type == TypeTiers.Fournisseur || t.Type == TypeTiers.LesDeux))
+            .OrderBy(t => t.Nom)
+            .ToListAsync(cancellationToken);
+        foreach (var row in fournisseurs)
+            FilterFournisseurs.Add(ProductionListFilterOption.From(row.Id, row.Nom));
+
+        FilterCategories.Clear();
+        FilterCategories.Add(ProductionListFilterOption.All(allLabel));
+        var categories = await db.CategoriesCommande.AsNoTracking()
+            .Where(c => c.Actif)
+            .OrderBy(c => c.Ordre)
+            .ThenBy(c => c.Nom)
+            .ToListAsync(cancellationToken);
+        foreach (var row in categories)
+            FilterCategories.Add(ProductionListFilterOption.From(row.Id, row.Nom));
+
+        FilterTypes.Clear();
+        FilterTypes.Add(ProductionListFilterOption.All(allLabel));
+        var types = await db.TypesNaissain.AsNoTracking()
+            .Where(t => t.Actif)
+            .OrderBy(t => t.Ordre)
+            .ThenBy(t => t.Nom)
+            .ToListAsync(cancellationToken);
+        foreach (var row in types)
+            FilterTypes.Add(ProductionListFilterOption.From(row.Id, row.Nom));
+
+        _suppressFilterReload = true;
+        try
+        {
+            SelectedFilterFournisseur = FindFilterOption(FilterFournisseurs, fournisseurId);
+            SelectedFilterCategorie = FindFilterOption(FilterCategories, categorieId);
+            SelectedFilterType = FindFilterOption(FilterTypes, typeId);
+        }
+        finally
+        {
+            _suppressFilterReload = false;
+        }
+    }
+
+    private static ProductionListFilterOption FindFilterOption(
+        IEnumerable<ProductionListFilterOption> options,
+        int? id) =>
+        options.FirstOrDefault(o => o.Id == id) ?? options.First();
 
     private void ApplyListLabels()
     {
@@ -114,7 +230,7 @@ public partial class ProductionListViewModel : BaseViewModel
         }
     }
 
-    private async Task LoadAsync(CancellationToken cancellationToken)
+    private async Task LoadAsync(CancellationToken cancellationToken, bool reloadFilters = true)
     {
         if (!_session.CanAccessProduction)
         {
@@ -126,6 +242,9 @@ public partial class ProductionListViewModel : BaseViewModel
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+            if (reloadFilters)
+                await LoadFiltersAsync(db, cancellationToken);
+
             var q = db.CommandesProduction.AsNoTracking()
                 .Include(c => c.Fournisseur)
                 .Include(c => c.CategorieCommande)
@@ -144,6 +263,22 @@ public partial class ProductionListViewModel : BaseViewModel
                 var toExclusive = _dateTo.Value.Date.AddDays(1);
                 q = q.Where(c => c.DateCommande < toExclusive);
             }
+
+            if (SelectedFilterFournisseur?.Id is int fournisseurId)
+                q = q.Where(c => c.FournisseurId == fournisseurId);
+
+            if (SelectedFilterCategorie?.Id is int categorieId)
+                q = q.Where(c => c.CategorieCommandeId == categorieId);
+
+            if (SelectedFilterType?.Id is int typeId)
+                q = q.Where(c => c.TypeNaissainId == typeId);
+
+            q = ExpirationFilterIndex switch
+            {
+                1 => q.Where(c => !c.EstTerminee),
+                2 => q.Where(c => c.EstTerminee),
+                _ => q
+            };
 
             var rows = await q
                 .OrderByDescending(c => c.DateCommande)
@@ -251,5 +386,30 @@ public partial class ProductionListViewModel : BaseViewModel
 
         UpdateBtnFilterDateText();
         await LoadAsync(cancellationToken);
+    }
+
+    [RelayCommand]
+    private async Task ResetFiltersAsync(CancellationToken cancellationToken)
+    {
+        _suppressFilterReload = true;
+        try
+        {
+            ExpirationFilterIndex = 0;
+            if (FilterFournisseurs.Count > 0)
+                SelectedFilterFournisseur = FilterFournisseurs[0];
+            if (FilterCategories.Count > 0)
+                SelectedFilterCategorie = FilterCategories[0];
+            if (FilterTypes.Count > 0)
+                SelectedFilterType = FilterTypes[0];
+            _dateFrom = DateTime.Today;
+            _dateTo = DateTime.Today;
+            UpdateBtnFilterDateText();
+        }
+        finally
+        {
+            _suppressFilterReload = false;
+        }
+
+        await LoadAsync(cancellationToken, reloadFilters: false);
     }
 }

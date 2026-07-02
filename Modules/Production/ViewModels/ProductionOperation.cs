@@ -22,8 +22,20 @@ public class ProductionOperation
     public static bool TotalsMatchTables(int tables, int pochetteGrand, int pochetteMoyenne, int pochettePetit) =>
         ComputeTotalHuitres(pochetteGrand, pochetteMoyenne, pochettePetit) == ExpectedTotalHuitres(tables);
 
+    public static bool CanSaveOperation(
+        int tables,
+        int pochetteGrand,
+        int pochetteMoyenne,
+        int pochettePetit,
+        int maxRemainingHuitresAtWater) =>
+        TotalsMatchTables(tables, pochetteGrand, pochetteMoyenne, pochettePetit)
+        && ComputeTotalHuitres(pochetteGrand, pochetteMoyenne, pochettePetit) <= maxRemainingHuitresAtWater;
+
     public static string FormatTauxMortaliteLabel(decimal percent) =>
         $"{percent.ToString("N0", CultureInfo.CurrentCulture)}%";
+
+    public static int ComputeRemainingHuitresAtWater(int quantiteNaissain, int sumGrandHuitres) =>
+        Math.Max(0, quantiteNaissain - sumGrandHuitres);
 
     /// <summary>0 = grand, 1 = moyenne, 2 = petit. Hint when exactly one pochette field is still 0.</summary>
     public static bool TryGetRemainingForSingleEmptyPochette(
