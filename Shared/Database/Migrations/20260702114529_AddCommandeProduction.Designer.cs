@@ -3,6 +3,7 @@ using System;
 using GestionCommerciale.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GestionCommerciale.Shared.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260702114529_AddCommandeProduction")]
+    partial class AddCommandeProduction
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
@@ -908,137 +911,10 @@ namespace GestionCommerciale.Shared.Database.Migrations
                     b.ToTable("BonLivraisonLignes");
                 });
 
-            modelBuilder.Entity("GestionCommerciale.Modules.Production.Models.CommandeProduction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("CategorieCommandeId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("CreatedByUserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("DateCommande")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("FournisseurId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Note")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Numero")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("QuantiteNaissain")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("TauxMortalite")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TypeNaissainId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DateCommande");
-
-                    b.HasIndex("FournisseurId");
-
-                    b.HasIndex("TypeNaissainId");
-
-                    b.HasIndex("CategorieCommandeId");
-
-                    b.ToTable("CommandesProduction", (string)null);
-                });
-
-            modelBuilder.Entity("GestionCommerciale.Modules.Production.Models.CategorieCommande", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("Actif")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("CreatedByUserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Nom")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Ordre")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Nom")
-                        .IsUnique();
-
-                    b.HasIndex("Ordre");
-
-                    b.ToTable("CategoriesCommande", (string)null);
-                });
-
-            modelBuilder.Entity("GestionCommerciale.Modules.Production.Models.TypeNaissain", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("Actif")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("CreatedByUserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Nom")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Ordre")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Nom")
-                        .IsUnique();
-
-                    b.HasIndex("Ordre");
-
-                    b.ToTable("TypesNaissain", (string)null);
-                });
-
             modelBuilder.Entity("GestionCommerciale.Modules.Production.Models.OperationProduction", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("CommandeProductionId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1066,8 +942,6 @@ namespace GestionCommerciale.Shared.Database.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CommandeProductionId");
 
                     b.HasIndex("OperationAt");
 
@@ -1604,43 +1478,6 @@ namespace GestionCommerciale.Shared.Database.Migrations
                     b.Navigation("BonLivraison");
                 });
 
-            modelBuilder.Entity("GestionCommerciale.Modules.Production.Models.CommandeProduction", b =>
-                {
-                    b.HasOne("GestionCommerciale.Modules.Tiers.Models.Tiers", "Fournisseur")
-                        .WithMany()
-                        .HasForeignKey("FournisseurId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("GestionCommerciale.Modules.Production.Models.TypeNaissain", "TypeNaissain")
-                        .WithMany()
-                        .HasForeignKey("TypeNaissainId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("GestionCommerciale.Modules.Production.Models.CategorieCommande", "CategorieCommande")
-                        .WithMany()
-                        .HasForeignKey("CategorieCommandeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("CategorieCommande");
-
-                    b.Navigation("Fournisseur");
-
-                    b.Navigation("TypeNaissain");
-                });
-
-            modelBuilder.Entity("GestionCommerciale.Modules.Production.Models.OperationProduction", b =>
-                {
-                    b.HasOne("GestionCommerciale.Modules.Production.Models.CommandeProduction", "CommandeProduction")
-                        .WithMany("Operations")
-                        .HasForeignKey("CommandeProductionId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("CommandeProduction");
-                });
-
             modelBuilder.Entity("GestionCommerciale.Modules.Reception.Models.BonReception", b =>
                 {
                     b.HasOne("GestionCommerciale.Modules.CommandeFournisseur.Models.BonCommande", "BonCommande")
@@ -1730,11 +1567,6 @@ namespace GestionCommerciale.Shared.Database.Migrations
             modelBuilder.Entity("GestionCommerciale.Modules.Livraison.Models.BonLivraison", b =>
                 {
                     b.Navigation("Lignes");
-                });
-
-            modelBuilder.Entity("GestionCommerciale.Modules.Production.Models.CommandeProduction", b =>
-                {
-                    b.Navigation("Operations");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Reception.Models.BonReception", b =>

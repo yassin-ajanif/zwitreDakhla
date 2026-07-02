@@ -4,11 +4,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionCommerciale.Modules.Auth.Services;
 using GestionCommerciale.Modules.Production.Models;
-using GestionCommerciale.Modules.Production.Services;
 using GestionCommerciale.Shared.Database;
 using GestionCommerciale.Shared.Services;
 using GestionCommerciale.Shared.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GestionCommerciale.Modules.Production.ViewModels;
 
@@ -18,7 +18,8 @@ public partial class ProductionListViewModel : BaseViewModel
     private readonly IDialogService _dialog;
     private readonly ILocaleService _locale;
     private readonly ICurrentUserSession _session;
-    private readonly IProductionStockService _productionStock;
+    private readonly WorkspaceNavigator _workspace;
+    private readonly IServiceProvider _sp;
 
     private DateTime? _dateFrom;
     private DateTime? _dateTo;
@@ -28,74 +29,58 @@ public partial class ProductionListViewModel : BaseViewModel
         IDialogService dialog,
         ILocaleService locale,
         ICurrentUserSession session,
-        IProductionStockService productionStock)
+        WorkspaceNavigator workspaceNavigator,
+        IServiceProvider sp)
     {
         _dbFactory = dbFactory;
         _dialog = dialog;
         _locale = locale;
         _session = session;
-        _productionStock = productionStock;
+        _workspace = workspaceNavigator;
+        _sp = sp;
         _dateFrom = DateTime.Today;
         _dateTo = DateTime.Today;
         _locale.CultureApplied += (_, _) => RefreshUi();
         RefreshUi();
-        Title = _locale.T("Prod_ListTitle");
+        Title = _locale.T("CmdProd_ListTitle");
         _ = LoadAsync(CancellationToken.None);
     }
 
-    public ObservableCollection<ProductionOperation> Operations { get; } = [];
+    public ObservableCollection<CommandeProductionListItem> Commandes { get; } = [];
 
-    [ObservableProperty] private ProductionOperation? _selected;
+    [ObservableProperty] private CommandeProductionListItem? _selected;
     [ObservableProperty] private string _btnNew = string.Empty;
     [ObservableProperty] private string _btnFilterDate = string.Empty;
     [ObservableProperty] private string _menuDelete = string.Empty;
-    [ObservableProperty] private string _colTables = string.Empty;
-    [ObservableProperty] private string _hdrVendre = string.Empty;
-    [ObservableProperty] private string _hdrRetourner = string.Empty;
-    [ObservableProperty] private string _colGrand = string.Empty;
-    [ObservableProperty] private string _colMoyenne = string.Empty;
-    [ObservableProperty] private string _colPetit = string.Empty;
-    [ObservableProperty] private string _colPochette = string.Empty;
-    [ObservableProperty] private string _colTotal = string.Empty;
-    [ObservableProperty] private string _lblTotalOperation = string.Empty;
 
     private void RefreshUi()
     {
-        BtnNew = _locale.T("Prod_BtnNew");
+        BtnNew = _locale.T("CmdProd_BtnNew");
         UpdateBtnFilterDateText();
-        MenuDelete = _locale.T("Prod_MenuDelete");
-        ColTables = _locale.T("Prod_ColTables");
-        HdrVendre = _locale.T("Prod_HdrVendre");
-        HdrRetourner = _locale.T("Prod_HdrRetourner");
-        ColGrand = _locale.T("Prod_ColGrand");
-        ColMoyenne = _locale.T("Prod_ColMoyenne");
-        ColPetit = _locale.T("Prod_ColPetit");
-        ColPochette = _locale.T("Prod_ColPochette");
-        ColTotal = _locale.T("Prod_ColTotal");
-        LblTotalOperation = _locale.T("Prod_LblTotalOperation");
-        Title = _locale.T("Prod_ListTitle");
-        RefreshModifiedLabels();
+        MenuDelete = _locale.T("CmdProd_MenuDelete");
+        Title = _locale.T("CmdProd_ListTitle");
+        ApplyListLabels();
     }
 
-    private void RefreshModifiedLabels()
+    private void ApplyListLabels()
     {
-        foreach (var op in Operations)
-        {
-            if (!op.WasModified) continue;
-            var dt = op.UpdatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture);
-            op.ModifiedAtLabel = _locale.Tf("Prod_LblModifiedFmt", dt);
-        }
+        foreach (var item in Commandes)
+            ApplyItemLabels(item);
     }
 
-    private ProductionOperation MapOperation(OperationProduction entity)
+    private void ApplyItemLabels(CommandeProductionListItem item)
     {
-        var op = ProductionOperation.FromEntity(entity);
-        if (op.WasModified)
-        {
-            var dt = entity.UpdatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture);
-            op.ModifiedAtLabel = _locale.Tf("Prod_LblModifiedFmt", dt);
-        }
-        return op;
+        item.SummaryLine2 = _locale.Tf(
+            "CmdProd_SummaryLine2Fmt",
+            item.CategorieCommandeNom,
+            item.TypeNaissainNom,
+            item.QuantiteNaissainLabel,
+            item.TauxMortaliteLabel);
+        item.SummaryLine3 = _locale.Tf(
+            "CmdProd_SummaryLine3Fmt",
+            item.OperationCountLabel,
+            item.TotalHuitresLabel,
+            item.LastOperationLabel);
     }
 
     private void UpdateBtnFilterDateText()
@@ -116,7 +101,7 @@ public partial class ProductionListViewModel : BaseViewModel
     {
         if (!_session.CanAccessProduction)
         {
-            Operations.Clear();
+            Commandes.Clear();
             return;
         }
 
@@ -124,20 +109,55 @@ public partial class ProductionListViewModel : BaseViewModel
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
-            var q = db.OperationsProduction.AsNoTracking().AsQueryable();
+            var q = db.CommandesProduction.AsNoTracking()
+                .Include(c => c.Fournisseur)
+                .Include(c => c.CategorieCommande)
+                .Include(c => c.TypeNaissain)
+                .Include(c => c.Operations)
+                .AsQueryable();
 
             if (_dateFrom.HasValue)
-                q = q.Where(o => o.OperationAt.Date >= _dateFrom.Value.Date);
+            {
+                var from = _dateFrom.Value.Date;
+                q = q.Where(c => c.DateCommande >= from);
+            }
+
             if (_dateTo.HasValue)
-                q = q.Where(o => o.OperationAt.Date <= _dateTo.Value.Date);
+            {
+                var toExclusive = _dateTo.Value.Date.AddDays(1);
+                q = q.Where(c => c.DateCommande < toExclusive);
+            }
 
             var rows = await q
-                .OrderByDescending(o => o.UpdatedAt)
+                .OrderByDescending(c => c.DateCommande)
+                .ThenByDescending(c => c.Id)
                 .ToListAsync(cancellationToken);
 
-            Operations.Clear();
+            Commandes.Clear();
             foreach (var row in rows)
-                Operations.Add(MapOperation(row));
+            {
+                var item = new CommandeProductionListItem
+                {
+                    Id = row.Id,
+                    Numero = row.Numero,
+                    FournisseurNom = row.Fournisseur?.Nom ?? "—",
+                    DateCommande = row.DateCommande,
+                    CategorieCommandeNom = row.CategorieCommande?.Nom ?? "—",
+                    TypeNaissainNom = row.TypeNaissain?.Nom ?? "—",
+                    QuantiteNaissain = row.QuantiteNaissain,
+                    TauxMortalite = row.TauxMortalite,
+                    OperationCount = row.Operations.Count,
+                    TotalHuitres = row.Operations.Sum(o =>
+                        o.PochetteGrand * ProductionOperation.MultiplierGrand
+                        + o.PochetteMoyenne * ProductionOperation.MultiplierMoyenne
+                        + o.PochettePetit * ProductionOperation.MultiplierPetit),
+                    LastOperationAt = row.Operations.Count > 0
+                        ? row.Operations.Max(o => o.OperationAt)
+                        : null
+                };
+                ApplyItemLabels(item);
+                Commandes.Add(item);
+            }
         }
         finally
         {
@@ -146,49 +166,41 @@ public partial class ProductionListViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    private async Task NewOperationAsync(CancellationToken cancellationToken)
+    private void NewCommande()
     {
         if (!_session.CanAccessProduction) return;
-        await ShowEditDialogAsync(null, cancellationToken);
+        var vm = _sp.GetRequiredService<CommandeProductionEditViewModel>();
+        vm.LoadNew();
+        _workspace.Open(vm);
     }
 
     [RelayCommand]
-    private async Task EditSelectedAsync(CancellationToken cancellationToken)
+    private void EditSelected()
     {
         if (Selected == null) return;
-        await ShowEditDialogAsync(Selected, cancellationToken);
+        var vm = _sp.GetRequiredService<CommandeProductionEditViewModel>();
+        vm.Load(Selected.Id);
+        _workspace.Open(vm);
     }
 
     [RelayCommand]
-    private async Task EditOperationAsync(ProductionOperation? operation, CancellationToken cancellationToken)
+    private async Task DeleteCommandeAsync(CommandeProductionListItem? item, CancellationToken cancellationToken)
     {
-        if (operation == null) return;
-        await ShowEditDialogAsync(operation, cancellationToken);
-    }
-
-    [RelayCommand]
-    private async Task DeleteOperationAsync(ProductionOperation? operation, CancellationToken cancellationToken)
-    {
-        if (operation == null || !_session.CanAccessProduction) return;
+        if (item == null || !_session.CanAccessProduction) return;
 
         var ok = await _dialog.ConfirmAsync(
-            _locale.T("Prod_ListTitle"),
-            _locale.Tf("Prod_ConfirmDelete", operation.OperationTitle),
+            Title,
+            _locale.Tf("CmdProd_ConfirmDelete", item.Numero),
             cancellationToken);
         if (!ok) return;
 
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
-        var entity = await db.OperationsProduction.FirstOrDefaultAsync(o => o.Id == operation.Id, cancellationToken);
+        var entity = await db.CommandesProduction
+            .Include(c => c.Operations)
+            .FirstOrDefaultAsync(c => c.Id == item.Id, cancellationToken);
         if (entity == null) return;
 
-        await _productionStock.RemoveOperationStockAsync(
-            db,
-            entity.Id,
-            entity.OperationAt,
-            _session.UserId,
-            cancellationToken);
-
-        db.OperationsProduction.Remove(entity);
+        db.CommandesProduction.Remove(entity);
         await db.SaveChangesAsync(cancellationToken);
         await LoadAsync(cancellationToken);
     }
@@ -216,72 +228,5 @@ public partial class ProductionListViewModel : BaseViewModel
 
         UpdateBtnFilterDateText();
         await LoadAsync(cancellationToken);
-    }
-
-    private async Task ShowEditDialogAsync(ProductionOperation? existing, CancellationToken cancellationToken)
-    {
-        if (!_session.CanAccessProduction) return;
-
-        var title = existing == null
-            ? _locale.T("Prod_NewTitle")
-            : _locale.Tf("Prod_EditTitleFmt", existing.OperationTitle);
-
-        var result = await _dialog.ShowProductionOperationEditAsync(
-            title,
-            _locale.T("Prod_ColTables"),
-            _locale.T("Prod_LblGrandPochets"),
-            _locale.T("Prod_LblMoyennePochets"),
-            _locale.T("Prod_LblPetitPochets"),
-            _locale.T("Prod_LblTotalPreview"),
-            _locale.T("Btn_Cancel"),
-            _locale.T("Btn_Save"),
-            existing?.Tables ?? 0,
-            existing?.PochetteGrand ?? 0,
-            existing?.PochetteMoyenne ?? 0,
-            existing?.PochettePetit ?? 0,
-            cancellationToken);
-
-        if (result == null) return;
-
-        var savedAt = DateTime.Now;
-        var vm = new ProductionOperation
-        {
-            Tables = result.Tables,
-            PochetteGrand = result.PochetteGrand,
-            PochetteMoyenne = result.PochetteMoyenne,
-            PochettePetit = result.PochettePetit
-        };
-
-        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
-        int savedId;
-        OperationProduction entity;
-
-        if (existing == null)
-        {
-            entity = new OperationProduction();
-            vm.ApplyTo(entity, savedAt);
-            db.OperationsProduction.Add(entity);
-            await db.SaveChangesAsync(cancellationToken);
-            savedId = entity.Id;
-        }
-        else
-        {
-            entity = await db.OperationsProduction.FirstAsync(o => o.Id == existing.Id, cancellationToken);
-            vm.ApplyTo(entity);
-            savedId = entity.Id;
-        }
-
-        await _productionStock.SyncOperationStockAsync(
-            db,
-            savedId,
-            vm.PochetteGrand,
-            entity.OperationAt,
-            _session.UserId,
-            cancellationToken);
-
-        await db.SaveChangesAsync(cancellationToken);
-
-        await LoadAsync(cancellationToken);
-        Selected = Operations.FirstOrDefault(o => o.Id == savedId);
     }
 }

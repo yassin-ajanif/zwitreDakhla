@@ -45,6 +45,9 @@ public sealed class DocumentNumberService : IDocumentNumberService
     public Task<string> NextChargeAsync(CancellationToken cancellationToken = default) =>
         NextFromDbAsync(db => db.Charges.AsNoTracking().Select(d => d.Numero).ToListAsync(cancellationToken), "CHG", cancellationToken);
 
+    public Task<string> NextCommandeProductionAsync(CancellationToken cancellationToken = default) =>
+        NextFromDbAsync(db => db.CommandesProduction.AsNoTracking().Select(d => d.Numero).ToListAsync(cancellationToken), "CMD", cancellationToken);
+
     private async Task<string> NextFromDbAsync(
         Func<AppDbContext, Task<List<string>>> loadNumeros,
         string prefix,

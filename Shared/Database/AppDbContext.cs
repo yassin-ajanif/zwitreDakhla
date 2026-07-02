@@ -44,6 +44,9 @@ public class AppDbContext : DbContext
     public DbSet<AvoirFournisseurLigne> AvoirFournisseurLignes => Set<AvoirFournisseurLigne>();
     public DbSet<CategorieCharge> CategoriesCharges => Set<CategorieCharge>();
     public DbSet<Charge> Charges => Set<Charge>();
+    public DbSet<CommandeProduction> CommandesProduction => Set<CommandeProduction>();
+    public DbSet<TypeNaissain> TypesNaissain => Set<TypeNaissain>();
+    public DbSet<CategorieCommande> CategoriesCommande => Set<CategorieCommande>();
     public DbSet<OperationProduction> OperationsProduction => Set<OperationProduction>();
     public DbSet<AppSettingsRow> AppSettings => Set<AppSettingsRow>();
 
@@ -176,10 +179,50 @@ public class AppDbContext : DbContext
             e.HasIndex(c => c.Date);
         });
 
+        modelBuilder.Entity<CategorieCommande>(e =>
+        {
+            e.ToTable("CategoriesCommande");
+            e.HasIndex(c => c.Nom).IsUnique();
+            e.HasIndex(c => c.Ordre);
+        });
+
+        modelBuilder.Entity<TypeNaissain>(e =>
+        {
+            e.ToTable("TypesNaissain");
+            e.HasIndex(t => t.Nom).IsUnique();
+            e.HasIndex(t => t.Ordre);
+        });
+
+        modelBuilder.Entity<CommandeProduction>(e =>
+        {
+            e.ToTable("CommandesProduction");
+            e.HasOne(c => c.Fournisseur)
+                .WithMany()
+                .HasForeignKey(c => c.FournisseurId)
+                .OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(c => c.TypeNaissain)
+                .WithMany()
+                .HasForeignKey(c => c.TypeNaissainId)
+                .OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(c => c.CategorieCommande)
+                .WithMany()
+                .HasForeignKey(c => c.CategorieCommandeId)
+                .OnDelete(DeleteBehavior.Restrict);
+            e.HasMany(c => c.Operations)
+                .WithOne(o => o.CommandeProduction)
+                .HasForeignKey(o => o.CommandeProductionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(c => c.FournisseurId);
+            e.HasIndex(c => c.TypeNaissainId);
+            e.HasIndex(c => c.CategorieCommandeId);
+            e.HasIndex(c => c.DateCommande);
+        });
+
         modelBuilder.Entity<OperationProduction>(e =>
         {
             e.ToTable("OperationsProduction");
             e.HasIndex(o => o.OperationAt);
+            e.HasIndex(o => o.CommandeProductionId);
         });
 
         modelBuilder.Entity<AppSettingsRow>(e =>

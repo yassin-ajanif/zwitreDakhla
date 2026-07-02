@@ -378,6 +378,6 @@ public partial class AppShellViewModel : BaseViewModel
         IsNavReportsActive = p is ReportsListViewModel;
         IsNavSettingsActive = p is SettingsViewModel;
         IsNavChargesActive = p is ChargeListViewModel or ChargeEditViewModel;
-        IsNavProductionActive = p is ProductionListViewModel;
+        IsNavProductionActive = p is ProductionListViewModel or CommandeProductionEditViewModel;
     }
 }

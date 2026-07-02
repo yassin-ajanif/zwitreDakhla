@@ -103,6 +103,7 @@ public static class DependencyInjection
         services.AddTransient<ChargeListViewModel>();
         services.AddTransient<ChargeEditViewModel>();
         services.AddTransient<ProductionListViewModel>();
+        services.AddTransient<CommandeProductionEditViewModel>();
         services.AddTransient<SettingsViewModel>();
 
         return services;
