@@ -22,6 +22,9 @@ public class ProductionOperation
     public static bool TotalsMatchTables(int tables, int pochetteGrand, int pochetteMoyenne, int pochettePetit) =>
         ComputeTotalHuitres(pochetteGrand, pochetteMoyenne, pochettePetit) == ExpectedTotalHuitres(tables);
 
+    public static string FormatTauxMortaliteLabel(decimal percent) =>
+        $"{percent.ToString("N0", CultureInfo.CurrentCulture)}%";
+
     /// <summary>0 = grand, 1 = moyenne, 2 = petit. Hint when exactly one pochette field is still 0.</summary>
     public static bool TryGetRemainingForSingleEmptyPochette(
         int tables,

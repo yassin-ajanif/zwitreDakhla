@@ -138,7 +138,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         ProductionOperation.ComputeTauxMortalitePercent(QuantiteNaissain, SumGrandHuitres);
 
     public string TauxMortaliteLabel =>
-        TauxMortalite.ToString("N1", CultureInfo.CurrentCulture);
+        ProductionOperation.FormatTauxMortaliteLabel(TauxMortalite);
 
     public bool ShowTauxMortalite => EstTerminee;
 

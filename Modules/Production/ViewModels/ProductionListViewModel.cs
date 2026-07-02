@@ -70,6 +70,15 @@ public partial class ProductionListViewModel : BaseViewModel
 
     private void ApplyItemLabels(CommandeProductionListItem item)
     {
+        item.EtatLabel = item.EstTerminee
+            ? _locale.T("CmdProd_Terminee")
+            : _locale.T("CmdProd_EnCours");
+        item.NaissainChipPrefix = _locale.T("CmdProd_ChipNaissainPrefix");
+        item.MortaliteChipLabel = _locale.Tf("CmdProd_ChipMortaliteFmt", item.TauxMortaliteLabel);
+        item.OperationsChipLabel = _locale.Tf("CmdProd_ChipOperationsFmt", item.OperationCountLabel);
+        item.TotalHuitresChipLabel = _locale.Tf("CmdProd_ChipTotalHuitresFmt", item.TotalHuitresLabel);
+        item.DerniereChipLabel = _locale.Tf("CmdProd_ChipDerniereFmt", item.LastOperationLabel);
+
         item.SummaryLine2 = item.EstTerminee
             ? _locale.Tf(
                 "CmdProd_SummaryLine2TermineeFmt",

@@ -395,4 +395,7 @@
   <Style Selector="Border.report-shadow-soft">
     <Setter Property="BoxShadow" Value="0 1 8 0 #14000000"/>
   </Style>
+  <Style Selector="Border.report-shadow-bottom">
+    <Setter Property="BoxShadow" Value="0 4 14 0 #12000000"/>
+  </Style>
 </Styles>
