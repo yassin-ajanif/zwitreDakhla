@@ -16,7 +16,14 @@ public sealed class CommandeProductionListItem
     public DateTime? DateExpiration { get; init; }
     public int OperationCount { get; init; }
     public int TotalHuitres { get; init; }
+    public int SumGrandHuitres { get; init; }
     public DateTime? LastOperationAt { get; init; }
+
+    public int RestantOuMortesHuitres =>
+        ProductionOperation.ComputeRemainingHuitresAtWater(QuantiteNaissain, SumGrandHuitres);
+
+    public string RestantOuMortesHuitresLabel =>
+        RestantOuMortesHuitres.ToString("N0", CultureInfo.CurrentCulture);
 
     public string DateLabel => DateCommande.ToString("dd/MM/yyyy", CultureInfo.CurrentCulture);
     public string DateExpirationLabel => DateExpiration?.ToString("dd/MM/yyyy", CultureInfo.CurrentCulture) ?? "—";
@@ -32,7 +39,7 @@ public sealed class CommandeProductionListItem
     public string NaissainChipPrefix { get; set; } = string.Empty;
     public string MortaliteChipLabel { get; set; } = string.Empty;
     public string OperationsChipLabel { get; set; } = string.Empty;
-    public string TotalHuitresChipLabel { get; set; } = string.Empty;
+    public string WaterOrDeadHuitresChipLabel { get; set; } = string.Empty;
     public string ExpirationChipLabel { get; set; } = string.Empty;
 
     public bool ShowExpirationChip => EstTerminee && DateExpiration.HasValue;

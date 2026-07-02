@@ -13,10 +13,14 @@
   </UserControl.Styles>
   <Grid RowDefinitions="Auto,*">
     <StackPanel Spacing="8">
-      <StackPanel Orientation="Horizontal" Spacing="8">
-        <Button Content="{Binding BtnNew}" Command="{Binding NewCommandeCommand}"/>
-        <Button Content="{Binding BtnFilterDate}" Command="{Binding FilterDateCommand}"/>
-      </StackPanel>
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+          <Button Content="{Binding BtnNew}" Command="{Binding NewCommandeCommand}"/>
+          <Button Content="{Binding BtnFilterDate}" Command="{Binding FilterDateCommand}"/>
+        </StackPanel>
+        <Button Grid.Column="2" Content="{Binding BtnResetFilters}" Command="{Binding ResetFiltersCommand}"
+                HorizontalAlignment="Right"/>
+      </Grid>
       <StackPanel Orientation="Horizontal" Spacing="8">
         <ComboBox Classes="prod-list-filter"
                   PlaceholderText="{Binding WmFilterSupplier}"
@@ -43,7 +47,16 @@
             <TextBlock Text="{Binding #ProductionListRoot.((vm:ProductionListViewModel)DataContext).LblExpirationFilterTerminee}"/>
           </ComboBoxItem>
         </ComboBox>
-        <Button Content="{Binding BtnResetFilters}" Command="{Binding ResetFiltersCommand}"/>
+        <ComboBox Classes="prod-list-filter"
+                  PlaceholderText="{Binding WmSort}"
+                  SelectedIndex="{Binding SortFilterIndex}">
+          <ComboBoxItem>
+            <TextBlock Text="{Binding #ProductionListRoot.((vm:ProductionListViewModel)DataContext).LblSortDefault}"/>
+          </ComboBoxItem>
+          <ComboBoxItem>
+            <TextBlock Text="{Binding #ProductionListRoot.((vm:ProductionListViewModel)DataContext).LblSortBestMortality}"/>
+          </ComboBoxItem>
+        </ComboBox>
       </StackPanel>
     </StackPanel>
 
@@ -166,10 +179,16 @@
                     <TextBlock Grid.Column="0" Text="{Binding OperationsChipLabel}"
                                FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"
                                Foreground="{DynamicResource CourseraSubtleTextBrush}"/>
-                    <TextBlock Grid.Column="1" Text="{Binding TotalHuitresChipLabel}"
-                               FontSize="13" FontWeight="Bold" VerticalAlignment="Center"
-                               Margin="16,0,16,0"
-                               Foreground="{DynamicResource CourseraPrimaryBrush}"/>
+                    <Panel Grid.Column="1" Margin="16,0,16,0" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding WaterOrDeadHuitresChipLabel}"
+                                 FontSize="13" FontWeight="Bold"
+                                 IsVisible="{Binding !EstTerminee}"
+                                 Foreground="{DynamicResource CourseraPrimaryBrush}"/>
+                      <TextBlock Text="{Binding WaterOrDeadHuitresChipLabel}"
+                                 FontSize="13" FontWeight="Bold"
+                                 IsVisible="{Binding EstTerminee}"
+                                 Foreground="{DynamicResource CourseraStockAlertDetailBrush}"/>
+                    </Panel>
                     <TextBlock Grid.Column="2" Text="{Binding ExpirationChipLabel}"
                                FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"
                                IsVisible="{Binding ShowExpirationChip}"

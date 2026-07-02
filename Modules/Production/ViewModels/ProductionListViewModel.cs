@@ -65,8 +65,13 @@ public partial class ProductionListViewModel : BaseViewModel
     [ObservableProperty] private string _lblExpirationFilterEnCours = string.Empty;
     [ObservableProperty] private string _lblExpirationFilterTerminee = string.Empty;
     [ObservableProperty] private string _btnResetFilters = string.Empty;
+    [ObservableProperty] private string _wmSort = string.Empty;
+    [ObservableProperty] private string _lblSortDefault = string.Empty;
+    [ObservableProperty] private string _lblSortBestMortality = string.Empty;
     /// <summary>0 = all, 1 = en cours, 2 = expirée (terminée).</summary>
     [ObservableProperty] private int _expirationFilterIndex;
+    /// <summary>0 = date, 1 = lowest mortality first (terminée).</summary>
+    [ObservableProperty] private int _sortFilterIndex;
     [ObservableProperty] private ProductionListFilterOption? _selectedFilterFournisseur;
     [ObservableProperty] private ProductionListFilterOption? _selectedFilterCategorie;
     [ObservableProperty] private ProductionListFilterOption? _selectedFilterType;
@@ -95,6 +100,12 @@ public partial class ProductionListViewModel : BaseViewModel
         _ = LoadAsync(CancellationToken.None, reloadFilters: false);
     }
 
+    partial void OnSortFilterIndexChanged(int value)
+    {
+        if (_suppressFilterReload) return;
+        _ = LoadAsync(CancellationToken.None, reloadFilters: false);
+    }
+
     private void RefreshUi()
     {
         BtnNew = _locale.T("CmdProd_BtnNew");
@@ -109,30 +120,31 @@ public partial class ProductionListViewModel : BaseViewModel
         LblExpirationFilterEnCours = _locale.T("CmdProd_ExpirationFilterEnCours");
         LblExpirationFilterTerminee = _locale.T("CmdProd_ExpirationFilterTerminee");
         BtnResetFilters = _locale.T("CmdProd_BtnResetFilters");
+        WmSort = _locale.T("CmdProd_SortLabel");
+        LblSortDefault = _locale.T("CmdProd_SortDefault");
+        LblSortBestMortality = _locale.T("CmdProd_SortBestMortality");
         UpdateFilterAllLabels();
         ApplyListLabels();
     }
 
     private void UpdateFilterAllLabels()
     {
-        var allLabel = _locale.T("CmdProd_FilterAll");
         if (FilterFournisseurs.Count > 0)
-            FilterFournisseurs[0] = ProductionListFilterOption.All(allLabel);
+            FilterFournisseurs[0] = ProductionListFilterOption.All(_locale.T("CmdProd_FilterSupplierAll"));
         if (FilterCategories.Count > 0)
-            FilterCategories[0] = ProductionListFilterOption.All(allLabel);
+            FilterCategories[0] = ProductionListFilterOption.All(_locale.T("CmdProd_FilterCategorieAll"));
         if (FilterTypes.Count > 0)
-            FilterTypes[0] = ProductionListFilterOption.All(allLabel);
+            FilterTypes[0] = ProductionListFilterOption.All(_locale.T("CmdProd_FilterTypeAll"));
     }
 
     private async Task LoadFiltersAsync(AppDbContext db, CancellationToken cancellationToken)
     {
-        var allLabel = _locale.T("CmdProd_FilterAll");
         var fournisseurId = SelectedFilterFournisseur?.Id;
         var categorieId = SelectedFilterCategorie?.Id;
         var typeId = SelectedFilterType?.Id;
 
         FilterFournisseurs.Clear();
-        FilterFournisseurs.Add(ProductionListFilterOption.All(allLabel));
+        FilterFournisseurs.Add(ProductionListFilterOption.All(_locale.T("CmdProd_FilterSupplierAll")));
         var fournisseurs = await db.Tiers.AsNoTracking()
             .Where(t => t.Actif && (t.Type == TypeTiers.Fournisseur || t.Type == TypeTiers.LesDeux))
             .OrderBy(t => t.Nom)
@@ -141,7 +153,7 @@ public partial class ProductionListViewModel : BaseViewModel
             FilterFournisseurs.Add(ProductionListFilterOption.From(row.Id, row.Nom));
 
         FilterCategories.Clear();
-        FilterCategories.Add(ProductionListFilterOption.All(allLabel));
+        FilterCategories.Add(ProductionListFilterOption.All(_locale.T("CmdProd_FilterCategorieAll")));
         var categories = await db.CategoriesCommande.AsNoTracking()
             .Where(c => c.Actif)
             .OrderBy(c => c.Ordre)
@@ -151,7 +163,7 @@ public partial class ProductionListViewModel : BaseViewModel
             FilterCategories.Add(ProductionListFilterOption.From(row.Id, row.Nom));
 
         FilterTypes.Clear();
-        FilterTypes.Add(ProductionListFilterOption.All(allLabel));
+        FilterTypes.Add(ProductionListFilterOption.All(_locale.T("CmdProd_FilterTypeAll")));
         var types = await db.TypesNaissain.AsNoTracking()
             .Where(t => t.Actif)
             .OrderBy(t => t.Ordre)
@@ -192,7 +204,9 @@ public partial class ProductionListViewModel : BaseViewModel
         item.NaissainChipPrefix = _locale.T("CmdProd_ChipNaissainPrefix");
         item.MortaliteChipLabel = _locale.Tf("CmdProd_ChipMortaliteFmt", item.TauxMortaliteLabel);
         item.OperationsChipLabel = _locale.Tf("CmdProd_ChipOperationsFmt", item.OperationCountLabel);
-        item.TotalHuitresChipLabel = _locale.Tf("CmdProd_ChipTotalHuitresFmt", item.TotalHuitresLabel);
+        item.WaterOrDeadHuitresChipLabel = item.EstTerminee
+            ? _locale.Tf("CmdProd_ChipHuitresMortesFmt", item.RestantOuMortesHuitresLabel)
+            : _locale.Tf("CmdProd_ChipRestantEauFmt", item.RestantOuMortesHuitresLabel);
         item.ExpirationChipLabel = item.ShowExpirationChip
             ? _locale.Tf("CmdProd_ChipExpirationFmt", item.DateExpirationLabel)
             : string.Empty;
@@ -285,7 +299,7 @@ public partial class ProductionListViewModel : BaseViewModel
                 .ThenByDescending(c => c.Id)
                 .ToListAsync(cancellationToken);
 
-            Commandes.Clear();
+            var items = new List<CommandeProductionListItem>();
             foreach (var row in rows)
             {
                 var item = new CommandeProductionListItem
@@ -304,6 +318,7 @@ public partial class ProductionListViewModel : BaseViewModel
                             row.QuantiteNaissain,
                             ProductionOperation.SumGrandHuitres(row.Operations))
                         : 0,
+                    SumGrandHuitres = ProductionOperation.SumGrandHuitres(row.Operations),
                     OperationCount = row.Operations.Count,
                     TotalHuitres = row.Operations.Sum(o =>
                         o.PochetteGrand * ProductionOperation.MultiplierGrand
@@ -314,8 +329,20 @@ public partial class ProductionListViewModel : BaseViewModel
                         : null
                 };
                 ApplyItemLabels(item);
-                Commandes.Add(item);
+                items.Add(item);
             }
+
+            if (SortFilterIndex == 1)
+            {
+                items = items
+                    .OrderBy(i => i.EstTerminee ? i.TauxMortalite : decimal.MaxValue)
+                    .ThenByDescending(i => i.DateCommande)
+                    .ToList();
+            }
+
+            Commandes.Clear();
+            foreach (var item in items)
+                Commandes.Add(item);
         }
         finally
         {
@@ -395,6 +422,7 @@ public partial class ProductionListViewModel : BaseViewModel
         try
         {
             ExpirationFilterIndex = 0;
+            SortFilterIndex = 0;
             if (FilterFournisseurs.Count > 0)
                 SelectedFilterFournisseur = FilterFournisseurs[0];
             if (FilterCategories.Count > 0)
