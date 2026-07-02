@@ -82,8 +82,6 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     [ObservableProperty] private string _wmFournisseurSearch = string.Empty;
     [ObservableProperty] private string _lblTypeHuitre = string.Empty;
     [ObservableProperty] private string _lblCategorieCommande = string.Empty;
-    [ObservableProperty] private string _btnAddTypeNaissain = string.Empty;
-    [ObservableProperty] private string _btnAddCategorieCommande = string.Empty;
     [ObservableProperty] private string _lblQuantiteNaissain = string.Empty;
     [ObservableProperty] private string _lblTauxMortalite = string.Empty;
     [ObservableProperty] private string _lblDateCommande = string.Empty;
@@ -147,8 +145,6 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         BtnBack = _locale.T("Btn_Back");
         BtnSave = _locale.T("Btn_Save");
         BtnAddOperation = _locale.T("CmdProd_BtnAddOperation");
-        BtnAddTypeNaissain = _locale.T("TypeNaissain_BtnAdd");
-        BtnAddCategorieCommande = _locale.T("CatCmd_BtnAdd");
         MenuDeleteOperation = _locale.T("Prod_MenuDelete");
         LblFournisseur = _locale.T("Avf_LblFournisseur");
         WmFournisseurSearch = _locale.T("Wm_SearchSupplier");
@@ -399,56 +395,6 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    private async Task AddTypeNaissainAsync(CancellationToken cancellationToken) =>
-        await AddLookupViaDialogCoreAsync(
-            _locale.T("TypeNaissain_NewTitle"),
-            _locale.T("TypeNaissain_ErrNom"),
-            _locale.T("TypeNaissain_ErrDuplicate"),
-            async (db, nom, actif, ct) =>
-            {
-                if (await db.TypesNaissain.AsNoTracking().AnyAsync(t => t.Nom == nom, ct))
-                    return -1;
-                var maxOrdre = await db.TypesNaissain.AsNoTracking().Select(t => (int?)t.Ordre).MaxAsync(ct) ?? 0;
-                var entity = new TypeNaissain
-                {
-                    Nom = nom,
-                    Actif = actif,
-                    Ordre = maxOrdre + 1,
-                    CreatedByUserId = _session.UserId
-                };
-                db.TypesNaissain.Add(entity);
-                await db.SaveChangesAsync(ct);
-                return entity.Id;
-            },
-            isType: true,
-            cancellationToken);
-
-    [RelayCommand]
-    private async Task AddCategorieCommandeAsync(CancellationToken cancellationToken) =>
-        await AddLookupViaDialogCoreAsync(
-            _locale.T("CatCmd_NewTitle"),
-            _locale.T("CatCmd_ErrNom"),
-            _locale.T("CatCmd_ErrDuplicate"),
-            async (db, nom, actif, ct) =>
-            {
-                if (await db.CategoriesCommande.AsNoTracking().AnyAsync(c => c.Nom == nom, ct))
-                    return -1;
-                var maxOrdre = await db.CategoriesCommande.AsNoTracking().Select(c => (int?)c.Ordre).MaxAsync(ct) ?? 0;
-                var entity = new CategorieCommande
-                {
-                    Nom = nom,
-                    Actif = actif,
-                    Ordre = maxOrdre + 1,
-                    CreatedByUserId = _session.UserId
-                };
-                db.CategoriesCommande.Add(entity);
-                await db.SaveChangesAsync(ct);
-                return entity.Id;
-            },
-            isType: false,
-            cancellationToken);
-
-    [RelayCommand]
     private async Task AddPanelTypeNaissainAsync(CancellationToken cancellationToken) =>
         await AddLookupViaPanelCoreAsync(
             NewTypeNaissainNom,
@@ -558,51 +504,6 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             wasTypeSelected: false,
             wasCategorieSelected: SelectedCategorieCommande?.Id == item.Id,
             cancellationToken);
-    }
-
-    private async Task AddLookupViaDialogCoreAsync(
-        string title,
-        string errNom,
-        string errDuplicate,
-        Func<AppDbContext, string, bool, CancellationToken, Task<int>> add,
-        bool isType,
-        CancellationToken cancellationToken)
-    {
-        if (!_session.CanAccessProduction) return;
-
-        var result = await _dialog.ShowCategorieChargeEditAsync(
-            title,
-            _locale.T("Wm_Nom"),
-            _locale.T("Lbl_Actif"),
-            _locale.T("Btn_Cancel"),
-            _locale.T("Btn_Save"),
-            cancellationToken: cancellationToken);
-        if (result == null) return;
-
-        var nom = result.Nom.Trim();
-        if (string.IsNullOrWhiteSpace(nom))
-        {
-            await _dialog.ShowErrorAsync(Title, errNom, cancellationToken);
-            return;
-        }
-
-        IsBusy = true;
-        try
-        {
-            await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
-            var newId = await add(db, nom, result.Actif, cancellationToken);
-            if (newId < 0)
-            {
-                await _dialog.ShowErrorAsync(Title, errDuplicate, cancellationToken);
-                return;
-            }
-
-            await LoadLookupsAsync(db, cancellationToken, isType ? newId : null, isType ? null : newId);
-        }
-        finally
-        {
-            IsBusy = false;
-        }
     }
 
     private async Task AddLookupViaPanelCoreAsync(
