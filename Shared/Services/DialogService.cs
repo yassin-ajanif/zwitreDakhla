@@ -1,6 +1,8 @@
+using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
+using GestionCommerciale.Modules.Production.ViewModels;
 
 namespace GestionCommerciale.Shared.Services;
 
@@ -417,6 +419,7 @@ public sealed class DialogService : IDialogService
         string moyenneLabel,
         string petitLabel,
         string totalPreviewLabel,
+        string remainingPochetsHintFmt,
         string cancelLabel,
         string saveLabel,
         int initialTables,
@@ -445,6 +448,23 @@ public sealed class DialogService : IDialogService
             panel.Children.Add(input);
         }
 
+        TextBlock CreatePochetteHint() => new()
+        {
+            FontSize = 12,
+            FontStyle = Avalonia.Media.FontStyle.Italic,
+            Opacity = 0.8,
+            IsVisible = false
+        };
+
+        void AddPochetteField(string label, NumericUpDown input, TextBlock hint)
+        {
+            panel.Children.Add(new TextBlock { Text = label, Opacity = 0.75 });
+            var fieldPanel = new StackPanel { Spacing = 2 };
+            fieldPanel.Children.Add(input);
+            fieldPanel.Children.Add(hint);
+            panel.Children.Add(fieldPanel);
+        }
+
         var tablesInput = new NumericUpDown
         {
             Minimum = 0,
@@ -454,6 +474,7 @@ public sealed class DialogService : IDialogService
         };
         AddField(tablesLabel, tablesInput);
 
+        var grandHint = CreatePochetteHint();
         var grandInput = new NumericUpDown
         {
             Minimum = 0,
@@ -461,8 +482,9 @@ public sealed class DialogService : IDialogService
             Value = initialGrand,
             FormatString = "N0"
         };
-        AddField(grandLabel, grandInput);
+        AddPochetteField(grandLabel, grandInput, grandHint);
 
+        var moyenneHint = CreatePochetteHint();
         var moyenneInput = new NumericUpDown
         {
             Minimum = 0,
@@ -470,8 +492,9 @@ public sealed class DialogService : IDialogService
             Value = initialMoyenne,
             FormatString = "N0"
         };
-        AddField(moyenneLabel, moyenneInput);
+        AddPochetteField(moyenneLabel, moyenneInput, moyenneHint);
 
+        var petitHint = CreatePochetteHint();
         var petitInput = new NumericUpDown
         {
             Minimum = 0,
@@ -479,22 +502,9 @@ public sealed class DialogService : IDialogService
             Value = initialPetit,
             FormatString = "N0"
         };
-        AddField(petitLabel, petitInput);
+        AddPochetteField(petitLabel, petitInput, petitHint);
 
         var totalPreview = new TextBlock { FontWeight = Avalonia.Media.FontWeight.SemiBold, Opacity = 0.85 };
-        void RefreshTotal()
-        {
-            var g = (int)(grandInput.Value ?? 0);
-            var m = (int)(moyenneInput.Value ?? 0);
-            var p = (int)(petitInput.Value ?? 0);
-            var total = g * 160 + m * 160 + p * 160;
-            totalPreview.Text = $"{totalPreviewLabel}: {total:N0}";
-        }
-
-        grandInput.ValueChanged += (_, _) => RefreshTotal();
-        moyenneInput.ValueChanged += (_, _) => RefreshTotal();
-        petitInput.ValueChanged += (_, _) => RefreshTotal();
-        RefreshTotal();
         panel.Children.Add(totalPreview);
 
         var buttons = new StackPanel
@@ -508,6 +518,49 @@ public sealed class DialogService : IDialogService
         var cancel = new Button { Content = cancelLabel };
         cancel.Click += (_, _) => w.Close();
         var save = new Button { Content = saveLabel, IsDefault = true };
+        void RefreshState()
+        {
+            var tables = (int)(tablesInput.Value ?? 0);
+            var g = (int)(grandInput.Value ?? 0);
+            var m = (int)(moyenneInput.Value ?? 0);
+            var p = (int)(petitInput.Value ?? 0);
+            var total = ProductionOperation.ComputeTotalHuitres(g, m, p);
+            var expected = ProductionOperation.ExpectedTotalHuitres(tables);
+            totalPreview.Text = $"{totalPreviewLabel}: {total:N0} / {expected:N0}";
+            save.IsEnabled = ProductionOperation.TotalsMatchTables(tables, g, m, p);
+
+            grandHint.IsVisible = false;
+            moyenneHint.IsVisible = false;
+            petitHint.IsVisible = false;
+            if (ProductionOperation.TryGetRemainingForSingleEmptyPochette(tables, g, m, p, out var emptyField, out var remaining))
+            {
+                var hintText = string.Format(
+                    CultureInfo.CurrentCulture,
+                    remainingPochetsHintFmt,
+                    remaining.ToString("N0", CultureInfo.CurrentCulture));
+                switch (emptyField)
+                {
+                    case 0:
+                        grandHint.Text = hintText;
+                        grandHint.IsVisible = true;
+                        break;
+                    case 1:
+                        moyenneHint.Text = hintText;
+                        moyenneHint.IsVisible = true;
+                        break;
+                    case 2:
+                        petitHint.Text = hintText;
+                        petitHint.IsVisible = true;
+                        break;
+                }
+            }
+        }
+
+        tablesInput.ValueChanged += (_, _) => RefreshState();
+        grandInput.ValueChanged += (_, _) => RefreshState();
+        moyenneInput.ValueChanged += (_, _) => RefreshState();
+        petitInput.ValueChanged += (_, _) => RefreshState();
+        RefreshState();
         save.Click += (_, _) =>
         {
             result = new ProductionOperationDialogResult(

@@ -310,6 +310,7 @@ public static class UiTranslations
         ["Prod_LblModifiedFmt"] = ("modifié le {0}", "عُدّل في {0}"),
         ["Prod_StockNoteFmt"] = ("Production {0}", "إنتاج {0}"),
         ["Prod_LblTotalPreview"] = ("Total huîtres", "مجموع المحار"),
+        ["Prod_RemainingPochetsFmt"] = ("{0} pochette(s) à saisir", "{0} أكياس للإدخال"),
 
         ["CmdProd_ListTitle"] = ("Commandes production", "أوامر الإنتاج"),
         ["CmdProd_BtnNew"] = ("Nouvelle commande", "أمر جديد"),
@@ -334,6 +335,7 @@ public static class UiTranslations
         ["CmdProd_SectionOperations"] = ("Opérations de cette commande", "عمليات هذا الأمر"),
         ["CmdProd_BtnAddOperation"] = ("Ajouter une opération", "إضافة عملية"),
         ["CmdProd_LblTotalCommande"] = ("Total huîtres (commande)", "مجموع المحار (الأمر)"),
+        ["CmdProd_LblTotauxRow"] = ("Totaux", "المجاميع"),
         ["CmdProd_Saved"] = ("Commande enregistrée.", "تم حفظ الأمر."),
         ["CmdProd_ErrFournisseur"] = ("Sélectionnez un fournisseur.", "اختر مورداً."),
         ["CmdProd_ErrQuantite"] = ("La quantité naissain doit être positive ou nulle.", "كمية الزريع يجب أن تكون موجبة أو صفر."),

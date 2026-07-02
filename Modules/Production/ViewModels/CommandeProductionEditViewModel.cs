@@ -94,6 +94,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     [ObservableProperty] private string _lblNote = string.Empty;
     [ObservableProperty] private string _sectionOperations = string.Empty;
     [ObservableProperty] private string _lblTotalCommande = string.Empty;
+    [ObservableProperty] private string _lblTotauxRow = string.Empty;
     [ObservableProperty] private string _hdrVendre = string.Empty;
     [ObservableProperty] private string _hdrRetourner = string.Empty;
     [ObservableProperty] private string _colGrand = string.Empty;
@@ -121,6 +122,15 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
 
     public string TotalCommandeLabel => Operations.Sum(o => o.TotalOperation).ToString("N0", CultureInfo.CurrentCulture);
     public bool CanAddOperation => CommandeId != null;
+    public bool HasOperations => Operations.Count > 0;
+
+    public string TotalTablesLabel => Operations.Sum(o => o.Tables).ToString("N0", CultureInfo.CurrentCulture);
+    public string TotalPochetteGrandLabel => Operations.Sum(o => o.PochetteGrand).ToString("N0", CultureInfo.CurrentCulture);
+    public string TotalGrandHuitresLabel => Operations.Sum(o => o.TotalGrand).ToString("N0", CultureInfo.CurrentCulture);
+    public string TotalPochetteMoyenneLabel => Operations.Sum(o => o.PochetteMoyenne).ToString("N0", CultureInfo.CurrentCulture);
+    public string TotalMoyenneHuitresLabel => Operations.Sum(o => o.TotalMoyenne).ToString("N0", CultureInfo.CurrentCulture);
+    public string TotalPochettePetitLabel => Operations.Sum(o => o.PochettePetit).ToString("N0", CultureInfo.CurrentCulture);
+    public string TotalPetitHuitresLabel => Operations.Sum(o => o.TotalPetit).ToString("N0", CultureInfo.CurrentCulture);
 
     public int SumGrandHuitres => ProductionOperation.SumGrandHuitres(Operations);
 
@@ -152,6 +162,20 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         OnPropertyChanged(nameof(TauxMortaliteLabel));
     }
 
+    private void RefreshOperationTotals()
+    {
+        OnPropertyChanged(nameof(HasOperations));
+        OnPropertyChanged(nameof(TotalTablesLabel));
+        OnPropertyChanged(nameof(TotalPochetteGrandLabel));
+        OnPropertyChanged(nameof(TotalGrandHuitresLabel));
+        OnPropertyChanged(nameof(TotalPochetteMoyenneLabel));
+        OnPropertyChanged(nameof(TotalMoyenneHuitresLabel));
+        OnPropertyChanged(nameof(TotalPochettePetitLabel));
+        OnPropertyChanged(nameof(TotalPetitHuitresLabel));
+        OnPropertyChanged(nameof(TotalCommandeLabel));
+        RefreshTauxMortalite();
+    }
+
     public void LoadNew()
     {
         CommandeId = null;
@@ -166,6 +190,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         Note = string.Empty;
         Operations.Clear();
         Title = _locale.T("CmdProd_NewTitle");
+        RefreshOperationTotals();
         _ = LoadLookupsAsync(CancellationToken.None);
     }
 
@@ -195,6 +220,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         LblNote = _locale.T("Lbl_Note");
         SectionOperations = _locale.T("CmdProd_SectionOperations");
         LblTotalCommande = _locale.T("CmdProd_LblTotalCommande");
+        LblTotauxRow = _locale.T("CmdProd_LblTotauxRow");
         HdrVendre = _locale.T("Prod_HdrVendre");
         HdrRetourner = _locale.T("Prod_HdrRetourner");
         ColGrand = _locale.T("Prod_ColGrand");
@@ -215,7 +241,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         ColLookupNom = _locale.T("Lbl_ColNom");
         ColLookupActif = _locale.T("Lbl_ColActif");
         RefreshModifiedLabels();
-        OnPropertyChanged(nameof(TotalCommandeLabel));
+        RefreshOperationTotals();
     }
 
     private void RefreshModifiedLabels()
@@ -335,10 +361,9 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
                 Operations.Add(MapOperation(op));
 
             Title = _locale.Tf("CmdProd_EditTitleFmt", Numero);
-            OnPropertyChanged(nameof(TotalCommandeLabel));
             OnPropertyChanged(nameof(CanAddOperation));
             OnPropertyChanged(nameof(ShowTauxMortalite));
-            RefreshTauxMortalite();
+            RefreshOperationTotals();
         }
         finally
         {
@@ -763,8 +788,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         await db.SaveChangesAsync(cancellationToken);
 
         Operations.Remove(operation);
-        OnPropertyChanged(nameof(TotalCommandeLabel));
-        RefreshTauxMortalite();
+        RefreshOperationTotals();
     }
 
     private async Task ShowOperationDialogAsync(ProductionOperation? existing, CancellationToken cancellationToken)
@@ -782,6 +806,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             _locale.T("Prod_LblMoyennePochets"),
             _locale.T("Prod_LblPetitPochets"),
             _locale.T("Prod_LblTotalPreview"),
+            _locale.T("Prod_RemainingPochetsFmt"),
             _locale.T("Btn_Cancel"),
             _locale.T("Btn_Save"),
             existing?.Tables ?? 0,
@@ -837,7 +862,6 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
                 Operations[idx] = mapped;
         }
 
-        OnPropertyChanged(nameof(TotalCommandeLabel));
-        RefreshTauxMortalite();
+        RefreshOperationTotals();
     }
 }

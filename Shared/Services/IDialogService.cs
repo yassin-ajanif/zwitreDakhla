@@ -43,6 +43,7 @@ public interface IDialogService
         string moyenneLabel,
         string petitLabel,
         string totalPreviewLabel,
+        string remainingPochetsHintFmt,
         string cancelLabel,
         string saveLabel,
         int initialTables,
