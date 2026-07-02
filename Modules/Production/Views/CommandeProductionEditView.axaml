@@ -75,7 +75,7 @@
                 </ComboBox.ItemTemplate>
               </ComboBox>
               <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding LblTauxMortalite}" VerticalAlignment="Center" Opacity="0.7" Margin="0,0,10,8"/>
-              <NumericUpDown Grid.Row="1" Grid.Column="4" Value="{Binding TauxMortalite}" Minimum="0" Maximum="100" FormatString="N1" Margin="0,0,0,8"/>
+              <TextBlock Grid.Row="1" Grid.Column="4" Text="{Binding TauxMortaliteLabel}" VerticalAlignment="Center" Margin="0,0,0,8"/>
 
               <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding LblNote}" VerticalAlignment="Center" Opacity="0.7" Margin="0,0,10,0"/>
               <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Text="{Binding Note}" Watermark="{Binding LblNote}"/>

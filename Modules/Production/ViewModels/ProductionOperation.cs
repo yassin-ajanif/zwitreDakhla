@@ -36,6 +36,20 @@ public class ProductionOperation
     public string TotalPetitLabel => TotalPetit.ToString("N0", CultureInfo.CurrentCulture);
     public string TotalOperationLabel => TotalOperation.ToString("N0", CultureInfo.CurrentCulture);
 
+    /// <summary>Mortality rate (%) = (quantité naissain − sum of grand huîtres) / quantité naissain × 100.</summary>
+    public static decimal ComputeTauxMortalitePercent(int quantiteNaissain, int sumGrandHuitres)
+    {
+        if (quantiteNaissain <= 0) return 0;
+        var mortalite = quantiteNaissain - sumGrandHuitres;
+        return Math.Max(0, mortalite / (decimal)quantiteNaissain * 100m);
+    }
+
+    public static int SumGrandHuitres(IEnumerable<ProductionOperation> operations) =>
+        operations.Sum(o => o.TotalGrand);
+
+    public static int SumGrandHuitres(IEnumerable<OperationProduction> operations) =>
+        operations.Sum(o => o.PochetteGrand * MultiplierGrand);
+
     public static ProductionOperation FromEntity(OperationProduction entity)
     {
         var wasModified = entity.UpdatedAt > entity.CreatedAt.AddSeconds(2);

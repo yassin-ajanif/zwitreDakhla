@@ -70,7 +70,6 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     [ObservableProperty] private TypeNaissain? _selectedTypeNaissain;
     [ObservableProperty] private CategorieCommande? _selectedCategorieCommande;
     [ObservableProperty] private int _quantiteNaissain;
-    [ObservableProperty] private decimal _tauxMortalite;
     [ObservableProperty] private DateTimeOffset _dateCommande = DateTimeOffset.Now;
     [ObservableProperty] private string _note = string.Empty;
 
@@ -116,7 +115,24 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     public string TotalCommandeLabel => Operations.Sum(o => o.TotalOperation).ToString("N0", CultureInfo.CurrentCulture);
     public bool CanAddOperation => CommandeId != null;
 
+    public int SumGrandHuitres => ProductionOperation.SumGrandHuitres(Operations);
+
+    public decimal TauxMortalite =>
+        ProductionOperation.ComputeTauxMortalitePercent(QuantiteNaissain, SumGrandHuitres);
+
+    public string TauxMortaliteLabel =>
+        TauxMortalite.ToString("N1", CultureInfo.CurrentCulture);
+
     partial void OnCommandeIdChanged(int? value) => OnPropertyChanged(nameof(CanAddOperation));
+
+    partial void OnQuantiteNaissainChanged(int value) => RefreshTauxMortalite();
+
+    private void RefreshTauxMortalite()
+    {
+        OnPropertyChanged(nameof(SumGrandHuitres));
+        OnPropertyChanged(nameof(TauxMortalite));
+        OnPropertyChanged(nameof(TauxMortaliteLabel));
+    }
 
     public void LoadNew()
     {
@@ -126,7 +142,6 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         SelectedTypeNaissain = null;
         SelectedCategorieCommande = null;
         QuantiteNaissain = 0;
-        TauxMortalite = 0;
         DateCommande = DateTimeOffset.Now;
         Note = string.Empty;
         Operations.Clear();
@@ -283,7 +298,6 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             Numero = entity.Numero;
             SelectedFournisseur = Fournisseurs.FirstOrDefault(f => f.Id == entity.FournisseurId);
             QuantiteNaissain = entity.QuantiteNaissain;
-            TauxMortalite = entity.TauxMortalite;
             DateCommande = entity.DateCommande;
             Note = entity.Note;
 
@@ -294,6 +308,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             Title = _locale.Tf("CmdProd_EditTitleFmt", Numero);
             OnPropertyChanged(nameof(TotalCommandeLabel));
             OnPropertyChanged(nameof(CanAddOperation));
+            RefreshTauxMortalite();
         }
         finally
         {
@@ -341,12 +356,6 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         if (QuantiteNaissain < 0)
         {
             await _dialog.ShowErrorAsync(Title, _locale.T("CmdProd_ErrQuantite"), cancellationToken);
-            return;
-        }
-
-        if (TauxMortalite < 0 || TauxMortalite > 100)
-        {
-            await _dialog.ShowErrorAsync(Title, _locale.T("CmdProd_ErrTaux"), cancellationToken);
             return;
         }
 
@@ -723,6 +732,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
 
         Operations.Remove(operation);
         OnPropertyChanged(nameof(TotalCommandeLabel));
+        RefreshTauxMortalite();
     }
 
     private async Task ShowOperationDialogAsync(ProductionOperation? existing, CancellationToken cancellationToken)
@@ -796,5 +806,6 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         }
 
         OnPropertyChanged(nameof(TotalCommandeLabel));
+        RefreshTauxMortalite();
     }
 }

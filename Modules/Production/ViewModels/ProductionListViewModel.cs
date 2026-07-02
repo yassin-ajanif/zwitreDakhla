@@ -145,7 +145,9 @@ public partial class ProductionListViewModel : BaseViewModel
                     CategorieCommandeNom = row.CategorieCommande?.Nom ?? "—",
                     TypeNaissainNom = row.TypeNaissain?.Nom ?? "—",
                     QuantiteNaissain = row.QuantiteNaissain,
-                    TauxMortalite = row.TauxMortalite,
+                    TauxMortalite = ProductionOperation.ComputeTauxMortalitePercent(
+                        row.QuantiteNaissain,
+                        ProductionOperation.SumGrandHuitres(row.Operations)),
                     OperationCount = row.Operations.Count,
                     TotalHuitres = row.Operations.Sum(o =>
                         o.PochetteGrand * ProductionOperation.MultiplierGrand
