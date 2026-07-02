@@ -33,7 +33,9 @@ public sealed class CommandeProductionListItem
     public string MortaliteChipLabel { get; set; } = string.Empty;
     public string OperationsChipLabel { get; set; } = string.Empty;
     public string TotalHuitresChipLabel { get; set; } = string.Empty;
-    public string DerniereChipLabel { get; set; } = string.Empty;
+    public string ExpirationChipLabel { get; set; } = string.Empty;
+
+    public bool ShowExpirationChip => EstTerminee && DateExpiration.HasValue;
 
     public string MortaliteBadgeBackground => TauxMortalite switch
     {

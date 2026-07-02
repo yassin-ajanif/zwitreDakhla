@@ -134,8 +134,10 @@
                                FontSize="13" FontWeight="Bold" VerticalAlignment="Center"
                                Margin="16,0,16,0"
                                Foreground="{DynamicResource CourseraPrimaryBrush}"/>
-                    <TextBlock Grid.Column="2" Text="{Binding DerniereChipLabel}"
-                               FontSize="12" VerticalAlignment="Center" Opacity="0.75"/>
+                    <TextBlock Grid.Column="2" Text="{Binding ExpirationChipLabel}"
+                               FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"
+                               IsVisible="{Binding ShowExpirationChip}"
+                               Foreground="{DynamicResource CourseraStockAlertDetailBrush}"/>
                   </Grid>
                 </Border>
               </Grid>

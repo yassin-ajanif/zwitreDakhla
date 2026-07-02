@@ -77,7 +77,9 @@ public partial class ProductionListViewModel : BaseViewModel
         item.MortaliteChipLabel = _locale.Tf("CmdProd_ChipMortaliteFmt", item.TauxMortaliteLabel);
         item.OperationsChipLabel = _locale.Tf("CmdProd_ChipOperationsFmt", item.OperationCountLabel);
         item.TotalHuitresChipLabel = _locale.Tf("CmdProd_ChipTotalHuitresFmt", item.TotalHuitresLabel);
-        item.DerniereChipLabel = _locale.Tf("CmdProd_ChipDerniereFmt", item.LastOperationLabel);
+        item.ExpirationChipLabel = item.ShowExpirationChip
+            ? _locale.Tf("CmdProd_ChipExpirationFmt", item.DateExpirationLabel)
+            : string.Empty;
 
         item.SummaryLine2 = item.EstTerminee
             ? _locale.Tf(

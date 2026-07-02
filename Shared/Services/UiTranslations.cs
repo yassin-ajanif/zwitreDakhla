@@ -326,6 +326,7 @@ public static class UiTranslations
         ["CmdProd_ChipOperationsFmt"] = ("{0} opération(s)", "{0} عملية"),
         ["CmdProd_ChipTotalHuitresFmt"] = ("Total huîtres {0}", "مجموع المحار {0}"),
         ["CmdProd_ChipDerniereFmt"] = ("Dernière {0}", "آخر {0}"),
+        ["CmdProd_ChipExpirationFmt"] = ("Expirée le {0}", "انتهت في {0}"),
         ["CmdProd_Title"] = ("Commande production", "أمر إنتاج"),
         ["CmdProd_NewTitle"] = ("Nouvelle commande production", "أمر إنتاج جديد"),
         ["CmdProd_EditTitleFmt"] = ("Commande {0}", "أمر {0}"),
