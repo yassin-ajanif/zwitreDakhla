@@ -625,23 +625,23 @@ public sealed class PdfService : IPdfService
     {
         var columns = new List<PdfTableColumn>();
         if (v.ShowReference)
-            columns.Add(new PdfTableColumn("Référence", 0.7f, PdfTextAlignment.Start));
+            columns.Add(new PdfTableColumn("Référence", 1.15f, PdfTextAlignment.Start));
         if (v.ShowDesignation)
-            columns.Add(new PdfTableColumn("Désignation", 2.5f, PdfTextAlignment.Start));
+            columns.Add(new PdfTableColumn("Désignation", 2.0f, PdfTextAlignment.Start));
         if (v.ShowQuantite)
-            columns.Add(new PdfTableColumn(qtyHeader, 0.25f, PdfTextAlignment.Center));
+            columns.Add(new PdfTableColumn(qtyHeader, 0.75f, PdfTextAlignment.Center));
         if (v.ShowConditionnement)
-            columns.Add(new PdfTableColumn("Ute", 0.30f, PdfTextAlignment.Center));
+            columns.Add(new PdfTableColumn("Ute", 0.38f, PdfTextAlignment.Center));
         if (v.ShowPuHt)
-            columns.Add(new PdfTableColumn("PU HT", 0.55f, PdfTextAlignment.Center));
+            columns.Add(new PdfTableColumn("PU HT", 0.70f, PdfTextAlignment.Center));
         if (v.ShowTva)
-            columns.Add(new PdfTableColumn("Tva", 0.25f, PdfTextAlignment.Center));
+            columns.Add(new PdfTableColumn("Tva", 0.38f, PdfTextAlignment.Center));
         if (v.ShowRemise)
-            columns.Add(new PdfTableColumn("Rem. %", 0.35f, PdfTextAlignment.Center));
+            columns.Add(new PdfTableColumn("Rem. %", 0.48f, PdfTextAlignment.Center));
         if (v.ShowMontantHt)
-            columns.Add(new PdfTableColumn("Mnt HT", 0.55f, PdfTextAlignment.Center));
+            columns.Add(new PdfTableColumn("Mnt HT", 0.90f, PdfTextAlignment.Center));
         if (v.ShowMontantTtc)
-            columns.Add(new PdfTableColumn("Mnt TTC", 0.55f, PdfTextAlignment.Center));
+            columns.Add(new PdfTableColumn("Mnt TTC", 0.90f, PdfTextAlignment.Center));
         return columns;
     }
 
