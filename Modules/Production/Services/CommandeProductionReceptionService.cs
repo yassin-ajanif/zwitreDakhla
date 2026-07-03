@@ -30,7 +30,7 @@ public sealed class CommandeProductionReceptionService : ICommandeProductionRece
         int? userId,
         CancellationToken cancellationToken = default)
     {
-        var produitId = await _productionStock.EnsureHuitreGrandProductAsync(db, cancellationToken);
+        var produitId = await _productionStock.EnsureNaissainProductAsync(db, cancellationToken);
         var produit = await db.Produits.AsNoTracking().FirstAsync(p => p.Id == produitId, cancellationToken);
 
         var br = await db.BonsReception

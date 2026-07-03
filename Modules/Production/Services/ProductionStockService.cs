@@ -14,6 +14,9 @@ public sealed class ProductionStockService : IProductionStockService
     public const string HuitreGrandReference = "HUITRE-GRAND";
     public const string HuitreGrandDesignation = "Huître Grand";
 
+    public const string NaissainReference = "NAISSAIN";
+    public const string NaissainDesignation = "Naissain";
+
     private readonly IStockMovementService _stock;
     private readonly ILocaleService _locale;
 
@@ -45,6 +48,33 @@ public sealed class ProductionStockService : IProductionStockService
             Reference = HuitreGrandReference,
             Designation = HuitreGrandDesignation,
             Unite = "U",
+            Actif = true
+        };
+        db.Produits.Add(product);
+        await db.SaveChangesAsync(cancellationToken);
+        return product.Id;
+    }
+
+    public async Task<int> EnsureNaissainProductAsync(AppDbContext db, CancellationToken cancellationToken = default)
+    {
+        var existing = await db.Produits
+            .FirstOrDefaultAsync(p => p.Reference == NaissainReference, cancellationToken);
+        if (existing != null)
+        {
+            if (existing.Designation != NaissainDesignation)
+            {
+                existing.Designation = NaissainDesignation;
+                await db.SaveChangesAsync(cancellationToken);
+            }
+            return existing.Id;
+        }
+
+        var product = new Produit
+        {
+            Reference = NaissainReference,
+            Designation = NaissainDesignation,
+            Unite = "U",
+            TauxTVA = 20,
             Actif = true
         };
         db.Produits.Add(product);

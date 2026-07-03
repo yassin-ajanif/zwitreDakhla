@@ -66,5 +66,24 @@ public static class DbSeeder
             if (changed)
                 db.SaveChanges();
         }
+
+        var naissain = db.Produits.FirstOrDefault(p => p.Reference == ProductionStockService.NaissainReference);
+        if (naissain == null)
+        {
+            db.Produits.Add(new Produit
+            {
+                Reference = ProductionStockService.NaissainReference,
+                Designation = ProductionStockService.NaissainDesignation,
+                Unite = "U",
+                TauxTVA = 20,
+                Actif = true
+            });
+            db.SaveChanges();
+        }
+        else if (naissain.Designation != ProductionStockService.NaissainDesignation)
+        {
+            naissain.Designation = ProductionStockService.NaissainDesignation;
+            db.SaveChanges();
+        }
     }
 }
