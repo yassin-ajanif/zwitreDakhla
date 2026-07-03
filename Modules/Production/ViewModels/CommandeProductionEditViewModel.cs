@@ -27,6 +27,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     private readonly ICurrentUserSession _session;
     private readonly ILocaleService _locale;
     private readonly IProductionStockService _productionStock;
+    private readonly ICommandeProductionReceptionService _commandeReception;
     private bool _suppressEstTermineeExpirationSync;
 
     public CommandeProductionEditViewModel(
@@ -37,7 +38,8 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         IServiceProvider sp,
         ICurrentUserSession session,
         ILocaleService locale,
-        IProductionStockService productionStock)
+        IProductionStockService productionStock,
+        ICommandeProductionReceptionService commandeReception)
     {
         _dbFactory = dbFactory;
         _numbers = numbers;
@@ -47,6 +49,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         _session = session;
         _locale = locale;
         _productionStock = productionStock;
+        _commandeReception = commandeReception;
         _locale.CultureApplied += (_, _) => RefreshUi();
         RefreshUi();
         Title = _locale.T("CmdProd_Title");
@@ -461,6 +464,8 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             entity.Note = Note.Trim();
 
             await db.SaveChangesAsync(cancellationToken);
+
+            await _commandeReception.SyncBonReceptionAsync(db, entity, _session.UserId, cancellationToken);
 
             CommandeId = entity.Id;
             Numero = entity.Numero;

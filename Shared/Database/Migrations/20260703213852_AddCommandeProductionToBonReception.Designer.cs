@@ -3,6 +3,7 @@ using System;
 using GestionCommerciale.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GestionCommerciale.Shared.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260703213852_AddCommandeProductionToBonReception")]
+    partial class AddCommandeProductionToBonReception
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
@@ -51,7 +54,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AvoirsFournisseurs", (string)null);
+                    b.ToTable("AvoirsFournisseurs");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.AvoirFournisseur.Models.AvoirFournisseurLigne", b =>
@@ -99,7 +102,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("AvoirFournisseurId");
 
-                    b.ToTable("AvoirFournisseurLignes", (string)null);
+                    b.ToTable("AvoirFournisseurLignes");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Charges.Models.CategorieCharge", b =>
@@ -222,7 +225,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("FactureId");
 
-                    b.ToTable("BonsCommandeClient", (string)null);
+                    b.ToTable("BonsCommandeClient");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.CommandeClient.Models.BonCommandeClientLigne", b =>
@@ -270,7 +273,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("BonCommandeClientId");
 
-                    b.ToTable("BonCommandeClientLignes", (string)null);
+                    b.ToTable("BonCommandeClientLignes");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.CommandeFournisseur.Models.BonCommande", b =>
@@ -304,7 +307,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BonsCommande", (string)null);
+                    b.ToTable("BonsCommande");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.CommandeFournisseur.Models.BonCommandeLigne", b =>
@@ -352,7 +355,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("BonCommandeId");
 
-                    b.ToTable("BonCommandeLignes", (string)null);
+                    b.ToTable("BonCommandeLignes");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Devis.Models.Devis", b =>
@@ -392,7 +395,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Devis", (string)null);
+                    b.ToTable("Devis");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Devis.Models.DevisLigne", b =>
@@ -440,7 +443,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("DevisId");
 
-                    b.ToTable("DevisLignes", (string)null);
+                    b.ToTable("DevisLignes");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Facturation.Models.Avoir", b =>
@@ -482,7 +485,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("FactureId");
 
-                    b.ToTable("Avoirs", (string)null);
+                    b.ToTable("Avoirs");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Facturation.Models.AvoirLigne", b =>
@@ -530,7 +533,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("AvoirId");
 
-                    b.ToTable("AvoirLignes", (string)null);
+                    b.ToTable("AvoirLignes");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Facturation.Models.Facture", b =>
@@ -583,7 +586,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Factures", (string)null);
+                    b.ToTable("Factures");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Facturation.Models.FactureLigne", b =>
@@ -636,7 +639,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("FactureId");
 
-                    b.ToTable("FactureLignes", (string)null);
+                    b.ToTable("FactureLignes");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Facturation.Models.Paiement", b =>
@@ -674,7 +677,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("FactureId");
 
-                    b.ToTable("Paiements", (string)null);
+                    b.ToTable("Paiements");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.FactureFournisseur.Models.FactureFournisseur", b =>
@@ -720,7 +723,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FacturesFournisseurs", (string)null);
+                    b.ToTable("FacturesFournisseurs");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.FactureFournisseur.Models.FactureFournisseurLigne", b =>
@@ -773,7 +776,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("FactureFournisseurId");
 
-                    b.ToTable("FactureFournisseurLignes", (string)null);
+                    b.ToTable("FactureFournisseurLignes");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.FactureFournisseur.Models.PaiementFournisseur", b =>
@@ -811,7 +814,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("FactureFournisseurId");
 
-                    b.ToTable("PaiementsFournisseurs", (string)null);
+                    b.ToTable("PaiementsFournisseurs");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Livraison.Models.BonLivraison", b =>
@@ -858,7 +861,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("FactureId");
 
-                    b.ToTable("BonsLivraison", (string)null);
+                    b.ToTable("BonsLivraison");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Livraison.Models.BonLivraisonLigne", b =>
@@ -905,7 +908,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("BLId");
 
-                    b.ToTable("BonLivraisonLignes", (string)null);
+                    b.ToTable("BonLivraisonLignes");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Production.Models.CategorieCommande", b =>
@@ -1129,7 +1132,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("FactureFournisseurId");
 
-                    b.ToTable("BonsReception", (string)null);
+                    b.ToTable("BonsReception");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Reception.Models.BonReceptionLigne", b =>
@@ -1170,7 +1173,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("BRId");
 
-                    b.ToTable("BonReceptionLignes", (string)null);
+                    b.ToTable("BonReceptionLignes");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Stock.Models.Categorie", b =>
@@ -1194,7 +1197,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Stock.Models.MouvementStock", b =>
@@ -1239,7 +1242,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasIndex("ProduitId");
 
-                    b.ToTable("MouvementsStock", (string)null);
+                    b.ToTable("MouvementsStock");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Stock.Models.Produit", b =>
@@ -1303,7 +1306,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
                     b.HasIndex("Reference")
                         .IsUnique();
 
-                    b.ToTable("Produits", (string)null);
+                    b.ToTable("Produits");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.Tiers.Models.Tiers", b =>
@@ -1437,7 +1440,7 @@ namespace GestionCommerciale.Shared.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppSettings", (string)null);
+                    b.ToTable("AppSettings");
                 });
 
             modelBuilder.Entity("GestionCommerciale.Modules.AvoirFournisseur.Models.AvoirFournisseurLigne", b =>

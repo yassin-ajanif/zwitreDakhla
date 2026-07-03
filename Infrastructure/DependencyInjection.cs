@@ -50,6 +50,7 @@ public static class DependencyInjection
         services.AddSingleton<IDocumentNumberService, DocumentNumberService>();
         services.AddSingleton<IStockMovementService, StockMovementService>();
         services.AddSingleton<IProductionStockService, ProductionStockService>();
+        services.AddSingleton<ICommandeProductionReceptionService, CommandeProductionReceptionService>();
         services.AddSingleton<IPosService, PosService>();
         services.AddSingleton<IBonLivraisonWorkflowService, BonLivraisonWorkflowService>();
         services.AddSingleton<IBonReceptionWorkflowService, BonReceptionWorkflowService>();

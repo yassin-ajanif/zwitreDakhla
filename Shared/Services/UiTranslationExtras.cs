@@ -263,6 +263,7 @@ internal static class UiTranslationExtras
         ["FafList_ColPayee"] = ("Paiement", "الدفع"),
         ["BR_FacturerSelection"] = ("Facturer la sélection", "فوترة المحدد"),
         ["BR_FacturedOn"] = ("Facturé : {0}", "مفوتر: {0}"),
+        ["BR_LinkedCmdProd"] = ("Commande : {0}", "أمر: {0}"),
         ["BR_ErrAlreadyInvoiced"] = ("Ce BR est déjà facturé sur {0}.", "إيصال الاستلام هذا مفوتر بالفعل على {0}."),
         ["BR_ErrDifferentSuppliers"] = ("Les BR sélectionnés doivent être du même fournisseur.", "يجب أن تكون إيصالات الاستلام المحددة من نفس المورد."),
         ["SupplierLedger_FactureFmt"] = ("FACTURE FOURNISSEUR N°{0}", "فاتورة مورد رقم {0}"),

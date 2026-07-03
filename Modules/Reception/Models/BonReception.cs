@@ -1,4 +1,5 @@
 using GestionCommerciale.Modules.CommandeFournisseur.Models;
+using GestionCommerciale.Modules.Production.Models;
 using GestionCommerciale.Shared.Models;
 
 namespace GestionCommerciale.Modules.Reception.Models;
@@ -9,6 +10,9 @@ public class BonReception : BaseEntity
     /// <summary>Optional link to the purchase order this reception fulfills (or partially fulfills).</summary>
     public int? BonCommandeId { get; set; }
     public BonCommande? BonCommande { get; set; }
+    /// <summary>Optional link to the production commande (CMD-…) that generated this reception.</summary>
+    public int? CommandeProductionId { get; set; }
+    public CommandeProduction? CommandeProduction { get; set; }
     public int FournisseurId { get; set; }
     public DateTime Date { get; set; }
     public int? FactureFournisseurId { get; set; }

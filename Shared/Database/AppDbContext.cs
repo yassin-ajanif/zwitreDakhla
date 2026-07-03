@@ -105,6 +105,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<BonReception>(e =>
         {
             e.HasOne(b => b.BonCommande).WithMany().HasForeignKey(b => b.BonCommandeId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(b => b.CommandeProduction).WithMany().HasForeignKey(b => b.CommandeProductionId).OnDelete(DeleteBehavior.SetNull);
             e.HasMany(b => b.Lignes).WithOne(l => l.BonReception).HasForeignKey(l => l.BRId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne<FactureFournisseur>().WithMany()
                 .HasForeignKey(b => b.FactureFournisseurId)

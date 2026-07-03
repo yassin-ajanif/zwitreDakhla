@@ -107,10 +107,14 @@ public partial class BREditViewModel : BaseViewModel
     [ObservableProperty] private string _lblTotals = string.Empty;
     [ObservableProperty] private string _wmNote = string.Empty;
     [ObservableProperty] private string _invoicedLabel = string.Empty;
+    [ObservableProperty] private string _commandeProductionLabel = string.Empty;
 
     public bool HasInvoicedLabel => !string.IsNullOrEmpty(InvoicedLabel);
+    public bool HasCommandeProductionLabel => !string.IsNullOrWhiteSpace(CommandeProductionLabel);
 
     partial void OnInvoicedLabelChanged(string value) => OnPropertyChanged(nameof(HasInvoicedLabel));
+
+    partial void OnCommandeProductionLabelChanged(string value) => OnPropertyChanged(nameof(HasCommandeProductionLabel));
 
     [ObservableProperty] private decimal _totalHt;
     [ObservableProperty] private decimal _totalTva;
@@ -319,6 +323,7 @@ public partial class BREditViewModel : BaseViewModel
         var cfg = await _settings.GetAsync(cancellationToken);
         Devise = CurrencyHelper.FromSettings(cfg);
         InvoicedLabel = string.Empty;
+        CommandeProductionLabel = string.Empty;
 
         if (id == null)
         {
@@ -334,8 +339,14 @@ public partial class BREditViewModel : BaseViewModel
         if (factNum != null)
             InvoicedLabel = _locale.Tf("BR_FacturedOn", factNum);
 
-        var b = await db.BonsReception.Include(x => x.Lignes).FirstAsync(x => x.Id == id, cancellationToken);
+        var b = await db.BonsReception
+            .Include(x => x.Lignes)
+            .Include(x => x.CommandeProduction)
+            .FirstAsync(x => x.Id == id, cancellationToken);
         Numero = b.Numero;
+        CommandeProductionLabel = b.CommandeProductionId is int && b.CommandeProduction != null
+            ? _locale.Tf("BR_LinkedCmdProd", b.CommandeProduction.Numero)
+            : string.Empty;
         FournisseurId = b.FournisseurId;
         Date = new DateTimeOffset(b.Date);
         Note = b.Note;
