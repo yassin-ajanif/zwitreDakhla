@@ -229,32 +229,18 @@
                           </StackPanel>
                         </Grid>
                         <Border Grid.Column="3" Width="1" Background="{DynamicResource CourseraBorderBrush}" Opacity="0.35"/>
-                        <Grid Grid.Column="4" Margin="8,0" ColumnDefinitions="*,*">
-                          <StackPanel Grid.Column="0" Spacing="2" HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding #CommandeEditRoot.((vm:CommandeProductionEditViewModel)DataContext).ColPochette}"
-                                       FontSize="10" Opacity="0.55" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding PochetteMoyenneLabel}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                          </StackPanel>
-                          <StackPanel Grid.Column="1" Spacing="2" HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding #CommandeEditRoot.((vm:CommandeProductionEditViewModel)DataContext).ColTotal}"
-                                       FontSize="10" Opacity="0.55" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding TotalMoyenneLabel}" FontWeight="Bold" HorizontalAlignment="Center"/>
-                          </StackPanel>
-                        </Grid>
+                        <StackPanel Grid.Column="4" Margin="8,0" Spacing="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding #CommandeEditRoot.((vm:CommandeProductionEditViewModel)DataContext).ColPochette}"
+                                     FontSize="10" Opacity="0.55" HorizontalAlignment="Center"/>
+                          <TextBlock Text="{Binding PochetteMoyenneLabel}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                        </StackPanel>
                         <Border Grid.Column="5" Width="1" Background="{DynamicResource CourseraBorderBrush}" Opacity="0.35"/>
-                        <Grid Grid.Column="6" Margin="8,0,12,0" ColumnDefinitions="*,*">
-                          <StackPanel Grid.Column="0" Spacing="2" HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding #CommandeEditRoot.((vm:CommandeProductionEditViewModel)DataContext).ColPochette}"
-                                       FontSize="10" Opacity="0.55" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding PochettePetitLabel}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                          </StackPanel>
-                          <StackPanel Grid.Column="1" Spacing="2" HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding #CommandeEditRoot.((vm:CommandeProductionEditViewModel)DataContext).ColTotal}"
-                                       FontSize="10" Opacity="0.55" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding TotalPetitLabel}" FontWeight="Bold"
-                                       Foreground="{DynamicResource CourseraDangerBrush}" HorizontalAlignment="Center"/>
-                          </StackPanel>
-                        </Grid>
+                        <StackPanel Grid.Column="6" Margin="8,0,12,0" Spacing="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding #CommandeEditRoot.((vm:CommandeProductionEditViewModel)DataContext).ColPochette}"
+                                     FontSize="10" Opacity="0.55" HorizontalAlignment="Center"/>
+                          <TextBlock Text="{Binding PochettePetitLabel}" FontWeight="SemiBold"
+                                     Foreground="{DynamicResource CourseraDangerBrush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
                       </Grid>
                     </Border>
                   </Grid>
@@ -318,16 +304,10 @@
                       BorderBrush="{DynamicResource CourseraWarningBrush}"
                       BorderThickness="1"
                       CornerRadius="8">
-                <Grid ColumnDefinitions="*,*">
-                  <StackPanel Grid.Column="0" Spacing="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding ColPochette}" FontSize="10" Opacity="0.55" HorizontalAlignment="Center"/>
-                    <TextBlock Text="{Binding TotalPochetteMoyenneLabel}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                  </StackPanel>
-                  <StackPanel Grid.Column="1" Spacing="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding ColTotal}" FontSize="10" Opacity="0.55" HorizontalAlignment="Center"/>
-                    <TextBlock Text="{Binding TotalMoyenneHuitresLabel}" FontWeight="Bold" HorizontalAlignment="Center"/>
-                  </StackPanel>
-                </Grid>
+                <StackPanel Spacing="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding ColPochette}" FontSize="10" Opacity="0.55" HorizontalAlignment="Center"/>
+                  <TextBlock Text="{Binding TotalPochetteMoyenneLabel}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                </StackPanel>
               </Border>
 
               <Border Grid.Column="5" Width="1" Background="{DynamicResource CourseraBorderBrush}" Opacity="0.35" Margin="0,12,0,12"/>
@@ -337,17 +317,11 @@
                       BorderBrush="{DynamicResource CourseraDangerBrush}"
                       BorderThickness="1"
                       CornerRadius="8">
-                <Grid ColumnDefinitions="*,*">
-                  <StackPanel Grid.Column="0" Spacing="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding ColPochette}" FontSize="10" Opacity="0.55" HorizontalAlignment="Center"/>
-                    <TextBlock Text="{Binding TotalPochettePetitLabel}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                  </StackPanel>
-                  <StackPanel Grid.Column="1" Spacing="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding ColTotal}" FontSize="10" Opacity="0.55" HorizontalAlignment="Center"/>
-                    <TextBlock Text="{Binding TotalPetitHuitresLabel}" FontWeight="Bold"
-                               Foreground="{DynamicResource CourseraDangerBrush}" HorizontalAlignment="Center"/>
-                  </StackPanel>
-                </Grid>
+                <StackPanel Spacing="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding ColPochette}" FontSize="10" Opacity="0.55" HorizontalAlignment="Center"/>
+                  <TextBlock Text="{Binding TotalPochettePetitLabel}" FontWeight="SemiBold"
+                             Foreground="{DynamicResource CourseraDangerBrush}" HorizontalAlignment="Center"/>
+                </StackPanel>
               </Border>
             </Grid>
           </Grid>

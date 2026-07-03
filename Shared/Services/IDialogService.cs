@@ -43,7 +43,6 @@ public interface IDialogService
         string moyenneLabel,
         string petitLabel,
         string totalPreviewLabel,
-        string remainingPochetsHintFmt,
         string maxRemainingWaterFmt,
         string exceedsRemainingWaterLabel,
         string cancelLabel,

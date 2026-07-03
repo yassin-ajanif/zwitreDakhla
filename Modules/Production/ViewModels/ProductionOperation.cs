@@ -8,19 +8,13 @@ public class ProductionOperation
     public const int MultiplierGrand = 160;
     public const int MultiplierMoyenne = 160;
     public const int MultiplierPetit = 160;
-    public const int PochettesPerTable = 8;
 
-    public static int ExpectedTotalHuitres(int tables) => tables * PochettesPerTable * MultiplierGrand;
-
-    public static int ExpectedTotalPochets(int tables) => tables * PochettesPerTable;
+    public static int ComputeGrandHuitres(int pochetteGrand) => pochetteGrand * MultiplierGrand;
 
     public static int ComputeTotalHuitres(int pochetteGrand, int pochetteMoyenne, int pochettePetit) =>
         pochetteGrand * MultiplierGrand
         + pochetteMoyenne * MultiplierMoyenne
         + pochettePetit * MultiplierPetit;
-
-    public static bool TotalsMatchTables(int tables, int pochetteGrand, int pochetteMoyenne, int pochettePetit) =>
-        ComputeTotalHuitres(pochetteGrand, pochetteMoyenne, pochettePetit) == ExpectedTotalHuitres(tables);
 
     public static bool CanSaveOperation(
         int tables,
@@ -28,52 +22,14 @@ public class ProductionOperation
         int pochetteMoyenne,
         int pochettePetit,
         int maxRemainingHuitresAtWater) =>
-        TotalsMatchTables(tables, pochetteGrand, pochetteMoyenne, pochettePetit)
-        && ComputeTotalHuitres(pochetteGrand, pochetteMoyenne, pochettePetit) <= maxRemainingHuitresAtWater;
+        tables > 0
+        && ComputeGrandHuitres(pochetteGrand) <= maxRemainingHuitresAtWater;
 
     public static string FormatTauxMortaliteLabel(decimal percent) =>
         $"{percent.ToString("N0", CultureInfo.CurrentCulture)}%";
 
     public static int ComputeRemainingHuitresAtWater(int quantiteNaissain, int sumGrandHuitres) =>
         Math.Max(0, quantiteNaissain - sumGrandHuitres);
-
-    /// <summary>0 = grand, 1 = moyenne, 2 = petit. Hint when exactly one pochette field is still 0.</summary>
-    public static bool TryGetRemainingForSingleEmptyPochette(
-        int tables,
-        int pochetteGrand,
-        int pochetteMoyenne,
-        int pochettePetit,
-        out int emptyFieldIndex,
-        out int remainingPochets)
-    {
-        emptyFieldIndex = -1;
-        remainingPochets = 0;
-        if (tables <= 0) return false;
-
-        var emptyCount = 0;
-        if (pochetteGrand == 0)
-        {
-            emptyFieldIndex = 0;
-            emptyCount++;
-        }
-
-        if (pochetteMoyenne == 0)
-        {
-            emptyFieldIndex = 1;
-            emptyCount++;
-        }
-
-        if (pochettePetit == 0)
-        {
-            emptyFieldIndex = 2;
-            emptyCount++;
-        }
-
-        if (emptyCount != 1) return false;
-
-        remainingPochets = ExpectedTotalPochets(tables) - pochetteGrand - pochetteMoyenne - pochettePetit;
-        return remainingPochets >= 0;
-    }
 
     public int Id { get; set; }
     public DateTime Date { get; set; }

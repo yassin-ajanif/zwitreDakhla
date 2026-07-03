@@ -309,8 +309,7 @@ public static class UiTranslations
         ["Prod_LblTotalOperation"] = ("Total opération:", "مجموع العملية:"),
         ["Prod_LblModifiedFmt"] = ("modifié le {0}", "عُدّل في {0}"),
         ["Prod_StockNoteFmt"] = ("Production {0}", "إنتاج {0}"),
-        ["Prod_LblTotalPreview"] = ("Total huîtres", "مجموع المحار"),
-        ["Prod_RemainingPochetsFmt"] = ("{0} pochette(s) à saisir", "{0} أكياس للإدخال"),
+        ["Prod_LblTotalPreview"] = ("Huîtres grand", "محار كبير"),
         ["Prod_OperationMaxRemainingWaterFmt"] = ("Maximum de huîtres à trier : {0}", "الحد الأقصى للمحار للفرز : {0}"),
         ["Prod_OperationExceedsRemainingWater"] = ("Dépasse le restant à l'eau", "يتجاوز المتبقي في الماء"),
 

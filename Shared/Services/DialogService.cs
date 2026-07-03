@@ -419,7 +419,6 @@ public sealed class DialogService : IDialogService
         string moyenneLabel,
         string petitLabel,
         string totalPreviewLabel,
-        string remainingPochetsHintFmt,
         string maxRemainingWaterFmt,
         string exceedsRemainingWaterLabel,
         string cancelLabel,
@@ -451,33 +450,15 @@ public sealed class DialogService : IDialogService
             panel.Children.Add(input);
         }
 
-        TextBlock CreatePochetteHint() => new()
-        {
-            FontSize = 12,
-            FontStyle = Avalonia.Media.FontStyle.Italic,
-            Opacity = 0.8,
-            IsVisible = false
-        };
-
-        void AddPochetteField(string label, NumericUpDown input, TextBlock hint)
-        {
-            panel.Children.Add(new TextBlock { Text = label, Opacity = 0.75 });
-            var fieldPanel = new StackPanel { Spacing = 2 };
-            fieldPanel.Children.Add(input);
-            fieldPanel.Children.Add(hint);
-            panel.Children.Add(fieldPanel);
-        }
-
         var tablesInput = new NumericUpDown
         {
-            Minimum = 0,
+            Minimum = 1,
             Maximum = 99999,
-            Value = initialTables,
+            Value = initialTables > 0 ? initialTables : 1,
             FormatString = "N0"
         };
         AddField(tablesLabel, tablesInput);
 
-        var grandHint = CreatePochetteHint();
         var grandInput = new NumericUpDown
         {
             Minimum = 0,
@@ -485,9 +466,8 @@ public sealed class DialogService : IDialogService
             Value = initialGrand,
             FormatString = "N0"
         };
-        AddPochetteField(grandLabel, grandInput, grandHint);
+        AddField(grandLabel, grandInput);
 
-        var moyenneHint = CreatePochetteHint();
         var moyenneInput = new NumericUpDown
         {
             Minimum = 0,
@@ -495,9 +475,8 @@ public sealed class DialogService : IDialogService
             Value = initialMoyenne,
             FormatString = "N0"
         };
-        AddPochetteField(moyenneLabel, moyenneInput, moyenneHint);
+        AddField(moyenneLabel, moyenneInput);
 
-        var petitHint = CreatePochetteHint();
         var petitInput = new NumericUpDown
         {
             Minimum = 0,
@@ -505,7 +484,7 @@ public sealed class DialogService : IDialogService
             Value = initialPetit,
             FormatString = "N0"
         };
-        AddPochetteField(petitLabel, petitInput, petitHint);
+        AddField(petitLabel, petitInput);
 
         var totalPreview = new TextBlock { FontWeight = Avalonia.Media.FontWeight.SemiBold, Opacity = 0.85 };
         panel.Children.Add(totalPreview);
@@ -541,43 +520,16 @@ public sealed class DialogService : IDialogService
             var g = (int)(grandInput.Value ?? 0);
             var m = (int)(moyenneInput.Value ?? 0);
             var p = (int)(petitInput.Value ?? 0);
-            var total = ProductionOperation.ComputeTotalHuitres(g, m, p);
-            var expected = ProductionOperation.ExpectedTotalHuitres(tables);
-            totalPreview.Text = $"{totalPreviewLabel}: {total:N0} / {expected:N0}";
+            var grandHuitres = ProductionOperation.ComputeGrandHuitres(g);
+            totalPreview.Text = $"{totalPreviewLabel}: {grandHuitres:N0}";
             maxWaterPreview.Text = string.Format(
                 CultureInfo.CurrentCulture,
                 maxRemainingWaterFmt,
                 maxRemainingHuitresAtWater.ToString("N0", CultureInfo.CurrentCulture));
-            var exceedsWater = total > maxRemainingHuitresAtWater;
+            var exceedsWater = grandHuitres > maxRemainingHuitresAtWater;
             exceedsWaterHint.Text = exceedsRemainingWaterLabel;
             exceedsWaterHint.IsVisible = exceedsWater;
             save.IsEnabled = ProductionOperation.CanSaveOperation(tables, g, m, p, maxRemainingHuitresAtWater);
-
-            grandHint.IsVisible = false;
-            moyenneHint.IsVisible = false;
-            petitHint.IsVisible = false;
-            if (ProductionOperation.TryGetRemainingForSingleEmptyPochette(tables, g, m, p, out var emptyField, out var remaining))
-            {
-                var hintText = string.Format(
-                    CultureInfo.CurrentCulture,
-                    remainingPochetsHintFmt,
-                    remaining.ToString("N0", CultureInfo.CurrentCulture));
-                switch (emptyField)
-                {
-                    case 0:
-                        grandHint.Text = hintText;
-                        grandHint.IsVisible = true;
-                        break;
-                    case 1:
-                        moyenneHint.Text = hintText;
-                        moyenneHint.IsVisible = true;
-                        break;
-                    case 2:
-                        petitHint.Text = hintText;
-                        petitHint.IsVisible = true;
-                        break;
-                }
-            }
         }
 
         tablesInput.ValueChanged += (_, _) => RefreshState();

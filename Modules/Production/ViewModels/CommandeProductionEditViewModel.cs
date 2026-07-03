@@ -129,9 +129,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     public string TotalPochetteGrandLabel => Operations.Sum(o => o.PochetteGrand).ToString("N0", CultureInfo.CurrentCulture);
     public string TotalGrandHuitresLabel => Operations.Sum(o => o.TotalGrand).ToString("N0", CultureInfo.CurrentCulture);
     public string TotalPochetteMoyenneLabel => Operations.Sum(o => o.PochetteMoyenne).ToString("N0", CultureInfo.CurrentCulture);
-    public string TotalMoyenneHuitresLabel => Operations.Sum(o => o.TotalMoyenne).ToString("N0", CultureInfo.CurrentCulture);
     public string TotalPochettePetitLabel => Operations.Sum(o => o.PochettePetit).ToString("N0", CultureInfo.CurrentCulture);
-    public string TotalPetitHuitresLabel => Operations.Sum(o => o.TotalPetit).ToString("N0", CultureInfo.CurrentCulture);
 
     public int SumGrandHuitres => ProductionOperation.SumGrandHuitres(Operations);
 
@@ -186,9 +184,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         OnPropertyChanged(nameof(TotalPochetteGrandLabel));
         OnPropertyChanged(nameof(TotalGrandHuitresLabel));
         OnPropertyChanged(nameof(TotalPochetteMoyenneLabel));
-        OnPropertyChanged(nameof(TotalMoyenneHuitresLabel));
         OnPropertyChanged(nameof(TotalPochettePetitLabel));
-        OnPropertyChanged(nameof(TotalPetitHuitresLabel));
         OnPropertyChanged(nameof(TotalCommandeLabel));
         RefreshTauxMortalite();
         RefreshRemainingHuitresChip();
@@ -832,7 +828,6 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             _locale.T("Prod_LblMoyennePochets"),
             _locale.T("Prod_LblPetitPochets"),
             _locale.T("Prod_LblTotalPreview"),
-            _locale.T("Prod_RemainingPochetsFmt"),
             _locale.T("Prod_OperationMaxRemainingWaterFmt"),
             _locale.T("Prod_OperationExceedsRemainingWater"),
             _locale.T("Btn_Cancel"),
