@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using GestionCommerciale.Modules.Auth.Services;
 using GestionCommerciale.Modules.Production.Models;
 using GestionCommerciale.Modules.Production.Services;
+using GestionCommerciale.Modules.Reception.ViewModels;
 using GestionCommerciale.Shared.Database;
 using GestionCommerciale.Shared.Helpers;
 using GestionCommerciale.Shared.Services;
@@ -69,6 +70,8 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     public AutoCompleteFilterPredicate<object?> PartyAutocompleteFilter => PartyAutoComplete.ItemFilter;
 
     [ObservableProperty] private int? _commandeId;
+    [ObservableProperty] private int? _linkedBonReceptionId;
+    [ObservableProperty] private string _linkedBonReceptionLabel = string.Empty;
     [ObservableProperty] private string _numero = string.Empty;
     [ObservableProperty] private TiersEntity? _selectedFournisseur;
     [ObservableProperty] private TypeNaissain? _selectedTypeNaissain;
@@ -128,6 +131,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
 
     public string TotalCommandeLabel => Operations.Sum(o => o.TotalOperation).ToString("N0", CultureInfo.CurrentCulture);
     public bool CanAddOperation => CommandeId != null;
+    public bool HasLinkedBonReceptionLabel => LinkedBonReceptionId is > 0;
     public bool HasOperations => Operations.Count > 0;
 
     public string TotalTablesLabel => Operations.Sum(o => o.Tables).ToString("N0", CultureInfo.CurrentCulture);
@@ -153,6 +157,8 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             .ToString("N0", CultureInfo.CurrentCulture);
 
     partial void OnCommandeIdChanged(int? value) => OnPropertyChanged(nameof(CanAddOperation));
+
+    partial void OnLinkedBonReceptionIdChanged(int? value) => OnPropertyChanged(nameof(HasLinkedBonReceptionLabel));
 
     partial void OnEstTermineeChanged(bool value)
     {
@@ -208,6 +214,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         DateCommande = DateTimeOffset.Now;
         DateExpiration = null;
         Note = string.Empty;
+        SetLinkedBonReception(null, null);
         Operations.Clear();
         Title = _locale.T("CmdProd_NewTitle");
         RefreshOperationTotals();
@@ -384,6 +391,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
                 Operations.Add(MapOperation(op));
 
             Title = _locale.Tf("CmdProd_EditTitleFmt", Numero);
+            await RefreshLinkedBonReceptionAsync(db, commandeId, cancellationToken);
             OnPropertyChanged(nameof(CanAddOperation));
             OnPropertyChanged(nameof(ShowTauxMortalite));
             RefreshOperationTotals();
@@ -431,13 +439,13 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             return;
         }
 
-        if (QuantiteNaissain < 0)
+        if (QuantiteNaissain <= 0)
         {
             await _dialog.ShowErrorAsync(Title, _locale.T("CmdProd_ErrQuantite"), cancellationToken);
             return;
         }
 
-        if (PrixAchatNaissainHt < 0)
+        if (PrixAchatNaissainHt <= 0)
         {
             await _dialog.ShowErrorAsync(Title, _locale.T("CmdProd_ErrPrixAchat"), cancellationToken);
             return;
@@ -478,6 +486,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             await db.SaveChangesAsync(cancellationToken);
 
             await _commandeReception.SyncBonReceptionAsync(db, entity, _session.UserId, cancellationToken);
+            await RefreshLinkedBonReceptionAsync(db, entity.Id, cancellationToken);
 
             CommandeId = entity.Id;
             Numero = entity.Numero;
@@ -490,6 +499,32 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         {
             IsBusy = false;
         }
+    }
+
+    [RelayCommand]
+    private void OpenLinkedBonReception()
+    {
+        if (LinkedBonReceptionId is not { } brId)
+            return;
+
+        var vm = _sp.GetRequiredService<BREditViewModel>();
+        vm.Load(brId);
+        _workspace.Open(vm);
+    }
+
+    private async Task RefreshLinkedBonReceptionAsync(AppDbContext db, int commandeId, CancellationToken cancellationToken)
+    {
+        var br = await db.BonsReception.AsNoTracking()
+            .FirstOrDefaultAsync(b => b.CommandeProductionId == commandeId, cancellationToken);
+        SetLinkedBonReception(br?.Numero, br?.Id);
+    }
+
+    private void SetLinkedBonReception(string? numero, int? id)
+    {
+        LinkedBonReceptionId = id;
+        LinkedBonReceptionLabel = id is > 0 && !string.IsNullOrWhiteSpace(numero)
+            ? _locale.Tf("CmdProd_LinkedBr", numero)
+            : string.Empty;
     }
 
     [RelayCommand]
