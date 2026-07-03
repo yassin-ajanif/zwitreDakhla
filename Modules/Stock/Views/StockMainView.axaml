@@ -73,9 +73,11 @@
               </Grid>
             </StackPanel>
           </Border>
-          <Grid Grid.Row="2" RowDefinitions="Auto,Auto,*,Auto">
+          <Grid Grid.Row="2" RowDefinitions="Auto,Auto,Auto,*,Auto">
             <TextBlock Text="{Binding LblMovements}" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6"/>
-            <Border Grid.Row="1" Background="#12000000" CornerRadius="4,4,0,0" Padding="10,8" BorderBrush="#20000000" BorderThickness="0,0,0,1">
+            <TextBox Grid.Row="1" Text="{Binding MovementPartySearch, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Watermark="{Binding WmMovementPartySearch}" Margin="0,0,0,8"/>
+            <Border Grid.Row="2" Background="#12000000" CornerRadius="4,4,0,0" Padding="10,8" BorderBrush="#20000000" BorderThickness="0,0,0,1">
               <Grid ColumnDefinitions="108,*,72,72,72">
                 <TextBlock Text="{Binding ColDate}" FontWeight="SemiBold" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding ColDetail}" FontWeight="SemiBold" FontSize="11" Margin="8,0,0,0"/>
@@ -84,7 +86,7 @@
                 <TextBlock Grid.Column="4" Text="{Binding ColStockCurrent}" FontWeight="SemiBold" FontSize="11" TextAlignment="Right"/>
               </Grid>
             </Border>
-            <ListBox Grid.Row="2" ItemsSource="{Binding Mouvements}" BorderThickness="0" Background="Transparent">
+            <ListBox Grid.Row="3" ItemsSource="{Binding Mouvements}" BorderThickness="0" Background="Transparent">
               <ListBox.Styles>
                 <Style Selector="ListBoxItem">
                   <Setter Property="Padding" Value="10,8"/>
@@ -114,7 +116,7 @@
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
-            <shared:ListPaginationBar Grid.Row="3" DataContext="{Binding MouvementPagination}"/>
+            <shared:ListPaginationBar Grid.Row="4" DataContext="{Binding MouvementPagination}"/>
           </Grid>
         </Grid>
       </Border>

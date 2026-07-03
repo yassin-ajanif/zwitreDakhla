@@ -63,6 +63,7 @@ public partial class StockMainViewModel : BaseViewModel
     [ObservableProperty] private string _colBeforeQty = string.Empty;
     [ObservableProperty] private string _colQty = string.Empty;
     [ObservableProperty] private string _colDetail = string.Empty;
+    [ObservableProperty] private string _wmMovementPartySearch = string.Empty;
 
     private void RefreshStockUi()
     {
@@ -86,6 +87,7 @@ public partial class StockMainViewModel : BaseViewModel
         ColBeforeQty = _locale.T("Lbl_ColBeforeQty");
         ColQty = _locale.T("Lbl_ColQty");
         ColDetail = _locale.T("Lbl_ColDetail");
+        WmMovementPartySearch = _locale.T("Wm_SearchMovementParty");
         if (SelectedProduit != null)
             _ = LoadMouvementsAsync(SelectedProduit.Id, CancellationToken.None);
     }
@@ -96,12 +98,21 @@ public partial class StockMainViewModel : BaseViewModel
         _ = LoadProduitsAsync(CancellationToken.None);
     }
 
+    partial void OnMovementPartySearchChanged(string value)
+    {
+        MouvementPagination.CurrentPage = 1;
+        if (_currentProduitId != 0)
+            _ = LoadMouvementsAsync(_currentProduitId, CancellationToken.None);
+    }
+
     public ObservableCollection<Produit> Produits { get; } = [];
     public ObservableCollection<MouvementStock> Mouvements { get; } = [];
 
     [ObservableProperty] private Produit? _selectedProduit;
 
     [ObservableProperty] private string _productSearch = string.Empty;
+
+    [ObservableProperty] private string _movementPartySearch = string.Empty;
 
     [ObservableProperty] private decimal _ajustementDelta;
     [ObservableProperty] private string _ajustementNote = string.Empty;
@@ -149,6 +160,7 @@ public partial class StockMainViewModel : BaseViewModel
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
         var q = db.MouvementsStock.AsNoTracking()
             .Where(m => m.ProduitId == produitId);
+        q = ApplyMovementPartySearchFilter(q, db, MovementPartySearch);
         var total = await q.CountAsync(cancellationToken);
         var list = await q
             .OrderByDescending(m => m.CreatedAt)
@@ -159,6 +171,30 @@ public partial class StockMainViewModel : BaseViewModel
         Mouvements.Clear();
         foreach (var m in list) Mouvements.Add(m);
         MouvementPagination.TotalCount = total;
+    }
+
+    private static IQueryable<MouvementStock> ApplyMovementPartySearchFilter(
+        IQueryable<MouvementStock> query,
+        AppDbContext db,
+        string? searchTerm)
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+            return query;
+
+        var term = searchTerm.Trim().ToLowerInvariant();
+        return query.Where(m =>
+            (m.OrigineType == StockMovementService.OrigineTypeBonLivraison && m.OrigineId != null
+             && db.BonsLivraison.Any(b => b.Id == m.OrigineId
+                 && db.Tiers.Any(t => t.Id == b.ClientId && t.Nom.ToLower().Contains(term))))
+            || (m.OrigineType == StockMovementService.OrigineTypeBonReception && m.OrigineId != null
+                && db.BonsReception.Any(b => b.Id == m.OrigineId
+                    && db.Tiers.Any(t => t.Id == b.FournisseurId && t.Nom.ToLower().Contains(term))))
+            || (m.OrigineType == StockMovementService.OrigineTypeAvoir && m.OrigineId != null
+                && db.Avoirs.Any(a => a.Id == m.OrigineId
+                    && db.Tiers.Any(t => t.Id == a.ClientId && t.Nom.ToLower().Contains(term))))
+            || (m.OrigineType == StockMovementService.OrigineTypeAvoirFournisseur && m.OrigineId != null
+                && db.AvoirsFournisseurs.Any(a => a.Id == m.OrigineId
+                    && db.Tiers.Any(t => t.Id == a.FournisseurId && t.Nom.ToLower().Contains(term)))));
     }
 
     private static async Task EnrichMovementDetailsAsync(
