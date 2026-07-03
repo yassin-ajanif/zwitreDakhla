@@ -13,6 +13,7 @@ public class CommandeProduction : BaseEntity
     public int CategorieCommandeId { get; set; }
     public CategorieCommande? CategorieCommande { get; set; }
     public int QuantiteNaissain { get; set; }
+    public decimal PrixAchatNaissainHT { get; set; }
     public decimal TauxMortalite { get; set; }
     public DateTime DateCommande { get; set; }
     public DateTime? DateExpiration { get; set; }

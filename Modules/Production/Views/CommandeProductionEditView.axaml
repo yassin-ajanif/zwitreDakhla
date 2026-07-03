@@ -28,10 +28,26 @@
                 CornerRadius="10"
                 Padding="16">
           <StackPanel Spacing="12">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,0,0,8">
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
               <TextBlock Grid.Column="0" Text="{Binding Numero}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
-              <TextBlock Grid.Column="2" Text="{Binding LblQuantiteNaissain}" VerticalAlignment="Center" Opacity="0.7" Margin="0,0,10,0"/>
-              <NumericUpDown Grid.Column="3" Value="{Binding QuantiteNaissain}" Minimum="0" FormatString="N0" MinWidth="140"/>
+              <StackPanel Grid.Column="2" Spacing="8" HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                  <TextBlock Text="{Binding LblQuantiteNaissain}" VerticalAlignment="Center" Opacity="0.7"/>
+                  <NumericUpDown Value="{Binding QuantiteNaissain}" Minimum="0" FormatString="N0" MinWidth="140"/>
+                </StackPanel>
+                <Border Padding="12,8" CornerRadius="8"
+                        Background="#ECFDF5"
+                        BorderBrush="{DynamicResource CourseraSuccessBrush}"
+                        BorderThickness="1"
+                        HorizontalAlignment="Right">
+                  <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding LblPrixAchatNaissain}" FontWeight="SemiBold"
+                               Foreground="{DynamicResource CourseraSuccessBrush}" VerticalAlignment="Center"/>
+                    <NumericUpDown Value="{Binding PrixAchatNaissainHt}" ShowButtonSpinner="False"
+                                   FormatString="0.##" Minimum="0" Increment="0.01" MinWidth="100"/>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">

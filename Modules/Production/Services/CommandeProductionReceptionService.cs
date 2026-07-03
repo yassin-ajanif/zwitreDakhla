@@ -67,7 +67,7 @@ public sealed class CommandeProductionReceptionService : ICommandeProductionRece
             ProduitId = produitId,
             Designation = produit.Designation,
             QuantiteRecue = commande.QuantiteNaissain,
-            PrixUnitaireHT = produit.PrixAchatHT,
+            PrixUnitaireHT = commande.PrixAchatNaissainHT,
             TauxTVA = produit.TauxTVA
         });
 

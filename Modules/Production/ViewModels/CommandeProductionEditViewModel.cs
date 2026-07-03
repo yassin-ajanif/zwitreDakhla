@@ -74,6 +74,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     [ObservableProperty] private TypeNaissain? _selectedTypeNaissain;
     [ObservableProperty] private CategorieCommande? _selectedCategorieCommande;
     [ObservableProperty] private int _quantiteNaissain;
+    [ObservableProperty] private decimal _prixAchatNaissainHt;
     [ObservableProperty] private bool _estTerminee;
     [ObservableProperty] private DateTimeOffset _dateCommande = DateTimeOffset.Now;
     [ObservableProperty] private DateTimeOffset? _dateExpiration;
@@ -88,6 +89,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     [ObservableProperty] private string _lblTypeHuitre = string.Empty;
     [ObservableProperty] private string _lblCategorieCommande = string.Empty;
     [ObservableProperty] private string _lblQuantiteNaissain = string.Empty;
+    [ObservableProperty] private string _lblPrixAchatNaissain = string.Empty;
     [ObservableProperty] private string _lblTauxMortalite = string.Empty;
     [ObservableProperty] private string _lblDateCommande = string.Empty;
     [ObservableProperty] private string _lblDateExpiration = string.Empty;
@@ -201,6 +203,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         SelectedTypeNaissain = null;
         SelectedCategorieCommande = null;
         QuantiteNaissain = 0;
+        PrixAchatNaissainHt = 0;
         EstTerminee = false;
         DateCommande = DateTimeOffset.Now;
         DateExpiration = null;
@@ -228,6 +231,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         LblTypeHuitre = _locale.T("CmdProd_LblTypeHuitre");
         LblCategorieCommande = _locale.T("CmdProd_LblCategorieCommande");
         LblQuantiteNaissain = _locale.T("CmdProd_LblQuantiteNaissain");
+        LblPrixAchatNaissain = _locale.T("CmdProd_LblPrixAchatNaissain");
         LblTauxMortalite = _locale.T("CmdProd_LblTauxMortalite");
         LblDateCommande = _locale.T("CmdProd_LblDate");
         LblDateExpiration = _locale.T("CmdProd_LblDateExpiration");
@@ -366,6 +370,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             Numero = entity.Numero;
             SelectedFournisseur = Fournisseurs.FirstOrDefault(f => f.Id == entity.FournisseurId);
             QuantiteNaissain = entity.QuantiteNaissain;
+            PrixAchatNaissainHt = entity.PrixAchatNaissainHT;
             DateCommande = entity.DateCommande;
             Note = entity.Note;
 
@@ -432,6 +437,12 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             return;
         }
 
+        if (PrixAchatNaissainHt < 0)
+        {
+            await _dialog.ShowErrorAsync(Title, _locale.T("CmdProd_ErrPrixAchat"), cancellationToken);
+            return;
+        }
+
         IsBusy = true;
         try
         {
@@ -457,6 +468,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             entity.TypeNaissainId = SelectedTypeNaissain.Id;
             entity.CategorieCommandeId = SelectedCategorieCommande.Id;
             entity.QuantiteNaissain = QuantiteNaissain;
+            entity.PrixAchatNaissainHT = PrixAchatNaissainHt;
             entity.EstTerminee = EstTerminee;
             entity.TauxMortalite = EstTerminee ? TauxMortalite : 0;
             entity.DateCommande = DateCommande.DateTime;
