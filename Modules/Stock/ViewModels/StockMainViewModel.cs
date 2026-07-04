@@ -203,7 +203,12 @@ public partial class StockMainViewModel : BaseViewModel
                     && db.Tiers.Any(t => t.Id == a.ClientId && t.Nom.ToLower().Contains(term))))
             || (m.OrigineType == StockMovementService.OrigineTypeAvoirFournisseur && m.OrigineId != null
                 && db.AvoirsFournisseurs.Any(a => a.Id == m.OrigineId
-                    && db.Tiers.Any(t => t.Id == a.FournisseurId && t.Nom.ToLower().Contains(term)))));
+                    && db.Tiers.Any(t => t.Id == a.FournisseurId && t.Nom.ToLower().Contains(term))))
+            || (m.OrigineType == StockMovementService.OrigineTypeProduction && m.OrigineId != null
+                && db.OperationsProduction.Any(o => o.Id == m.OrigineId
+                    && o.CommandeProductionId != null
+                    && db.CommandesProduction.Any(c => c.Id == o.CommandeProductionId
+                        && db.Tiers.Any(t => t.Id == c.FournisseurId && t.Nom.ToLower().Contains(term))))));
     }
 
     private static async Task EnrichMovementDetailsAsync(
