@@ -9,6 +9,7 @@ using GestionCommerciale.Modules.Stock;
 using GestionCommerciale.Modules.CommandeFournisseur.Models;
 using GestionCommerciale.Modules.FactureFournisseur.Services;
 using GestionCommerciale.Modules.FactureFournisseur.ViewModels;
+using GestionCommerciale.Modules.Production.ViewModels;
 using GestionCommerciale.Modules.Reception.Models;
 using GestionCommerciale.Modules.Reception.Services;
 using GestionCommerciale.Modules.Stock.Services;
@@ -108,13 +109,14 @@ public partial class BREditViewModel : BaseViewModel
     [ObservableProperty] private string _wmNote = string.Empty;
     [ObservableProperty] private string _invoicedLabel = string.Empty;
     [ObservableProperty] private string _commandeProductionLabel = string.Empty;
+    [ObservableProperty] private int? _commandeProductionId;
 
     public bool HasInvoicedLabel => !string.IsNullOrEmpty(InvoicedLabel);
-    public bool HasCommandeProductionLabel => !string.IsNullOrWhiteSpace(CommandeProductionLabel);
+    public bool HasLinkedCommandeProductionLabel => CommandeProductionId is > 0;
 
     partial void OnInvoicedLabelChanged(string value) => OnPropertyChanged(nameof(HasInvoicedLabel));
 
-    partial void OnCommandeProductionLabelChanged(string value) => OnPropertyChanged(nameof(HasCommandeProductionLabel));
+    partial void OnCommandeProductionIdChanged(int? value) => OnPropertyChanged(nameof(HasLinkedCommandeProductionLabel));
 
     [ObservableProperty] private decimal _totalHt;
     [ObservableProperty] private decimal _totalTva;
@@ -324,6 +326,7 @@ public partial class BREditViewModel : BaseViewModel
         Devise = CurrencyHelper.FromSettings(cfg);
         InvoicedLabel = string.Empty;
         CommandeProductionLabel = string.Empty;
+        CommandeProductionId = null;
 
         if (id == null)
         {
@@ -344,6 +347,7 @@ public partial class BREditViewModel : BaseViewModel
             .Include(x => x.CommandeProduction)
             .FirstAsync(x => x.Id == id, cancellationToken);
         Numero = b.Numero;
+        CommandeProductionId = b.CommandeProductionId;
         CommandeProductionLabel = b.CommandeProductionId is int && b.CommandeProduction != null
             ? _locale.Tf("BR_LinkedCmdProd", b.CommandeProduction.Numero)
             : string.Empty;
@@ -371,6 +375,17 @@ public partial class BREditViewModel : BaseViewModel
     }
 
     public void Load(int? id) => _ = LoadAsync(id, CancellationToken.None);
+
+    [RelayCommand]
+    private void OpenLinkedCommandeProduction()
+    {
+        if (CommandeProductionId is not { } cmdId)
+            return;
+
+        var vm = _sp.GetRequiredService<CommandeProductionEditViewModel>();
+        vm.Load(cmdId);
+        _workspace.Open(vm);
+    }
 
     /// <summary>Prépare un nouveau BR à partir d'un bon de commande validé (lignes et fournisseur copiés).</summary>
     public async Task<bool> LoadNewFromBonCommandeAsync(int bonCommandeId, CancellationToken cancellationToken = default)
