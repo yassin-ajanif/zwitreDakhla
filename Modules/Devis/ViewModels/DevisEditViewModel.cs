@@ -304,7 +304,7 @@ public partial class DevisEditViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("Devis_Title"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("Devis_Title"), ex, cancellationToken);
         }
         finally
         {
@@ -575,7 +575,7 @@ public partial class DevisEditViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("Export_Pdf"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("Export_Pdf"), ex, cancellationToken);
         }
         finally
         {
@@ -596,7 +596,7 @@ public partial class DevisEditViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("Btn_Print"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("Btn_Print"), ex, cancellationToken);
         }
         finally
         {

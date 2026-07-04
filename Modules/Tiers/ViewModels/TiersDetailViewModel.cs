@@ -304,7 +304,7 @@ public partial class TiersDetailViewModel : BaseViewModel
             var title = _returnScope == TiersListScope.Fournisseurs
                 ? _locale.T("SupplierLedger_Title")
                 : _locale.T("ClientLedger_Title");
-            await _dialog.ShowErrorAsync(title, ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(title, ex, cancellationToken);
         }
     }
 

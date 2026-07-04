@@ -223,7 +223,7 @@ public partial class BRListViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("BR_DlgShort"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("BR_DlgShort"), ex, cancellationToken);
         }
         finally
         {
@@ -247,7 +247,7 @@ public partial class BRListViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("Export_Pdf"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("Export_Pdf"), ex, cancellationToken);
         }
     }
 

@@ -380,7 +380,7 @@ public partial class StockMainViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("Stock_Title"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("Stock_Title"), ex, cancellationToken);
         }
         finally
         {

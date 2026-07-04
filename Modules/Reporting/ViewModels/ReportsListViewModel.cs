@@ -327,7 +327,7 @@ public partial class ReportsListViewModel : BaseViewModel
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("Report_Title"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("Report_Title"), ex, cancellationToken);
         }
         finally
         {

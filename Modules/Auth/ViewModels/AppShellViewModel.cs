@@ -133,8 +133,9 @@ public partial class AppShellViewModel : BaseViewModel
         {
             IsUpdateInstalling = false;
             RefreshUpdateButtonLabel();
-            await _dialog.ShowErrorAsync(
+            await _dialog.ShowExceptionAsync(
                 _locale.T("Update_Title"),
+                ex,
                 string.Format(_locale.T("Update_DownloadFailed"), ex.Message),
                 cancellationToken);
         }

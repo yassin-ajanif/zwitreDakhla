@@ -8,6 +8,13 @@ namespace GestionCommerciale.Shared.Services;
 
 public sealed class DialogService : IDialogService
 {
+    private readonly IAppErrorLogger _errorLogger;
+
+    public DialogService(IAppErrorLogger errorLogger)
+    {
+        _errorLogger = errorLogger;
+    }
+
     private static Window? GetMainWindow() =>
         Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime d
             ? d.MainWindow
@@ -50,6 +57,22 @@ public sealed class DialogService : IDialogService
 
     public Task ShowErrorAsync(string title, string message, CancellationToken cancellationToken = default) =>
         ShowInfoAsync(title, message, cancellationToken);
+
+    public Task ShowExceptionAsync(string title, Exception exception, CancellationToken cancellationToken = default)
+    {
+        _errorLogger.Log(exception, title);
+        return ShowErrorAsync(title, exception.Message, cancellationToken);
+    }
+
+    public Task ShowExceptionAsync(
+        string title,
+        Exception exception,
+        string displayMessage,
+        CancellationToken cancellationToken = default)
+    {
+        _errorLogger.Log(exception, title);
+        return ShowErrorAsync(title, displayMessage, cancellationToken);
+    }
 
     public async Task<bool> ConfirmAsync(string title, string message, CancellationToken cancellationToken = default)
     {

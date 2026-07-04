@@ -349,7 +349,7 @@ public partial class SettingsViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("Settings_Backup"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("Settings_Backup"), ex, cancellationToken);
         }
         finally
         {

@@ -37,6 +37,8 @@ public partial class App : Application
             sc.AddGestionCommerciale();
             Services = sc.BuildServiceProvider();
 
+            ConfigureGlobalExceptionLogging();
+
             AppDbContext? db = null;
             try
             {
@@ -50,6 +52,11 @@ public partial class App : Application
             catch (SqliteException ex) when (
                 ex.SqliteErrorCode == 1 &&
                 ex.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase)) { }
+            catch (Exception ex)
+            {
+                Services.GetRequiredService<IAppErrorLogger>().Log(ex, "Startup.DatabaseMigrate");
+                throw;
+            }
             finally { db?.Dispose(); }
 
             var mainVm = Services.GetRequiredService<MainWindowViewModel>();
@@ -58,6 +65,23 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private static void ConfigureGlobalExceptionLogging()
+    {
+        var logger = Services.GetRequiredService<IAppErrorLogger>();
+
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+        {
+            if (e.ExceptionObject is Exception ex)
+                logger.Log(ex, "Unhandled");
+        };
+
+        TaskScheduler.UnobservedTaskException += (_, e) =>
+        {
+            logger.Log(e.Exception, "UnobservedTask");
+            e.SetObserved();
+        };
     }
 
     private async void OnMainWindowOpened(object? sender, EventArgs e)

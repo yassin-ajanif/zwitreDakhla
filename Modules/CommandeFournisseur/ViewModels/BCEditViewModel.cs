@@ -203,7 +203,7 @@ public partial class BCEditViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("BC_Title"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("BC_Title"), ex, cancellationToken);
         }
         finally
         {
@@ -495,7 +495,7 @@ public partial class BCEditViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("Export_Pdf"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("Export_Pdf"), ex, cancellationToken);
         }
         finally
         {
@@ -516,7 +516,7 @@ public partial class BCEditViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("Btn_Print"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("Btn_Print"), ex, cancellationToken);
         }
         finally
         {

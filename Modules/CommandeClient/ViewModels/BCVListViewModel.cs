@@ -200,7 +200,7 @@ public partial class BCVListViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("BCC_Title"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("BCC_Title"), ex, cancellationToken);
         }
         finally
         {
@@ -224,7 +224,7 @@ public partial class BCVListViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("Export_Pdf"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("Export_Pdf"), ex, cancellationToken);
         }
     }
 }

@@ -1,3 +1,4 @@
+using GestionCommerciale.Shared.Services;
 using System.Drawing.Printing;
 using PdfiumViewer;
 using WinFormsDialogResult = System.Windows.Forms.DialogResult;
@@ -127,6 +128,7 @@ public static class WindowsNativePdfPrinter
             }
             catch (Exception ex)
             {
+                TryLog(ex, "WindowsNativePdfPrinter");
                 tcs.TrySetException(ex);
             }
         })
@@ -138,5 +140,18 @@ public static class WindowsNativePdfPrinter
         thread.Start();
 
         return tcs.Task;
+    }
+
+    private static void TryLog(Exception ex, string context)
+    {
+        try
+        {
+            if (GestionCommerciale.App.Services?.GetService(typeof(IAppErrorLogger)) is IAppErrorLogger logger)
+                logger.Log(ex, context);
+        }
+        catch
+        {
+            // Ignore logging failures on background print thread.
+        }
     }
 }

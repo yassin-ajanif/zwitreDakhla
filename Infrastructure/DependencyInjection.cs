@@ -41,6 +41,7 @@ public static class DependencyInjection
         services.AddSingleton<IRootNavigator>(sp => sp.GetRequiredService<RootNavigator>());
         services.AddSingleton<WorkspaceNavigator>();
         services.AddSingleton<IWorkspaceNavigator>(sp => sp.GetRequiredService<WorkspaceNavigator>());
+        services.AddSingleton<IAppErrorLogger, AppErrorLogger>();
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<ICurrentUserSession, CurrentUserSession>();
         services.AddSingleton<IAuthService, AuthService>();

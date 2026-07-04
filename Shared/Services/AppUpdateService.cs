@@ -7,7 +7,13 @@ namespace GestionCommerciale.Shared.Services;
 
 public sealed class AppUpdateService : IAppUpdateService
 {
+    private readonly IAppErrorLogger _errorLogger;
     private UpdateManager? _manager;
+
+    public AppUpdateService(IAppErrorLogger errorLogger)
+    {
+        _errorLogger = errorLogger;
+    }
 
     private UpdateManager Manager => _manager ??= new UpdateManager(
         new GithubSource(AppInfo.GitHubRepoUrl, accessToken: null, prerelease: false));
@@ -69,6 +75,7 @@ public sealed class AppUpdateService : IAppUpdateService
         }
         catch (Exception ex)
         {
+            _errorLogger.Log(ex, "AppUpdate.CheckForUpdates");
             return new AppUpdateCheckResult(AppUpdateStatus.Error, ErrorMessage: ex.Message);
         }
     }

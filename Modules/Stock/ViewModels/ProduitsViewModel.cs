@@ -382,7 +382,7 @@ public partial class ProduitsViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("Nav_Produits"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("Nav_Produits"), ex, cancellationToken);
         }
         finally
         {
@@ -506,7 +506,11 @@ public partial class ProduitsViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("Nav_Produits"), _locale.T("Prod_ErrImagePrefix") + ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(
+                _locale.T("Nav_Produits"),
+                ex,
+                _locale.T("Prod_ErrImagePrefix") + ex.Message,
+                cancellationToken);
             return;
         }
 
@@ -671,7 +675,7 @@ public partial class ProduitsViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("Nav_Produits"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("Nav_Produits"), ex, cancellationToken);
         }
         finally
         {
@@ -702,7 +706,7 @@ public partial class ProduitsViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(_locale.T("Nav_Produits"), ex.Message, cancellationToken);
+            await _dialog.ShowExceptionAsync(_locale.T("Nav_Produits"), ex, cancellationToken);
         }
         finally
         {
