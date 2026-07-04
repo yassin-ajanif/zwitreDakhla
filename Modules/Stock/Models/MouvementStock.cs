@@ -97,4 +97,13 @@ public class MouvementStock : BaseEntity
 
     [NotMapped]
     public bool HasUnitPriceDetail => !string.IsNullOrEmpty(UnitPriceDetail);
+
+    [NotMapped]
+    public int? LinkedCommandeProductionId { get; set; }
+
+    [NotMapped]
+    public string LinkedCommandeProductionLabel { get; set; } = string.Empty;
+
+    [NotMapped]
+    public bool HasLinkedCommandeProduction => LinkedCommandeProductionId is > 0;
 }

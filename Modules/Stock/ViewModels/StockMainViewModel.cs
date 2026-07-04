@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionCommerciale.Modules.Auth.Services;
+using GestionCommerciale.Modules.Production.ViewModels;
 using GestionCommerciale.Modules.Stock;
 using GestionCommerciale.Modules.Stock.Models;
 using GestionCommerciale.Modules.Stock.Services;
@@ -10,6 +11,7 @@ using GestionCommerciale.Shared.Helpers;
 using GestionCommerciale.Shared.Services;
 using GestionCommerciale.Shared.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GestionCommerciale.Modules.Stock.ViewModels;
 
@@ -20,6 +22,8 @@ public partial class StockMainViewModel : BaseViewModel
     private readonly IDialogService _dialog;
     private readonly ICurrentUserSession _session;
     private readonly ILocaleService _locale;
+    private readonly WorkspaceNavigator _workspace;
+    private readonly IServiceProvider _sp;
 
     private int _currentProduitId;
 
@@ -28,13 +32,17 @@ public partial class StockMainViewModel : BaseViewModel
         IStockMovementService stock,
         IDialogService dialog,
         ICurrentUserSession session,
-        ILocaleService locale)
+        ILocaleService locale,
+        WorkspaceNavigator workspace,
+        IServiceProvider sp)
     {
         _dbFactory = dbFactory;
         _stock = stock;
         _dialog = dialog;
         _session = session;
         _locale = locale;
+        _workspace = workspace;
+        _sp = sp;
         _locale.CultureApplied += (_, _) => RefreshStockUi();
         RefreshStockUi();
         Pagination = new PaginationHelper(() => _ = LoadProduitsAsync(CancellationToken.None));
@@ -240,6 +248,19 @@ public partial class StockMainViewModel : BaseViewModel
                 .Select(b => new { b.Id, b.FournisseurId })
                 .ToListAsync(cancellationToken);
 
+        var brCommandeMap = brIds.Count == 0
+            ? new Dictionary<int, (int CommandeId, string Numero)>()
+            : (await db.BonsReception.AsNoTracking()
+                .Where(b => brIds.Contains(b.Id) && b.CommandeProductionId != null)
+                .Select(b => new
+                {
+                    BrId = b.Id,
+                    CommandeId = b.CommandeProductionId!.Value,
+                    Numero = b.CommandeProduction!.Numero
+                })
+                .ToListAsync(cancellationToken))
+                .ToDictionary(x => x.BrId, x => (CommandeId: x.CommandeId, x.Numero));
+
         var avoirParties = avoirIds.Count == 0
             ? []
             : await db.Avoirs.AsNoTracking()
@@ -336,7 +357,28 @@ public partial class StockMainViewModel : BaseViewModel
             m.UnitPriceDetail = price is decimal p
                 ? $"{prixHtLabel} : {p.ToString("N2", System.Globalization.CultureInfo.CurrentCulture)}"
                 : string.Empty;
+
+            m.LinkedCommandeProductionId = null;
+            m.LinkedCommandeProductionLabel = string.Empty;
+            if (m.OrigineType == StockMovementService.OrigineTypeBonReception
+                && m.OrigineId is int receptionBrId
+                && brCommandeMap.TryGetValue(receptionBrId, out var linkedCmd))
+            {
+                m.LinkedCommandeProductionId = linkedCmd.CommandeId;
+                m.LinkedCommandeProductionLabel = linkedCmd.Numero;
+            }
         }
+    }
+
+    [RelayCommand]
+    private void OpenLinkedCommandeProduction(int? commandeProductionId)
+    {
+        if (commandeProductionId is not int cmdId || cmdId <= 0)
+            return;
+
+        var vm = _sp.GetRequiredService<CommandeProductionEditViewModel>();
+        vm.Load(cmdId);
+        _workspace.Open(vm);
     }
 
     [RelayCommand]
