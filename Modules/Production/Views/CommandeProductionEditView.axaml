@@ -224,19 +224,12 @@
                           Background="{DynamicResource CourseraSurfaceMutedBrush}"
                           BorderBrush="{DynamicResource CourseraBorderBrush}"
                           BorderThickness="0,0,0,1">
-                    <Grid ColumnDefinitions="*,Auto">
-                      <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding DateShort}" FontSize="15" FontWeight="SemiBold"/>
-                        <TextBlock Text="{Binding ModifiedAtLabel}" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource CourseraDangerBrush}"
-                                   IsVisible="{Binding WasModified}" VerticalAlignment="Center"/>
-                      </StackPanel>
-                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding #CommandeEditRoot.((vm:CommandeProductionEditViewModel)DataContext).LblTotalOperation}"
-                                   Opacity="0.7" VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding TotalOperationLabel}" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-                      </StackPanel>
-                    </Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding DateShort}" FontSize="15" FontWeight="SemiBold"/>
+                      <TextBlock Text="{Binding ModifiedAtLabel}" FontSize="13" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource CourseraDangerBrush}"
+                                 IsVisible="{Binding WasModified}" VerticalAlignment="Center"/>
+                    </StackPanel>
                   </Border>
 
                   <Grid Grid.Row="1" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="120,1,*,1,*,1,*">
@@ -319,13 +312,7 @@
                     Background="{DynamicResource CourseraSurfaceMutedBrush}"
                     BorderThickness="0"
                     CornerRadius="8,8,0,0">
-              <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Text="{Binding LblTotauxRow}" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                  <TextBlock Text="{Binding LblTotalCommande}" Opacity="0.7" VerticalAlignment="Center"/>
-                  <TextBlock Text="{Binding TotalCommandeLabel}" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-                </StackPanel>
-              </Grid>
+              <TextBlock Text="{Binding LblTotauxRow}" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/>
             </Border>
 
             <Grid Grid.Row="1" Margin="10,10,10,0" ColumnDefinitions="120,1,*,1,*,1,*">
