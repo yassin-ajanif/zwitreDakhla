@@ -8,6 +8,7 @@ using GestionCommerciale.Modules.Stock.Models;
 using GestionCommerciale.Modules.Stock.Services;
 using GestionCommerciale.Shared.Database;
 using GestionCommerciale.Shared.Helpers;
+using GestionCommerciale.Shared.Navigation;
 using GestionCommerciale.Shared.Services;
 using GestionCommerciale.Shared.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -233,6 +234,11 @@ public partial class StockMainViewModel : BaseViewModel
             .Select(m => m.OrigineId!.Value)
             .Distinct()
             .ToList();
+        var prodOpIds = movements
+            .Where(m => m.OrigineType == StockMovementService.OrigineTypeProduction && m.OrigineId.HasValue)
+            .Select(m => m.OrigineId!.Value)
+            .Distinct()
+            .ToList();
 
         var blParties = blIds.Count == 0
             ? []
@@ -260,6 +266,26 @@ public partial class StockMainViewModel : BaseViewModel
                 })
                 .ToListAsync(cancellationToken))
                 .ToDictionary(x => x.BrId, x => (CommandeId: x.CommandeId, x.Numero));
+
+        var prodOpCommandeMap = prodOpIds.Count == 0
+            ? new Dictionary<int, (int CommandeId, string CmdNumero, string FournisseurNom, string BrNumero)>()
+            : (await db.OperationsProduction.AsNoTracking()
+                .Where(o => prodOpIds.Contains(o.Id) && o.CommandeProductionId != null)
+                .Select(o => new
+                {
+                    OpId = o.Id,
+                    CommandeId = o.CommandeProductionId!.Value,
+                    Numero = o.CommandeProduction!.Numero,
+                    FournisseurNom = o.CommandeProduction!.Fournisseur!.Nom,
+                    BrNumero = db.BonsReception
+                        .Where(b => b.CommandeProductionId == o.CommandeProductionId)
+                        .Select(b => b.Numero)
+                        .FirstOrDefault()
+                })
+                .ToListAsync(cancellationToken))
+                .ToDictionary(
+                    x => x.OpId,
+                    x => (CommandeId: x.CommandeId, CmdNumero: x.Numero, FournisseurNom: x.FournisseurNom, BrNumero: x.BrNumero ?? string.Empty));
 
         var avoirParties = avoirIds.Count == 0
             ? []
@@ -359,7 +385,9 @@ public partial class StockMainViewModel : BaseViewModel
                 : string.Empty;
 
             m.LinkedCommandeProductionId = null;
+            m.LinkedOperationProductionId = null;
             m.LinkedCommandeProductionLabel = string.Empty;
+            m.LinkedBonReceptionLabel = string.Empty;
             if (m.OrigineType == StockMovementService.OrigineTypeBonReception
                 && m.OrigineId is int receptionBrId
                 && brCommandeMap.TryGetValue(receptionBrId, out var linkedCmd))
@@ -367,17 +395,28 @@ public partial class StockMainViewModel : BaseViewModel
                 m.LinkedCommandeProductionId = linkedCmd.CommandeId;
                 m.LinkedCommandeProductionLabel = linkedCmd.Numero;
             }
+            else if (m.OrigineType == StockMovementService.OrigineTypeProduction
+                     && m.OrigineId is int prodOpId
+                     && prodOpCommandeMap.TryGetValue(prodOpId, out var linkedProdCmd))
+            {
+                m.LinkedCommandeProductionId = linkedProdCmd.CommandeId;
+                m.LinkedOperationProductionId = prodOpId;
+                m.LinkedCommandeProductionLabel = linkedProdCmd.CmdNumero;
+                m.PartyName = linkedProdCmd.FournisseurNom;
+                m.PartyIsSupplier = true;
+                m.LinkedBonReceptionLabel = linkedProdCmd.BrNumero;
+            }
         }
     }
 
     [RelayCommand]
-    private void OpenLinkedCommandeProduction(int? commandeProductionId)
+    private void OpenLinkedCommandeProduction(CommandeProductionLink? link)
     {
-        if (commandeProductionId is not int cmdId || cmdId <= 0)
+        if (link is not { CommandeId: > 0 } navigation)
             return;
 
         var vm = _sp.GetRequiredService<CommandeProductionEditViewModel>();
-        vm.Load(cmdId);
+        vm.Load(navigation.CommandeId, navigation.OperationId);
         _workspace.Open(vm);
     }
 

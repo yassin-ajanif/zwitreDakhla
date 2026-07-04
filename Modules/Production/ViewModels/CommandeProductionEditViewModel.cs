@@ -30,6 +30,9 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     private readonly IProductionStockService _productionStock;
     private readonly ICommandeProductionReceptionService _commandeReception;
     private bool _suppressEstTermineeExpirationSync;
+    private int? _pendingHighlightOperationId;
+
+    public event Action<int>? ScrollToOperationRequested;
 
     public CommandeProductionEditViewModel(
         IDbContextFactory<AppDbContext> dbFactory,
@@ -216,13 +219,17 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         Note = string.Empty;
         SetLinkedBonReception(null, null);
         Operations.Clear();
+        ClearOperationHighlights();
         Title = _locale.T("CmdProd_NewTitle");
         RefreshOperationTotals();
         _ = LoadLookupsAsync(CancellationToken.None);
     }
 
-    public void Load(int commandeId)
+    public void Load(int commandeId) => Load(commandeId, null);
+
+    public void Load(int commandeId, int? highlightOperationId)
     {
+        _pendingHighlightOperationId = highlightOperationId;
         CommandeId = commandeId;
         _ = LoadAsync(commandeId, CancellationToken.None);
     }
@@ -390,6 +397,9 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             foreach (var op in entity.Operations.OrderByDescending(o => o.OperationAt))
                 Operations.Add(MapOperation(op));
 
+            ApplyOperationHighlight(_pendingHighlightOperationId);
+            _pendingHighlightOperationId = null;
+
             Title = _locale.Tf("CmdProd_EditTitleFmt", Numero);
             await RefreshLinkedBonReceptionAsync(db, commandeId, cancellationToken);
             OnPropertyChanged(nameof(CanAddOperation));
@@ -411,6 +421,27 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             op.ModifiedAtLabel = _locale.Tf("Prod_LblModifiedFmt", dt);
         }
         return op;
+    }
+
+    private void ApplyOperationHighlight(int? operationId)
+    {
+        ClearOperationHighlights();
+        if (operationId is not int opId)
+            return;
+
+        var op = Operations.FirstOrDefault(o => o.Id == opId);
+        if (op == null)
+            return;
+
+        op.IsHighlighted = true;
+        SelectedOperation = op;
+        ScrollToOperationRequested?.Invoke(opId);
+    }
+
+    private void ClearOperationHighlights()
+    {
+        foreach (var op in Operations)
+            op.IsHighlighted = false;
     }
 
     [RelayCommand]

@@ -1,9 +1,10 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using System.Globalization;
 using GestionCommerciale.Modules.Production.Models;
 
 namespace GestionCommerciale.Modules.Production.ViewModels;
 
-public class ProductionOperation
+public partial class ProductionOperation : ObservableObject
 {
     public const int MultiplierGrand = 160;
     public const int MultiplierMoyenne = 160;
@@ -41,6 +42,9 @@ public class ProductionOperation
     public int PochetteGrand { get; set; }
     public int PochetteMoyenne { get; set; }
     public int PochettePetit { get; set; }
+
+    [ObservableProperty]
+    private bool _isHighlighted;
 
     public int TotalGrand => PochetteGrand * MultiplierGrand;
     public int TotalMoyenne => PochetteMoyenne * MultiplierMoyenne;

@@ -97,14 +97,17 @@
                   <Grid ColumnDefinitions="108,*,96,72,80">
                     <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}}" FontSize="11" VerticalAlignment="Center"/>
                     <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center" Spacing="2">
-                      <TextBlock Text="{Binding DocumentTitle}" FontSize="11" Opacity="0.85" TextWrapping="Wrap"/>
+                      <TextBlock Text="{Binding DocumentTitle}" FontSize="11" Opacity="0.85" TextWrapping="Wrap"
+                                 IsVisible="{Binding ShowDocumentTitle}"/>
                       <TextBlock Text="{Binding DocumentDateTime}" FontSize="10" Opacity="0.65"
-                                 IsVisible="{Binding HasDocumentDateTime}"/>
+                                 IsVisible="{Binding ShowDocumentDateTime}"/>
                       <TextBlock Text="{Binding PartyName}" FontSize="10" FontWeight="SemiBold"
                                  Foreground="{Binding PartyColorSignal, Converter={x:Static conv:PositiveNegativeForegroundConverter.Instance}}"
                                  IsVisible="{Binding HasPartyName}"/>
+                      <TextBlock Text="{Binding LinkedBonReceptionLabel}" FontSize="11" Opacity="0.85"
+                                 IsVisible="{Binding HasLinkedBonReception}"/>
                       <Button Command="{Binding $parent[UserControl].((vm:StockMainViewModel)DataContext).OpenLinkedCommandeProductionCommand}"
-                              CommandParameter="{Binding LinkedCommandeProductionId}"
+                              CommandParameter="{Binding LinkedCommandeProductionLink}"
                               IsVisible="{Binding HasLinkedCommandeProduction}"
                               Padding="0"
                               MinHeight="0"

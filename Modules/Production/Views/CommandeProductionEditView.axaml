@@ -178,7 +178,8 @@
                   IsEnabled="{Binding CanAddOperation}"/>
         </Grid>
 
-        <ListBox ItemsSource="{Binding Operations}"
+        <ListBox x:Name="OperationsListBox"
+                 ItemsSource="{Binding Operations}"
                  SelectedItem="{Binding SelectedOperation}"
                  Background="Transparent"
                  BorderThickness="0"
@@ -194,12 +195,20 @@
             <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
               <Setter Property="Background" Value="Transparent"/>
             </Style>
+            <Style Selector="Border.operationCard">
+              <Setter Property="BorderBrush" Value="{DynamicResource CourseraBorderBrush}"/>
+              <Setter Property="BorderThickness" Value="1"/>
+            </Style>
+            <Style Selector="Border.operationCard.highlighted">
+              <Setter Property="BorderBrush" Value="#EAB308"/>
+              <Setter Property="BorderThickness" Value="3"/>
+            </Style>
           </ListBox.Styles>
           <ListBox.ItemTemplate>
             <DataTemplate DataType="vm:ProductionOperation">
-              <Border Background="{DynamicResource CourseraSurfaceBrush}"
-                      BorderBrush="{DynamicResource CourseraBorderBrush}"
-                      BorderThickness="1"
+              <Border Classes="operationCard"
+                      Classes.highlighted="{Binding IsHighlighted}"
+                      Background="{DynamicResource CourseraSurfaceBrush}"
                       CornerRadius="10"
                       ClipToBounds="True">
                 <Border.ContextMenu>

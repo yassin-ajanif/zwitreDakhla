@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using GestionCommerciale.Shared.Models;
+using GestionCommerciale.Shared.Navigation;
 
 namespace GestionCommerciale.Modules.Stock.Models;
 
@@ -90,6 +91,10 @@ public class MouvementStock : BaseEntity
     public bool HasDocumentDateTime => DocumentDateTime.Length > 0;
 
     [NotMapped]
+    public bool ShowDocumentDateTime =>
+        HasDocumentDateTime && !(OrigineType == "Production" && HasLinkedCommandeProduction);
+
+    [NotMapped]
     public string TraceDetail => DocumentRef;
 
     [NotMapped]
@@ -102,8 +107,26 @@ public class MouvementStock : BaseEntity
     public int? LinkedCommandeProductionId { get; set; }
 
     [NotMapped]
+    public int? LinkedOperationProductionId { get; set; }
+
+    [NotMapped]
     public string LinkedCommandeProductionLabel { get; set; } = string.Empty;
 
     [NotMapped]
+    public string LinkedBonReceptionLabel { get; set; } = string.Empty;
+
+    [NotMapped]
+    public bool HasLinkedBonReception => !string.IsNullOrWhiteSpace(LinkedBonReceptionLabel);
+
+    [NotMapped]
     public bool HasLinkedCommandeProduction => LinkedCommandeProductionId is > 0;
+
+    [NotMapped]
+    public CommandeProductionLink? LinkedCommandeProductionLink =>
+        LinkedCommandeProductionId is int cmdId && cmdId > 0
+            ? new CommandeProductionLink(cmdId, LinkedOperationProductionId)
+            : null;
+
+    [NotMapped]
+    public bool ShowDocumentTitle => !(OrigineType == "Production" && HasLinkedCommandeProduction);
 }
