@@ -8,8 +8,8 @@ public class CommandeProduction : BaseEntity
     public string Numero { get; set; } = string.Empty;
     public int FournisseurId { get; set; }
     public TiersEntity? Fournisseur { get; set; }
-    public int TypeNaissainId { get; set; }
-    public TypeNaissain? TypeNaissain { get; set; }
+    public int TypeHuitreId { get; set; }
+    public TypeHuitre? TypeHuitre { get; set; }
     public int CategorieCommandeId { get; set; }
     public CategorieCommande? CategorieCommande { get; set; }
     public int QuantiteNaissain { get; set; }

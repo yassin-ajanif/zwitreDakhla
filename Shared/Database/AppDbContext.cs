@@ -45,7 +45,7 @@ public class AppDbContext : DbContext
     public DbSet<CategorieCharge> CategoriesCharges => Set<CategorieCharge>();
     public DbSet<Charge> Charges => Set<Charge>();
     public DbSet<CommandeProduction> CommandesProduction => Set<CommandeProduction>();
-    public DbSet<TypeNaissain> TypesNaissain => Set<TypeNaissain>();
+    public DbSet<TypeHuitre> TypesHuitre => Set<TypeHuitre>();
     public DbSet<CategorieCommande> CategoriesCommande => Set<CategorieCommande>();
     public DbSet<OperationProduction> OperationsProduction => Set<OperationProduction>();
     public DbSet<AppSettingsRow> AppSettings => Set<AppSettingsRow>();
@@ -187,9 +187,9 @@ public class AppDbContext : DbContext
             e.HasIndex(c => c.Ordre);
         });
 
-        modelBuilder.Entity<TypeNaissain>(e =>
+        modelBuilder.Entity<TypeHuitre>(e =>
         {
-            e.ToTable("TypesNaissain");
+            e.ToTable("TypesHuitre");
             e.HasIndex(t => t.Nom).IsUnique();
             e.HasIndex(t => t.Ordre);
         });
@@ -201,9 +201,9 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(c => c.FournisseurId)
                 .OnDelete(DeleteBehavior.Restrict);
-            e.HasOne(c => c.TypeNaissain)
+            e.HasOne(c => c.TypeHuitre)
                 .WithMany()
-                .HasForeignKey(c => c.TypeNaissainId)
+                .HasForeignKey(c => c.TypeHuitreId)
                 .OnDelete(DeleteBehavior.Restrict);
             e.HasOne(c => c.CategorieCommande)
                 .WithMany()
@@ -214,7 +214,7 @@ public class AppDbContext : DbContext
                 .HasForeignKey(o => o.CommandeProductionId)
                 .OnDelete(DeleteBehavior.Cascade);
             e.HasIndex(c => c.FournisseurId);
-            e.HasIndex(c => c.TypeNaissainId);
+            e.HasIndex(c => c.TypeHuitreId);
             e.HasIndex(c => c.CategorieCommandeId);
             e.HasIndex(c => c.DateCommande);
         });

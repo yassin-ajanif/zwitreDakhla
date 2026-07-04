@@ -164,7 +164,7 @@ public partial class ProductionListViewModel : BaseViewModel
 
         FilterTypes.Clear();
         FilterTypes.Add(ProductionListFilterOption.All(_locale.T("CmdProd_FilterTypeAll")));
-        var types = await db.TypesNaissain.AsNoTracking()
+        var types = await db.TypesHuitre.AsNoTracking()
             .Where(t => t.Actif)
             .OrderBy(t => t.Ordre)
             .ThenBy(t => t.Nom)
@@ -215,13 +215,13 @@ public partial class ProductionListViewModel : BaseViewModel
             ? _locale.Tf(
                 "CmdProd_SummaryLine2TermineeFmt",
                 item.CategorieCommandeNom,
-                item.TypeNaissainNom,
+                item.TypeHuitreNom,
                 item.QuantiteNaissainLabel,
                 item.TauxMortaliteLabel)
             : _locale.Tf(
                 "CmdProd_SummaryLine2EnCoursFmt",
                 item.CategorieCommandeNom,
-                item.TypeNaissainNom,
+                item.TypeHuitreNom,
                 item.QuantiteNaissainLabel);
         item.SummaryLine3 = _locale.Tf(
             "CmdProd_SummaryLine3Fmt",
@@ -262,7 +262,7 @@ public partial class ProductionListViewModel : BaseViewModel
             var q = db.CommandesProduction.AsNoTracking()
                 .Include(c => c.Fournisseur)
                 .Include(c => c.CategorieCommande)
-                .Include(c => c.TypeNaissain)
+                .Include(c => c.TypeHuitre)
                 .Include(c => c.Operations)
                 .AsQueryable();
 
@@ -285,7 +285,7 @@ public partial class ProductionListViewModel : BaseViewModel
                 q = q.Where(c => c.CategorieCommandeId == categorieId);
 
             if (SelectedFilterType?.Id is int typeId)
-                q = q.Where(c => c.TypeNaissainId == typeId);
+                q = q.Where(c => c.TypeHuitreId == typeId);
 
             q = ExpirationFilterIndex switch
             {
@@ -309,7 +309,7 @@ public partial class ProductionListViewModel : BaseViewModel
                     FournisseurNom = row.Fournisseur?.Nom ?? "—",
                     DateCommande = row.DateCommande,
                     CategorieCommandeNom = row.CategorieCommande?.Nom ?? "—",
-                    TypeNaissainNom = row.TypeNaissain?.Nom ?? "—",
+                    TypeHuitreNom = row.TypeHuitre?.Nom ?? "—",
                     QuantiteNaissain = row.QuantiteNaissain,
                     EstTerminee = row.EstTerminee,
                     DateExpiration = row.DateExpiration,

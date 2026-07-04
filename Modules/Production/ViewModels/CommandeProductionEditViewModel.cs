@@ -57,14 +57,14 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     }
 
     public ObservableCollection<TiersEntity> Fournisseurs { get; } = [];
-    public ObservableCollection<TypeNaissain> TypesNaissain { get; } = [];
-    public ObservableCollection<TypeNaissain> AllTypesNaissain { get; } = [];
+    public ObservableCollection<TypeHuitre> TypesHuitre { get; } = [];
+    public ObservableCollection<TypeHuitre> AllTypesHuitre { get; } = [];
     public ObservableCollection<CategorieCommande> CategoriesCommande { get; } = [];
     public ObservableCollection<CategorieCommande> AllCategoriesCommande { get; } = [];
     public ObservableCollection<ProductionOperation> Operations { get; } = [];
 
     [ObservableProperty] private ProductionOperation? _selectedOperation;
-    [ObservableProperty] private TypeNaissain? _selectedPanelTypeNaissain;
+    [ObservableProperty] private TypeHuitre? _selectedPanelTypeHuitre;
     [ObservableProperty] private CategorieCommande? _selectedPanelCategorieCommande;
 
     public AutoCompleteFilterPredicate<object?> PartyAutocompleteFilter => PartyAutoComplete.ItemFilter;
@@ -74,7 +74,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     [ObservableProperty] private string _linkedBonReceptionLabel = string.Empty;
     [ObservableProperty] private string _numero = string.Empty;
     [ObservableProperty] private TiersEntity? _selectedFournisseur;
-    [ObservableProperty] private TypeNaissain? _selectedTypeNaissain;
+    [ObservableProperty] private TypeHuitre? _selectedTypeHuitre;
     [ObservableProperty] private CategorieCommande? _selectedCategorieCommande;
     [ObservableProperty] private int _quantiteNaissain;
     [ObservableProperty] private decimal _prixAchatNaissainHt;
@@ -114,11 +114,11 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     [ObservableProperty] private string _colTables = string.Empty;
     [ObservableProperty] private string _lblTotalOperation = string.Empty;
 
-    [ObservableProperty] private string _lblTypesNaissainPanel = string.Empty;
-    [ObservableProperty] private string _wmNewTypeNaissain = string.Empty;
-    [ObservableProperty] private string _btnAddPanelTypeNaissain = string.Empty;
-    [ObservableProperty] private string _menuDeleteTypeNaissain = string.Empty;
-    [ObservableProperty] private string _newTypeNaissainNom = string.Empty;
+    [ObservableProperty] private string _lblTypesHuitrePanel = string.Empty;
+    [ObservableProperty] private string _wmNewTypeHuitre = string.Empty;
+    [ObservableProperty] private string _btnAddPanelTypeHuitre = string.Empty;
+    [ObservableProperty] private string _menuDeleteTypeHuitre = string.Empty;
+    [ObservableProperty] private string _newTypeHuitreNom = string.Empty;
 
     [ObservableProperty] private string _lblCategoriesCommandePanel = string.Empty;
     [ObservableProperty] private string _wmNewCategorieCommande = string.Empty;
@@ -206,7 +206,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         CommandeId = null;
         Numero = string.Empty;
         SelectedFournisseur = null;
-        SelectedTypeNaissain = null;
+        SelectedTypeHuitre = null;
         SelectedCategorieCommande = null;
         QuantiteNaissain = 0;
         PrixAchatNaissainHt = 0;
@@ -259,10 +259,10 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         ColTotal = _locale.T("Prod_ColTotal");
         ColTables = _locale.T("Prod_ColTables");
         LblTotalOperation = _locale.T("Prod_LblTotalOperation");
-        LblTypesNaissainPanel = _locale.T("TypeNaissain_PanelTitle");
-        WmNewTypeNaissain = _locale.T("TypeNaissain_WmNew");
-        BtnAddPanelTypeNaissain = _locale.T("Chg_BtnAddCategory");
-        MenuDeleteTypeNaissain = _locale.T("TypeNaissain_MenuDelete");
+        LblTypesHuitrePanel = _locale.T("TypeHuitre_PanelTitle");
+        WmNewTypeHuitre = _locale.T("TypeHuitre_WmNew");
+        BtnAddPanelTypeHuitre = _locale.T("Chg_BtnAddCategory");
+        MenuDeleteTypeHuitre = _locale.T("TypeHuitre_MenuDelete");
         LblCategoriesCommandePanel = _locale.T("CatCmd_PanelTitle");
         WmNewCategorieCommande = _locale.T("CatCmd_WmNew");
         BtnAddPanelCategorieCommande = _locale.T("Chg_BtnAddCategory");
@@ -296,30 +296,30 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         int? selectTypeId,
         int? selectCategorieId)
     {
-        TypesNaissain.Clear();
-        AllTypesNaissain.Clear();
-        var allTypes = await db.TypesNaissain.AsNoTracking()
+        TypesHuitre.Clear();
+        AllTypesHuitre.Clear();
+        var allTypes = await db.TypesHuitre.AsNoTracking()
             .OrderBy(t => t.Ordre)
             .ThenBy(t => t.Nom)
             .ToListAsync(cancellationToken);
         foreach (var t in allTypes)
-            AllTypesNaissain.Add(t);
+            AllTypesHuitre.Add(t);
         foreach (var t in allTypes.Where(x => x.Actif))
-            TypesNaissain.Add(t);
+            TypesHuitre.Add(t);
 
-        var typeId = selectTypeId ?? SelectedTypeNaissain?.Id;
-        if (typeId is > 0 && TypesNaissain.All(t => t.Id != typeId))
+        var typeId = selectTypeId ?? SelectedTypeHuitre?.Id;
+        if (typeId is > 0 && TypesHuitre.All(t => t.Id != typeId))
         {
             var currentType = allTypes.FirstOrDefault(t => t.Id == typeId);
             if (currentType != null)
-                TypesNaissain.Insert(0, currentType);
+                TypesHuitre.Insert(0, currentType);
         }
 
-        SelectedTypeNaissain = typeId is > 0
-            ? TypesNaissain.FirstOrDefault(t => t.Id == typeId)
-            : TypesNaissain.FirstOrDefault();
-        SelectedPanelTypeNaissain = AllTypesNaissain.FirstOrDefault(t => t.Id == SelectedTypeNaissain?.Id)
-            ?? AllTypesNaissain.FirstOrDefault();
+        SelectedTypeHuitre = typeId is > 0
+            ? TypesHuitre.FirstOrDefault(t => t.Id == typeId)
+            : TypesHuitre.FirstOrDefault();
+        SelectedPanelTypeHuitre = AllTypesHuitre.FirstOrDefault(t => t.Id == SelectedTypeHuitre?.Id)
+            ?? AllTypesHuitre.FirstOrDefault();
 
         CategoriesCommande.Clear();
         AllCategoriesCommande.Clear();
@@ -371,7 +371,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
                 .Include(c => c.Operations)
                 .FirstAsync(c => c.Id == commandeId, cancellationToken);
 
-            await LoadLookupsAsync(db, cancellationToken, entity.TypeNaissainId, entity.CategorieCommandeId);
+            await LoadLookupsAsync(db, cancellationToken, entity.TypeHuitreId, entity.CategorieCommandeId);
             await LoadFournisseursAsync(db, cancellationToken);
 
             Numero = entity.Numero;
@@ -427,9 +427,9 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             return;
         }
 
-        if (SelectedTypeNaissain == null)
+        if (SelectedTypeHuitre == null)
         {
-            await _dialog.ShowErrorAsync(Title, _locale.T("CmdProd_ErrTypeNaissain"), cancellationToken);
+            await _dialog.ShowErrorAsync(Title, _locale.T("CmdProd_ErrTypeHuitre"), cancellationToken);
             return;
         }
 
@@ -473,7 +473,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             }
 
             entity.FournisseurId = SelectedFournisseur.Id;
-            entity.TypeNaissainId = SelectedTypeNaissain.Id;
+            entity.TypeHuitreId = SelectedTypeHuitre.Id;
             entity.CategorieCommandeId = SelectedCategorieCommande.Id;
             entity.QuantiteNaissain = QuantiteNaissain;
             entity.PrixAchatNaissainHT = PrixAchatNaissainHt;
@@ -528,28 +528,28 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    private async Task AddPanelTypeNaissainAsync(CancellationToken cancellationToken) =>
+    private async Task AddPanelTypeHuitreAsync(CancellationToken cancellationToken) =>
         await AddLookupViaPanelCoreAsync(
-            NewTypeNaissainNom,
-            _locale.T("TypeNaissain_ErrNom"),
-            _locale.T("TypeNaissain_ErrDuplicate"),
+            NewTypeHuitreNom,
+            _locale.T("TypeHuitre_ErrNom"),
+            _locale.T("TypeHuitre_ErrDuplicate"),
             async (db, nom, ct) =>
             {
-                if (await db.TypesNaissain.AsNoTracking().AnyAsync(t => t.Nom == nom, ct))
+                if (await db.TypesHuitre.AsNoTracking().AnyAsync(t => t.Nom == nom, ct))
                     return -1;
-                var maxOrdre = await db.TypesNaissain.AsNoTracking().Select(t => (int?)t.Ordre).MaxAsync(ct) ?? 0;
-                var entity = new TypeNaissain
+                var maxOrdre = await db.TypesHuitre.AsNoTracking().Select(t => (int?)t.Ordre).MaxAsync(ct) ?? 0;
+                var entity = new TypeHuitre
                 {
                     Nom = nom,
                     Actif = true,
                     Ordre = maxOrdre + 1,
                     CreatedByUserId = _session.UserId
                 };
-                db.TypesNaissain.Add(entity);
+                db.TypesHuitre.Add(entity);
                 await db.SaveChangesAsync(ct);
                 return entity.Id;
             },
-            () => NewTypeNaissainNom = string.Empty,
+            () => NewTypeHuitreNom = string.Empty,
             isType: true,
             cancellationToken);
 
@@ -580,14 +580,14 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             cancellationToken);
 
     [RelayCommand]
-    private async Task EditPanelTypeNaissainAsync(CancellationToken cancellationToken)
+    private async Task EditPanelTypeHuitreAsync(CancellationToken cancellationToken)
     {
-        if (SelectedPanelTypeNaissain == null) return;
+        if (SelectedPanelTypeHuitre == null) return;
         await EditLookupAsync(
-            SelectedPanelTypeNaissain,
-            _locale.Tf("TypeNaissain_TitleFmt", SelectedPanelTypeNaissain.Nom),
-            _locale.T("TypeNaissain_ErrNom"),
-            _locale.T("TypeNaissain_ErrDuplicate"),
+            SelectedPanelTypeHuitre,
+            _locale.Tf("TypeHuitre_TitleFmt", SelectedPanelTypeHuitre.Nom),
+            _locale.T("TypeHuitre_ErrNom"),
+            _locale.T("TypeHuitre_ErrDuplicate"),
             cancellationToken);
     }
 
@@ -604,19 +604,19 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    private async Task DeletePanelTypeNaissainAsync(TypeNaissain? item, CancellationToken cancellationToken)
+    private async Task DeletePanelTypeHuitreAsync(TypeHuitre? item, CancellationToken cancellationToken)
     {
         if (item == null) return;
         await DeleteLookupAsync(
             item.Id,
             item.Nom,
-            _locale.T("TypeNaissain_MenuDelete"),
-            _locale.T("TypeNaissain_ConfirmDelete"),
-            _locale.T("TypeNaissain_ErrInUse"),
-            db => db.CommandesProduction.AsNoTracking().AnyAsync(c => c.TypeNaissainId == item.Id, cancellationToken),
-            db => db.TypesNaissain.FirstOrDefaultAsync(t => t.Id == item.Id, cancellationToken),
-            (db, entity) => db.TypesNaissain.Remove(entity),
-            wasTypeSelected: SelectedTypeNaissain?.Id == item.Id,
+            _locale.T("TypeHuitre_MenuDelete"),
+            _locale.T("TypeHuitre_ConfirmDelete"),
+            _locale.T("TypeHuitre_ErrInUse"),
+            db => db.CommandesProduction.AsNoTracking().AnyAsync(c => c.TypeHuitreId == item.Id, cancellationToken),
+            db => db.TypesHuitre.FirstOrDefaultAsync(t => t.Id == item.Id, cancellationToken),
+            (db, entity) => db.TypesHuitre.Remove(entity),
+            wasTypeSelected: SelectedTypeHuitre?.Id == item.Id,
             wasCategorieSelected: false,
             cancellationToken);
     }
@@ -688,7 +688,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         string nom;
         bool actif;
         int id;
-        if (initial is TypeNaissain type)
+        if (initial is TypeHuitre type)
         {
             nom = type.Nom;
             actif = type.Actif;
@@ -724,15 +724,15 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
-            if (initial is TypeNaissain)
+            if (initial is TypeHuitre)
             {
-                if (await db.TypesNaissain.AsNoTracking().AnyAsync(t => t.Nom == newNom && t.Id != id, cancellationToken))
+                if (await db.TypesHuitre.AsNoTracking().AnyAsync(t => t.Nom == newNom && t.Id != id, cancellationToken))
                 {
                     await _dialog.ShowErrorAsync(Title, errDuplicate, cancellationToken);
                     return;
                 }
 
-                var entity = await db.TypesNaissain.FirstAsync(t => t.Id == id, cancellationToken);
+                var entity = await db.TypesHuitre.FirstAsync(t => t.Id == id, cancellationToken);
                 entity.Nom = newNom;
                 entity.Actif = result.Actif;
                 await db.SaveChangesAsync(cancellationToken);
@@ -793,7 +793,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             remove(db, entity);
             await db.SaveChangesAsync(cancellationToken);
 
-            int? selectType = wasTypeSelected ? null : SelectedTypeNaissain?.Id;
+            int? selectType = wasTypeSelected ? null : SelectedTypeHuitre?.Id;
             int? selectCat = wasCategorieSelected ? null : SelectedCategorieCommande?.Id;
             await LoadLookupsAsync(db, cancellationToken, selectType, selectCat);
         }

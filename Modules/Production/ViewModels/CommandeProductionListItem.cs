@@ -9,7 +9,7 @@ public sealed class CommandeProductionListItem
     public string FournisseurNom { get; init; } = string.Empty;
     public DateTime DateCommande { get; init; }
     public string CategorieCommandeNom { get; init; } = string.Empty;
-    public string TypeNaissainNom { get; init; } = string.Empty;
+    public string TypeHuitreNom { get; init; } = string.Empty;
     public int QuantiteNaissain { get; init; }
     public decimal TauxMortalite { get; init; }
     public bool EstTerminee { get; init; }

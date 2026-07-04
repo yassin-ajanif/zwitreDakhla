@@ -146,7 +146,7 @@
                   </Border>
                   <Border Margin="0,0,8,8" Padding="10,5" CornerRadius="14"
                           Background="#F5F3FF" BorderBrush="#DDD6FE" BorderThickness="1">
-                    <TextBlock Text="{Binding TypeNaissainNom}" FontSize="12" FontWeight="SemiBold"
+                    <TextBlock Text="{Binding TypeHuitreNom}" FontSize="12" FontWeight="SemiBold"
                                Foreground="#6D28D9"/>
                   </Border>
                   <Border Margin="0,0,8,8" Padding="10,5" CornerRadius="14"
