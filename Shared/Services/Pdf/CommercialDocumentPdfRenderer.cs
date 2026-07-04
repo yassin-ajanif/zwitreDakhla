@@ -125,7 +125,7 @@ public static class CommercialDocumentPdfRenderer
             container.PaddingHorizontal(HeaderLogoPaddingHorizontal)
                 .Height(HeaderLogoHeight)
                 .Image(logoBytes)
-                .FitUnproportionally();
+                .FitWidth();
             return;
         }
 
