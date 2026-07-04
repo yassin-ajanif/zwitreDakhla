@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionCommerciale.Modules.Auth.Services;
 using GestionCommerciale.Modules.Stock;
+using GestionCommerciale.Modules.Stock.Models;
 using GestionCommerciale.Modules.CommandeFournisseur.Models;
 using GestionCommerciale.Modules.FactureFournisseur.Services;
 using GestionCommerciale.Modules.FactureFournisseur.ViewModels;
@@ -348,15 +349,25 @@ public partial class BREditViewModel : BaseViewModel
             .FirstAsync(x => x.Id == id, cancellationToken);
         Numero = b.Numero;
         CommandeProductionId = b.CommandeProductionId;
-        CommandeProductionLabel = b.CommandeProductionId is int && b.CommandeProduction != null
-            ? _locale.Tf("BR_LinkedCmdProd", b.CommandeProduction.Numero)
+        var cmdNumero = b.CommandeProduction?.Numero;
+        if (b.CommandeProductionId is int cmdId && string.IsNullOrWhiteSpace(cmdNumero))
+        {
+            cmdNumero = await db.CommandesProduction.AsNoTracking()
+                .Where(c => c.Id == cmdId)
+                .Select(c => c.Numero)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        CommandeProductionLabel = !string.IsNullOrWhiteSpace(cmdNumero)
+            ? _locale.Tf("BR_LinkedCmdProd", cmdNumero)
             : string.Empty;
         FournisseurId = b.FournisseurId;
         Date = new DateTimeOffset(b.Date);
         Note = b.Note;
+        var lineProducts = await LoadLineProductsAsync(db, b.Lignes.Select(l => l.ProduitId), cancellationToken);
         foreach (var l in b.Lignes)
         {
-            var prod = Produits.FirstOrDefault(p => p.Id == l.ProduitId);
+            var prod = ResolveLineProduct(l.ProduitId, Produits, lineProducts);
             Lignes.Add(new BRLineRow
             {
                 ProduitId = l.ProduitId,
@@ -412,9 +423,10 @@ public partial class BREditViewModel : BaseViewModel
         Date = new DateTimeOffset(DateTime.Today);
         Note = string.Empty;
         Numero = "(brouillon)";
+        var lineProducts = await LoadLineProductsAsync(db, bc.Lignes.Select(l => l.ProduitId), cancellationToken);
         foreach (var l in bc.Lignes.OrderBy(x => x.Id))
         {
-            var prod = Produits.FirstOrDefault(p => p.Id == l.ProduitId);
+            var prod = ResolveLineProduct(l.ProduitId, Produits, lineProducts);
             Lignes.Add(new BRLineRow
             {
                 ProduitId = l.ProduitId,
@@ -651,4 +663,26 @@ public partial class BREditViewModel : BaseViewModel
         var fournisseur = await db.Tiers.AsNoTracking().FirstAsync(t => t.Id == b.FournisseurId, cancellationToken);
         return await _pdf.BuildBonReceptionPdfAsync(b, DocumentPartyPdfInfo.FromTiers(fournisseur), cancellationToken);
     }
+
+    private static async Task<Dictionary<int, Produit>> LoadLineProductsAsync(
+        AppDbContext db,
+        IEnumerable<int> produitIds,
+        CancellationToken cancellationToken)
+    {
+        var ids = produitIds.Distinct().ToList();
+        if (ids.Count == 0)
+            return [];
+
+        return await db.Produits.AsNoTracking()
+            .Where(p => ids.Contains(p.Id))
+            .SelectForListWithoutImageData()
+            .ToDictionaryAsync(p => p.Id, cancellationToken);
+    }
+
+    private static Produit? ResolveLineProduct(
+        int produitId,
+        IReadOnlyList<Produit> catalog,
+        IReadOnlyDictionary<int, Produit> lineProducts) =>
+        catalog.FirstOrDefault(p => p.Id == produitId)
+        ?? (lineProducts.TryGetValue(produitId, out var prod) ? prod : null);
 }
