@@ -113,10 +113,43 @@ public class MouvementStock : BaseEntity
     public string LinkedCommandeProductionLabel { get; set; } = string.Empty;
 
     [NotMapped]
+    public int? PrimaryDocumentId { get; set; }
+
+    [NotMapped]
+    public string PrimaryDocumentType { get; set; } = string.Empty;
+
+    [NotMapped]
+    public string PrimaryDocumentLabel { get; set; } = string.Empty;
+
+    [NotMapped]
+    public bool HasPrimaryDocument => PrimaryDocumentId is > 0;
+
+    [NotMapped]
+    public bool ShowPrimaryDocument => HasPrimaryDocument && !HasLinkedCommandeProduction;
+
+    [NotMapped]
+    public StockMovementDocumentLink? PrimaryDocumentLink =>
+        PrimaryDocumentId is int docId && docId > 0 && !string.IsNullOrEmpty(PrimaryDocumentType)
+            ? new StockMovementDocumentLink(PrimaryDocumentType, docId)
+            : null;
+
+    [NotMapped]
+    public int? LinkedBonReceptionId { get; set; }
+
+    [NotMapped]
     public string LinkedBonReceptionLabel { get; set; } = string.Empty;
 
     [NotMapped]
     public bool HasLinkedBonReception => !string.IsNullOrWhiteSpace(LinkedBonReceptionLabel);
+
+    [NotMapped]
+    public bool ShowLinkedBonReception => HasLinkedBonReception && !HasLinkedCommandeProduction;
+
+    [NotMapped]
+    public StockMovementDocumentLink? LinkedBonReceptionLink =>
+        LinkedBonReceptionId is int brId && brId > 0
+            ? new StockMovementDocumentLink("BR", brId)
+            : null;
 
     [NotMapped]
     public bool HasLinkedCommandeProduction => LinkedCommandeProductionId is > 0;
@@ -128,5 +161,5 @@ public class MouvementStock : BaseEntity
             : null;
 
     [NotMapped]
-    public bool ShowDocumentTitle => !(OrigineType == "Production" && HasLinkedCommandeProduction);
+    public bool ShowDocumentTitle => ShowPrimaryDocument;
 }

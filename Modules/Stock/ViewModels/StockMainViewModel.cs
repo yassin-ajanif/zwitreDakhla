@@ -2,7 +2,11 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionCommerciale.Modules.Auth.Services;
+using GestionCommerciale.Modules.AvoirFournisseur.ViewModels;
+using GestionCommerciale.Modules.Facturation.ViewModels;
+using GestionCommerciale.Modules.Livraison.ViewModels;
 using GestionCommerciale.Modules.Production.ViewModels;
+using GestionCommerciale.Modules.Reception.ViewModels;
 using GestionCommerciale.Modules.Stock;
 using GestionCommerciale.Modules.Stock.Models;
 using GestionCommerciale.Modules.Stock.Services;
@@ -273,7 +277,7 @@ public partial class StockMainViewModel : BaseViewModel
                 .ToDictionary(x => x.BrId, x => (CommandeId: x.CommandeId, x.Numero));
 
         var prodOpCommandeMap = prodOpIds.Count == 0
-            ? new Dictionary<int, (int CommandeId, string CmdNumero, string FournisseurNom, string BrNumero)>()
+            ? new Dictionary<int, (int CommandeId, string CmdNumero, string FournisseurNom, string BrNumero, int? BrId)>()
             : (await db.OperationsProduction.AsNoTracking()
                 .Where(o => prodOpIds.Contains(o.Id) && o.CommandeProductionId != null)
                 .Select(o => new
@@ -282,15 +286,15 @@ public partial class StockMainViewModel : BaseViewModel
                     CommandeId = o.CommandeProductionId!.Value,
                     Numero = o.CommandeProduction!.Numero,
                     FournisseurNom = o.CommandeProduction!.Fournisseur!.Nom,
-                    BrNumero = db.BonsReception
+                    Br = db.BonsReception
                         .Where(b => b.CommandeProductionId == o.CommandeProductionId)
-                        .Select(b => b.Numero)
+                        .Select(b => new { b.Id, b.Numero })
                         .FirstOrDefault()
                 })
                 .ToListAsync(cancellationToken))
                 .ToDictionary(
                     x => x.OpId,
-                    x => (CommandeId: x.CommandeId, CmdNumero: x.Numero, FournisseurNom: x.FournisseurNom, BrNumero: x.BrNumero ?? string.Empty));
+                    x => (CommandeId: x.CommandeId, CmdNumero: x.Numero, FournisseurNom: x.FournisseurNom, BrNumero: x.Br?.Numero ?? string.Empty, BrId: x.Br?.Id));
 
         var avoirParties = avoirIds.Count == 0
             ? []
@@ -392,7 +396,39 @@ public partial class StockMainViewModel : BaseViewModel
             m.LinkedCommandeProductionId = null;
             m.LinkedOperationProductionId = null;
             m.LinkedCommandeProductionLabel = string.Empty;
+            m.LinkedBonReceptionId = null;
             m.LinkedBonReceptionLabel = string.Empty;
+            m.PrimaryDocumentId = null;
+            m.PrimaryDocumentType = string.Empty;
+            m.PrimaryDocumentLabel = string.Empty;
+
+            if (m.OrigineId is int originDocId)
+            {
+                switch (m.OrigineType)
+                {
+                    case StockMovementService.OrigineTypeBonLivraison:
+                        m.PrimaryDocumentId = originDocId;
+                        m.PrimaryDocumentType = m.OrigineType;
+                        m.PrimaryDocumentLabel = m.DocumentTitle;
+                        break;
+                    case StockMovementService.OrigineTypeBonReception:
+                        m.PrimaryDocumentId = originDocId;
+                        m.PrimaryDocumentType = m.OrigineType;
+                        m.PrimaryDocumentLabel = m.DocumentTitle;
+                        break;
+                    case StockMovementService.OrigineTypeAvoir:
+                        m.PrimaryDocumentId = originDocId;
+                        m.PrimaryDocumentType = m.OrigineType;
+                        m.PrimaryDocumentLabel = m.DocumentTitle;
+                        break;
+                    case StockMovementService.OrigineTypeAvoirFournisseur:
+                        m.PrimaryDocumentId = originDocId;
+                        m.PrimaryDocumentType = m.OrigineType;
+                        m.PrimaryDocumentLabel = m.DocumentTitle;
+                        break;
+                }
+            }
+
             if (m.OrigineType == StockMovementService.OrigineTypeBonReception
                 && m.OrigineId is int receptionBrId
                 && brCommandeMap.TryGetValue(receptionBrId, out var linkedCmd))
@@ -409,8 +445,40 @@ public partial class StockMainViewModel : BaseViewModel
                 m.LinkedCommandeProductionLabel = linkedProdCmd.CmdNumero;
                 m.PartyName = linkedProdCmd.FournisseurNom;
                 m.PartyIsSupplier = true;
+                m.LinkedBonReceptionId = linkedProdCmd.BrId;
                 m.LinkedBonReceptionLabel = linkedProdCmd.BrNumero;
             }
+        }
+    }
+
+    [RelayCommand]
+    private void OpenLinkedDocument(StockMovementDocumentLink? link)
+    {
+        if (link is not { DocumentId: > 0 } navigation)
+            return;
+
+        switch (navigation.DocumentType)
+        {
+            case StockMovementService.OrigineTypeBonLivraison:
+                var blVm = _sp.GetRequiredService<BLEditViewModel>();
+                blVm.Load(navigation.DocumentId);
+                _workspace.Open(blVm);
+                break;
+            case StockMovementService.OrigineTypeBonReception:
+                var brVm = _sp.GetRequiredService<BREditViewModel>();
+                brVm.Load(navigation.DocumentId);
+                _workspace.Open(brVm);
+                break;
+            case StockMovementService.OrigineTypeAvoir:
+                var avoirVm = _sp.GetRequiredService<AvoirEditViewModel>();
+                avoirVm.Load(navigation.DocumentId);
+                _workspace.Open(avoirVm);
+                break;
+            case StockMovementService.OrigineTypeAvoirFournisseur:
+                var avoirFournisseurVm = _sp.GetRequiredService<AvoirFournisseurEditViewModel>();
+                avoirFournisseurVm.Load(navigation.DocumentId);
+                _workspace.Open(avoirFournisseurVm);
+                break;
         }
     }
 
