@@ -97,6 +97,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     [ObservableProperty] private string _lblQuantiteNaissain = string.Empty;
     [ObservableProperty] private string _lblPrixAchatNaissain = string.Empty;
     [ObservableProperty] private string _lblTauxMortalite = string.Empty;
+    [ObservableProperty] private string _lblTauxAgrandissement = string.Empty;
     [ObservableProperty] private string _lblDateCommande = string.Empty;
     [ObservableProperty] private string _lblDateExpiration = string.Empty;
     [ObservableProperty] private string _lblEtat = string.Empty;
@@ -157,7 +158,16 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     public string TauxMortaliteLabel =>
         ProductionOperation.FormatTauxMortaliteLabel(TauxMortalite);
 
+    public int? DureeAgrandissementJours =>
+        EstTerminee
+            ? ProductionOperation.ComputeDureeAgrandissementJours(DateCommande.DateTime, DateExpiration?.DateTime)
+            : null;
+
+    public string TauxAgrandissementLabel =>
+        ProductionOperation.FormatTauxAgrandissementLabel(DureeAgrandissementJours);
+
     public bool ShowTauxMortalite => EstTerminee;
+    public bool ShowTauxAgrandissement => DureeAgrandissementJours.HasValue;
 
     public bool ShowRemainingHuitresChip => QuantiteNaissain > 0;
 
@@ -176,7 +186,12 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
 
         OnPropertyChanged(nameof(ShowTauxMortalite));
         RefreshTauxMortalite();
+        RefreshTauxAgrandissement();
     }
+
+    partial void OnDateCommandeChanged(DateTimeOffset value) => RefreshTauxAgrandissement();
+
+    partial void OnDateExpirationChanged(DateTimeOffset? value) => RefreshTauxAgrandissement();
 
     partial void OnQuantiteNaissainChanged(int value)
     {
@@ -195,6 +210,13 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         OnPropertyChanged(nameof(SumGrandHuitres));
         OnPropertyChanged(nameof(TauxMortalite));
         OnPropertyChanged(nameof(TauxMortaliteLabel));
+    }
+
+    private void RefreshTauxAgrandissement()
+    {
+        OnPropertyChanged(nameof(DureeAgrandissementJours));
+        OnPropertyChanged(nameof(TauxAgrandissementLabel));
+        OnPropertyChanged(nameof(ShowTauxAgrandissement));
     }
 
     private void RefreshOperationTotals()
@@ -256,6 +278,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         LblQuantiteNaissain = _locale.T("CmdProd_LblQuantiteNaissain");
         LblPrixAchatNaissain = _locale.T("CmdProd_LblPrixAchatNaissain");
         LblTauxMortalite = _locale.T("CmdProd_LblTauxMortalite");
+        LblTauxAgrandissement = _locale.T("CmdProd_LblTauxAgrandissement");
         LblDateCommande = _locale.T("CmdProd_LblDate");
         LblDateExpiration = _locale.T("CmdProd_LblDateExpiration");
         LblEtat = _locale.T("CmdProd_LblEtat");
@@ -413,6 +436,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             await RefreshLinkedBonReceptionAsync(db, commandeId, cancellationToken);
             OnPropertyChanged(nameof(CanAddOperation));
             OnPropertyChanged(nameof(ShowTauxMortalite));
+            RefreshTauxAgrandissement();
             RefreshOperationTotals();
         }
         finally

@@ -35,6 +35,20 @@ public partial class ProductionOperation : ObservableObject
     public static string FormatTauxMortaliteLabel(decimal percent) =>
         $"{percent.ToString("N0", CultureInfo.CurrentCulture)}%";
 
+    public static int? ComputeDureeAgrandissementJours(DateTime dateCommande, DateTime? dateExpiration)
+    {
+        if (dateExpiration is not { } expiration)
+            return null;
+
+        var days = (expiration.Date - dateCommande.Date).Days;
+        return Math.Max(0, days);
+    }
+
+    public static string FormatTauxAgrandissementLabel(int? jours) =>
+        jours is int d
+            ? string.Format(CultureInfo.CurrentCulture, "{0:N0} j", d)
+            : "—";
+
     public static int ComputeRemainingHuitresAtWater(int quantiteNaissain, int sumGrandHuitres) =>
         Math.Max(0, quantiteNaissain - sumGrandHuitres);
 

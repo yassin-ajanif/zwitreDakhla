@@ -12,6 +12,7 @@ public sealed class CommandeProductionListItem
     public string TypeHuitreNom { get; init; } = string.Empty;
     public int QuantiteNaissain { get; init; }
     public decimal TauxMortalite { get; init; }
+    public int? DureeAgrandissementJours { get; init; }
     public bool EstTerminee { get; init; }
     public DateTime? DateExpiration { get; init; }
     public int OperationCount { get; init; }
@@ -29,15 +30,19 @@ public sealed class CommandeProductionListItem
     public string DateExpirationLabel => DateExpiration?.ToString("dd/MM/yyyy", CultureInfo.CurrentCulture) ?? "—";
     public string QuantiteNaissainLabel => QuantiteNaissain.ToString("N0", CultureInfo.CurrentCulture);
     public string TauxMortaliteLabel => ProductionOperation.FormatTauxMortaliteLabel(TauxMortalite);
+    public string TauxAgrandissementLabel =>
+        ProductionOperation.FormatTauxAgrandissementLabel(DureeAgrandissementJours);
     public string OperationCountLabel => OperationCount.ToString("N0", CultureInfo.CurrentCulture);
     public string TotalHuitresLabel => TotalHuitres.ToString("N0", CultureInfo.CurrentCulture);
     public string LastOperationLabel => LastOperationAt?.ToString("dd/MM/yyyy", CultureInfo.CurrentCulture) ?? "—";
 
     public bool ShowMortalite => EstTerminee;
+    public bool ShowAgrandissement => EstTerminee && DureeAgrandissementJours.HasValue;
 
     public string EtatLabel { get; set; } = string.Empty;
     public string NaissainChipPrefix { get; set; } = string.Empty;
     public string MortaliteChipLabel { get; set; } = string.Empty;
+    public string AgrandissementChipLabel { get; set; } = string.Empty;
     public string OperationsChipLabel { get; set; } = string.Empty;
     public string WaterOrDeadHuitresChipLabel { get; set; } = string.Empty;
     public string ExpirationChipLabel { get; set; } = string.Empty;
@@ -63,6 +68,27 @@ public sealed class CommandeProductionListItem
         >= 50m => "#DC2626",
         >= 30m => "#D97706",
         _ => "#16A34A"
+    };
+
+    public string AgrandissementBadgeBackground => DureeAgrandissementJours switch
+    {
+        <= 30 => "#F0FDF4",
+        <= 60 => "#FFF7ED",
+        _ => "#FEF2F2"
+    };
+
+    public string AgrandissementBadgeBorder => DureeAgrandissementJours switch
+    {
+        <= 30 => "#86EFAC",
+        <= 60 => "#FDBA74",
+        _ => "#FECACA"
+    };
+
+    public string AgrandissementBadgeForeground => DureeAgrandissementJours switch
+    {
+        <= 30 => "#16A34A",
+        <= 60 => "#D97706",
+        _ => "#DC2626"
     };
 
     public string SummaryLine2 { get; set; } = string.Empty;

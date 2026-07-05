@@ -68,9 +68,10 @@ public partial class ProductionListViewModel : BaseViewModel
     [ObservableProperty] private string _wmSort = string.Empty;
     [ObservableProperty] private string _lblSortDefault = string.Empty;
     [ObservableProperty] private string _lblSortBestMortality = string.Empty;
+    [ObservableProperty] private string _lblSortBestAgrandissement = string.Empty;
     /// <summary>0 = all, 1 = en cours, 2 = expirée (terminée).</summary>
     [ObservableProperty] private int _expirationFilterIndex;
-    /// <summary>0 = date, 1 = lowest mortality first (terminée).</summary>
+    /// <summary>0 = date, 1 = lowest mortality first, 2 = shortest growth duration first (terminée).</summary>
     [ObservableProperty] private int _sortFilterIndex;
     [ObservableProperty] private ProductionListFilterOption? _selectedFilterFournisseur;
     [ObservableProperty] private ProductionListFilterOption? _selectedFilterCategorie;
@@ -123,6 +124,7 @@ public partial class ProductionListViewModel : BaseViewModel
         WmSort = _locale.T("CmdProd_SortLabel");
         LblSortDefault = _locale.T("CmdProd_SortDefault");
         LblSortBestMortality = _locale.T("CmdProd_SortBestMortality");
+        LblSortBestAgrandissement = _locale.T("CmdProd_SortBestAgrandissement");
         UpdateFilterAllLabels();
         ApplyListLabels();
     }
@@ -203,6 +205,7 @@ public partial class ProductionListViewModel : BaseViewModel
             : _locale.T("CmdProd_EnCours");
         item.NaissainChipPrefix = _locale.T("CmdProd_ChipNaissainPrefix");
         item.MortaliteChipLabel = _locale.Tf("CmdProd_ChipMortaliteFmt", item.TauxMortaliteLabel);
+        item.AgrandissementChipLabel = _locale.Tf("CmdProd_ChipAgrandissementFmt", item.TauxAgrandissementLabel);
         item.OperationsChipLabel = _locale.Tf("CmdProd_ChipOperationsFmt", item.OperationCountLabel);
         item.WaterOrDeadHuitresChipLabel = item.EstTerminee
             ? _locale.Tf("CmdProd_ChipHuitresMortesFmt", item.RestantOuMortesHuitresLabel)
@@ -313,6 +316,9 @@ public partial class ProductionListViewModel : BaseViewModel
                     QuantiteNaissain = row.QuantiteNaissain,
                     EstTerminee = row.EstTerminee,
                     DateExpiration = row.DateExpiration,
+                    DureeAgrandissementJours = row.EstTerminee
+                        ? ProductionOperation.ComputeDureeAgrandissementJours(row.DateCommande, row.DateExpiration)
+                        : null,
                     TauxMortalite = row.EstTerminee
                         ? ProductionOperation.ComputeTauxMortalitePercent(
                             row.QuantiteNaissain,
@@ -336,6 +342,13 @@ public partial class ProductionListViewModel : BaseViewModel
             {
                 items = items
                     .OrderBy(i => i.EstTerminee ? i.TauxMortalite : decimal.MaxValue)
+                    .ThenByDescending(i => i.DateCommande)
+                    .ToList();
+            }
+            else if (SortFilterIndex == 2)
+            {
+                items = items
+                    .OrderBy(i => i.DureeAgrandissementJours ?? int.MaxValue)
                     .ThenByDescending(i => i.DateCommande)
                     .ToList();
             }

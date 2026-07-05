@@ -80,40 +80,42 @@
               </Border>
             </Grid>
 
-            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
-              <TextBlock Grid.Column="0" Text="{Binding LblFournisseur}" VerticalAlignment="Center" Opacity="0.7" Margin="0,0,10,0"/>
-              <AutoCompleteBox Grid.Column="1"
-                               MinWidth="180"
-                               MinimumPrefixLength="1" MaxDropDownHeight="320"
-                               Watermark="{Binding WmFournisseurSearch}"
-                               ItemsSource="{Binding Fournisseurs}"
-                               ItemFilter="{Binding PartyAutocompleteFilter}"
-                               SelectedItem="{Binding SelectedFournisseur, Mode=TwoWay}"
-                               VerticalAlignment="Center">
-                <AutoCompleteBox.ValueMemberBinding>
-                  <Binding Path="Nom"/>
-                </AutoCompleteBox.ValueMemberBinding>
-                <AutoCompleteBox.ItemTemplate>
-                  <DataTemplate DataType="m:Tiers">
-                    <TextBlock Text="{Binding Nom}"/>
-                  </DataTemplate>
-                </AutoCompleteBox.ItemTemplate>
-              </AutoCompleteBox>
-              <Border Grid.Column="2" Margin="12,0,0,0"
-                      Padding="14,10" CornerRadius="8"
-                      Background="#FFF7ED"
-                      BorderBrush="{DynamicResource CourseraWarningBrush}"
-                      BorderThickness="1"
-                      IsVisible="{Binding ShowTauxMortalite}"
-                      VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                  <TextBlock Text="{Binding LblTauxMortalite}" FontWeight="SemiBold"
-                             Foreground="{DynamicResource CourseraWarningBrush}" VerticalAlignment="Center"/>
-                  <TextBlock Text="{Binding TauxMortaliteLabel}" FontSize="18" FontWeight="Bold"
-                             Foreground="{DynamicResource CourseraWarningBrush}" VerticalAlignment="Center"/>
-                </StackPanel>
-              </Border>
-            </Grid>
+            <StackPanel Spacing="4" Margin="0,0,0,8">
+              <TextBlock Text="{Binding LblFournisseur}" Opacity="0.7" FontSize="12"/>
+              <Grid ColumnDefinitions="*,Auto">
+                <AutoCompleteBox Grid.Column="0"
+                                 MinHeight="36"
+                                 MinimumPrefixLength="1" MaxDropDownHeight="320"
+                                 Watermark="{Binding WmFournisseurSearch}"
+                                 ItemsSource="{Binding Fournisseurs}"
+                                 ItemFilter="{Binding PartyAutocompleteFilter}"
+                                 SelectedItem="{Binding SelectedFournisseur, Mode=TwoWay}"
+                                 VerticalAlignment="Center">
+                  <AutoCompleteBox.ValueMemberBinding>
+                    <Binding Path="Nom"/>
+                  </AutoCompleteBox.ValueMemberBinding>
+                  <AutoCompleteBox.ItemTemplate>
+                    <DataTemplate DataType="m:Tiers">
+                      <TextBlock Text="{Binding Nom}"/>
+                    </DataTemplate>
+                  </AutoCompleteBox.ItemTemplate>
+                </AutoCompleteBox>
+                <Border Grid.Column="1" Margin="12,0,0,0"
+                        Height="36" Padding="10,0" CornerRadius="8"
+                        Background="#FFF7ED"
+                        BorderBrush="{DynamicResource CourseraWarningBrush}"
+                        BorderThickness="1"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding ShowTauxMortalite}">
+                  <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding LblTauxMortalite}" FontSize="12" FontWeight="SemiBold"
+                               Foreground="{DynamicResource CourseraWarningBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding TauxMortaliteLabel}" FontSize="12" FontWeight="Bold"
+                               Foreground="{DynamicResource CourseraWarningBrush}" VerticalAlignment="Center"/>
+                  </StackPanel>
+                </Border>
+              </Grid>
+            </StackPanel>
 
             <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
               <StackPanel Grid.Column="0" Spacing="4">
@@ -126,27 +128,40 @@
               </StackPanel>
             </Grid>
 
-            <Grid ColumnDefinitions="Auto,*,24,Auto,*" Margin="0,0,0,8">
-              <TextBlock Grid.Column="0" Text="{Binding LblCategorieCommande}" VerticalAlignment="Center" Opacity="0.7" Margin="0,0,10,0"/>
-              <ComboBox Grid.Column="1" MinWidth="140" HorizontalAlignment="Stretch"
-                        ItemsSource="{Binding CategoriesCommande}"
-                        SelectedItem="{Binding SelectedCategorieCommande, Mode=TwoWay}">
-                <ComboBox.ItemTemplate>
-                  <DataTemplate DataType="pm:CategorieCommande">
-                    <TextBlock Text="{Binding Nom}" TextTrimming="CharacterEllipsis"/>
-                  </DataTemplate>
-                </ComboBox.ItemTemplate>
-              </ComboBox>
-              <TextBlock Grid.Column="3" Text="{Binding LblTypeHuitre}" VerticalAlignment="Center" Opacity="0.7" Margin="0,0,10,0"/>
-              <ComboBox Grid.Column="4" MinWidth="140" HorizontalAlignment="Stretch"
-                        ItemsSource="{Binding TypesHuitre}"
-                        SelectedItem="{Binding SelectedTypeHuitre, Mode=TwoWay}">
-                <ComboBox.ItemTemplate>
-                  <DataTemplate DataType="pm:TypeHuitre">
-                    <TextBlock Text="{Binding Nom}" TextTrimming="CharacterEllipsis"/>
-                  </DataTemplate>
-                </ComboBox.ItemTemplate>
-              </ComboBox>
+            <Grid ColumnDefinitions="*,24,*,24,*" Margin="0,0,0,8">
+              <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock Text="{Binding LblCategorieCommande}" Opacity="0.7" FontSize="12"/>
+                <ComboBox MinWidth="120" HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding CategoriesCommande}"
+                          SelectedItem="{Binding SelectedCategorieCommande, Mode=TwoWay}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="pm:CategorieCommande">
+                      <TextBlock Text="{Binding Nom}" TextTrimming="CharacterEllipsis"/>
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+              <StackPanel Grid.Column="2" Spacing="4">
+                <TextBlock Text="{Binding LblTypeHuitre}" Opacity="0.7" FontSize="12"/>
+                <ComboBox MinWidth="120" HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding TypesHuitre}"
+                          SelectedItem="{Binding SelectedTypeHuitre, Mode=TwoWay}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="pm:TypeHuitre">
+                      <TextBlock Text="{Binding Nom}" TextTrimming="CharacterEllipsis"/>
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+              <StackPanel Grid.Column="4" Spacing="4">
+                <TextBlock Text="{Binding LblTauxAgrandissement}" Opacity="0.7" FontSize="12"/>
+                <Border Height="36" Padding="10,0" CornerRadius="8"
+                        Background="#EFF6FF" BorderBrush="#93C5FD" BorderThickness="1"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                  <TextBlock Text="{Binding TauxAgrandissementLabel}" FontSize="12" FontWeight="SemiBold"
+                             Foreground="#1D4ED8" VerticalAlignment="Center"/>
+                </Border>
+              </StackPanel>
             </Grid>
 
             <StackPanel Spacing="4">

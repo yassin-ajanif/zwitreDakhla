@@ -56,6 +56,9 @@
           <ComboBoxItem>
             <TextBlock Text="{Binding #ProductionListRoot.((vm:ProductionListViewModel)DataContext).LblSortBestMortality}"/>
           </ComboBoxItem>
+          <ComboBoxItem>
+            <TextBlock Text="{Binding #ProductionListRoot.((vm:ProductionListViewModel)DataContext).LblSortBestAgrandissement}"/>
+          </ComboBoxItem>
         </ComboBox>
       </StackPanel>
     </StackPanel>
@@ -167,6 +170,14 @@
                           BorderThickness="1">
                     <TextBlock Text="{Binding MortaliteChipLabel}" FontSize="12" FontWeight="Bold"
                                Foreground="{Binding MortaliteBadgeForeground}"/>
+                  </Border>
+                  <Border Margin="0,0,8,8" Padding="10,5" CornerRadius="14"
+                          IsVisible="{Binding ShowAgrandissement}"
+                          Background="{Binding AgrandissementBadgeBackground}"
+                          BorderBrush="{Binding AgrandissementBadgeBorder}"
+                          BorderThickness="1">
+                    <TextBlock Text="{Binding AgrandissementChipLabel}" FontSize="12" FontWeight="Bold"
+                               Foreground="{Binding AgrandissementBadgeForeground}"/>
                   </Border>
                 </WrapPanel>
 
