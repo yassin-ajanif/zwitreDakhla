@@ -140,8 +140,14 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     public string TotalTablesLabel => Operations.Sum(o => o.Tables).ToString("N0", CultureInfo.CurrentCulture);
     public string TotalPochetteGrandLabel => Operations.Sum(o => o.PochetteGrand).ToString("N0", CultureInfo.CurrentCulture);
     public string TotalGrandHuitresLabel => Operations.Sum(o => o.TotalGrand).ToString("N0", CultureInfo.CurrentCulture);
+    public string TotalTablesGrandLabel => ProductionOperation.FormatTablesLabel(
+        ProductionOperation.ComputeTablesFromPochettes(Operations.Sum(o => o.PochetteGrand)));
     public string TotalPochetteMoyenneLabel => Operations.Sum(o => o.PochetteMoyenne).ToString("N0", CultureInfo.CurrentCulture);
+    public string TotalTablesMoyenneLabel => ProductionOperation.FormatTablesLabel(
+        ProductionOperation.ComputeTablesFromPochettes(Operations.Sum(o => o.PochetteMoyenne)));
     public string TotalPochettePetitLabel => Operations.Sum(o => o.PochettePetit).ToString("N0", CultureInfo.CurrentCulture);
+    public string TotalTablesPetitLabel => ProductionOperation.FormatTablesLabel(
+        ProductionOperation.ComputeTablesFromPochettes(Operations.Sum(o => o.PochettePetit)));
 
     public int SumGrandHuitres => ProductionOperation.SumGrandHuitres(Operations);
 
@@ -197,8 +203,11 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
         OnPropertyChanged(nameof(TotalTablesLabel));
         OnPropertyChanged(nameof(TotalPochetteGrandLabel));
         OnPropertyChanged(nameof(TotalGrandHuitresLabel));
+        OnPropertyChanged(nameof(TotalTablesGrandLabel));
         OnPropertyChanged(nameof(TotalPochetteMoyenneLabel));
+        OnPropertyChanged(nameof(TotalTablesMoyenneLabel));
         OnPropertyChanged(nameof(TotalPochettePetitLabel));
+        OnPropertyChanged(nameof(TotalTablesPetitLabel));
         OnPropertyChanged(nameof(TotalCommandeLabel));
         RefreshTauxMortalite();
         RefreshRemainingHuitresChip();

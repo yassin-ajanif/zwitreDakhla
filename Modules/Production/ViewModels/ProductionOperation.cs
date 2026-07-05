@@ -9,8 +9,14 @@ public partial class ProductionOperation : ObservableObject
     public const int MultiplierGrand = 160;
     public const int MultiplierMoyenne = 160;
     public const int MultiplierPetit = 160;
+    public const int PochettesPerTable = 8;
 
     public static int ComputeGrandHuitres(int pochetteGrand) => pochetteGrand * MultiplierGrand;
+
+    public static decimal ComputeTablesFromPochettes(int pochette) => pochette / (decimal)PochettesPerTable;
+
+    public static string FormatTablesLabel(decimal tables) =>
+        tables.ToString("N2", CultureInfo.CurrentCulture);
 
     public static int ComputeTotalHuitres(int pochetteGrand, int pochetteMoyenne, int pochettePetit) =>
         pochetteGrand * MultiplierGrand
@@ -57,6 +63,9 @@ public partial class ProductionOperation : ObservableObject
     public string PochetteGrandLabel => PochetteGrand.ToString("N0", CultureInfo.CurrentCulture);
     public string PochetteMoyenneLabel => PochetteMoyenne.ToString("N0", CultureInfo.CurrentCulture);
     public string PochettePetitLabel => PochettePetit.ToString("N0", CultureInfo.CurrentCulture);
+    public string TablesGrandLabel => FormatTablesLabel(ComputeTablesFromPochettes(PochetteGrand));
+    public string TablesMoyenneLabel => FormatTablesLabel(ComputeTablesFromPochettes(PochetteMoyenne));
+    public string TablesPetitLabel => FormatTablesLabel(ComputeTablesFromPochettes(PochettePetit));
     public string TotalGrandLabel => TotalGrand.ToString("N0", CultureInfo.CurrentCulture);
     public string TotalMoyenneLabel => TotalMoyenne.ToString("N0", CultureInfo.CurrentCulture);
     public string TotalPetitLabel => TotalPetit.ToString("N0", CultureInfo.CurrentCulture);
