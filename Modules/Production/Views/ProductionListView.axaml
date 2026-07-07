@@ -59,6 +59,9 @@
           <ComboBoxItem>
             <TextBlock Text="{Binding #ProductionListRoot.((vm:ProductionListViewModel)DataContext).LblSortBestAgrandissement}"/>
           </ComboBoxItem>
+          <ComboBoxItem>
+            <TextBlock Text="{Binding #ProductionListRoot.((vm:ProductionListViewModel)DataContext).LblSortBestCommande}"/>
+          </ComboBoxItem>
         </ComboBox>
       </StackPanel>
     </StackPanel>
@@ -178,6 +181,14 @@
                           BorderThickness="1">
                     <TextBlock Text="{Binding AgrandissementChipLabel}" FontSize="12" FontWeight="Bold"
                                Foreground="{Binding AgrandissementBadgeForeground}"/>
+                  </Border>
+                  <Border Margin="0,0,8,8" Padding="10,5" CornerRadius="14"
+                          IsVisible="{Binding ShowFacteur}"
+                          Background="{Binding FacteurBadgeBackground}"
+                          BorderBrush="{Binding FacteurBadgeBorder}"
+                          BorderThickness="1">
+                    <TextBlock Text="{Binding FacteurChipLabel}" FontSize="12" FontWeight="Bold"
+                               Foreground="{Binding FacteurBadgeForeground}"/>
                   </Border>
                 </WrapPanel>
 

@@ -82,6 +82,27 @@
 
       <Border BorderBrush="{DynamicResource CourseraBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,4,0,0">
         <StackPanel Spacing="10">
+          <TextBlock Text="{Binding LblProductionSection}" FontWeight="Bold"/>
+          <TextBlock Text="{Binding LblProductionScoringHelp}" TextWrapping="Wrap" Opacity="0.8" FontSize="12"/>
+          <Grid ColumnDefinitions="*,16,*,16,*">
+            <StackPanel Grid.Column="0" Spacing="4">
+              <TextBlock Text="{Binding LblImportanceMortalite}" FontWeight="SemiBold" FontSize="12"/>
+              <NumericUpDown Minimum="0" Maximum="100" Value="{Binding ImportanceTauxMortalite}" FormatString="0"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2" Spacing="4">
+              <TextBlock Text="{Binding LblImportanceAgrandissement}" FontWeight="SemiBold" FontSize="12"/>
+              <NumericUpDown Minimum="0" Maximum="100" Value="{Binding ImportanceTauxAgrandissement}" FormatString="0"/>
+            </StackPanel>
+            <StackPanel Grid.Column="4" Spacing="4">
+              <TextBlock Text="{Binding LblAgrandissementMaxJours}" FontWeight="SemiBold" FontSize="12"/>
+              <NumericUpDown Minimum="1" Maximum="3650" Value="{Binding AgrandissementMaxJours}" FormatString="0"/>
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <Border BorderBrush="{DynamicResource CourseraBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,4,0,0">
+        <StackPanel Spacing="10">
           <Button Command="{Binding ToggleNumberingCommand}" HorizontalAlignment="Stretch"
                   HorizontalContentAlignment="Stretch" Background="Transparent" BorderThickness="0" Padding="0">
             <Grid ColumnDefinitions="Auto,*,Auto">

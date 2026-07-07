@@ -56,6 +56,9 @@ public partial class SettingsViewModel : BaseViewModel
     [ObservableProperty] private bool _enableVirtualKeyboard;
     [ObservableProperty] private int _devisValiditeJours = 30;
     [ObservableProperty] private string _devise = "MAD";
+    [ObservableProperty] private int _importanceTauxMortalite = 50;
+    [ObservableProperty] private int _importanceTauxAgrandissement = 50;
+    [ObservableProperty] private int _agrandissementMaxJours = 365;
     [ObservableProperty] private UiLanguageOption? _selectedLanguageOption;
 
     [ObservableProperty] private string _lblLoad = string.Empty;
@@ -72,6 +75,11 @@ public partial class SettingsViewModel : BaseViewModel
     [ObservableProperty] private string _lblDevisJours = string.Empty;
     [ObservableProperty] private string _lblEnableVirtualKeyboard = string.Empty;
     [ObservableProperty] private string _lblDevise = string.Empty;
+    [ObservableProperty] private string _lblProductionSection = string.Empty;
+    [ObservableProperty] private string _lblProductionScoringHelp = string.Empty;
+    [ObservableProperty] private string _lblImportanceMortalite = string.Empty;
+    [ObservableProperty] private string _lblImportanceAgrandissement = string.Empty;
+    [ObservableProperty] private string _lblAgrandissementMaxJours = string.Empty;
     [ObservableProperty] private string _lblUiLanguage = string.Empty;
     [ObservableProperty] private string _lblDangerZone = string.Empty;
     [ObservableProperty] private string _btnFormatSystem = string.Empty;
@@ -148,6 +156,11 @@ public partial class SettingsViewModel : BaseViewModel
         LblDevisJours = _locale.T("Settings_DevisJours");
         LblEnableVirtualKeyboard = _locale.T("Settings_EnableVirtualKeyboard");
         LblDevise = _locale.T("Settings_Devise");
+        LblProductionSection = _locale.T("Settings_ProductionSection");
+        LblProductionScoringHelp = _locale.T("Settings_ProductionScoringHelp");
+        LblImportanceMortalite = _locale.T("Settings_ImportanceMortalite");
+        LblImportanceAgrandissement = _locale.T("Settings_ImportanceAgrandissement");
+        LblAgrandissementMaxJours = _locale.T("Settings_AgrandissementMaxJours");
         LblUiLanguage = _locale.T("Settings_UiLanguage");
         LblDangerZone = _locale.T("Settings_DangerZone");
         BtnFormatSystem = _locale.T("Settings_BtnFormatSystem");
@@ -231,6 +244,9 @@ public partial class SettingsViewModel : BaseViewModel
         EnableVirtualKeyboard = row.EnableVirtualKeyboard;
         DevisValiditeJours = row.DevisValiditeJoursDefaut;
         Devise = row.Devise;
+        ImportanceTauxMortalite = row.ImportanceTauxMortalite;
+        ImportanceTauxAgrandissement = row.ImportanceTauxAgrandissement;
+        AgrandissementMaxJours = row.AgrandissementMaxJours > 0 ? row.AgrandissementMaxJours : 365;
         SelectedLanguageOption = LanguageOptions.FirstOrDefault(o =>
                                      string.Equals(o.Code, row.UiLanguage, StringComparison.OrdinalIgnoreCase))
                                  ?? LanguageOptions[0];
@@ -277,6 +293,18 @@ public partial class SettingsViewModel : BaseViewModel
             return;
         }
 
+        if (ImportanceTauxMortalite + ImportanceTauxAgrandissement != 100)
+        {
+            await _dialog.ShowErrorAsync(_locale.T("Settings_Title"), _locale.T("Settings_ErrProductionWeights"), cancellationToken);
+            return;
+        }
+
+        if (AgrandissementMaxJours <= 0)
+        {
+            await _dialog.ShowErrorAsync(_locale.T("Settings_Title"), _locale.T("Settings_ErrAgrandissementMaxJours"), cancellationToken);
+            return;
+        }
+
         var lang = SelectedLanguageOption?.Code ?? "fr";
         var existing = await _settings.GetAsync(cancellationToken);
         var row = new AppSettingsRow
@@ -292,6 +320,9 @@ public partial class SettingsViewModel : BaseViewModel
             EnableVirtualKeyboard = EnableVirtualKeyboard,
             DevisValiditeJoursDefaut = DevisValiditeJours,
             Devise = Devise,
+            ImportanceTauxMortalite = ImportanceTauxMortalite,
+            ImportanceTauxAgrandissement = ImportanceTauxAgrandissement,
+            AgrandissementMaxJours = AgrandissementMaxJours,
             UiLanguage = lang,
             BackupEnabled = BackupEnabled,
             BackupIntervalHours = BackupIntervalHours,

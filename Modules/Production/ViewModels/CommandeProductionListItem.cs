@@ -1,4 +1,5 @@
 using System.Globalization;
+using GestionCommerciale.Modules.Production.Services;
 
 namespace GestionCommerciale.Modules.Production.ViewModels;
 
@@ -13,6 +14,7 @@ public sealed class CommandeProductionListItem
     public int QuantiteNaissain { get; init; }
     public decimal TauxMortalite { get; init; }
     public int? DureeAgrandissementJours { get; init; }
+    public decimal? FacteurQualite { get; set; }
     public bool EstTerminee { get; init; }
     public DateTime? DateExpiration { get; init; }
     public int OperationCount { get; init; }
@@ -32,17 +34,20 @@ public sealed class CommandeProductionListItem
     public string TauxMortaliteLabel => ProductionOperation.FormatTauxMortaliteLabel(TauxMortalite);
     public string TauxAgrandissementLabel =>
         ProductionOperation.FormatTauxAgrandissementLabel(DureeAgrandissementJours);
+    public string FacteurQualiteLabel => ProductionQualityScore.FormatFacteurLabel(FacteurQualite);
     public string OperationCountLabel => OperationCount.ToString("N0", CultureInfo.CurrentCulture);
     public string TotalHuitresLabel => TotalHuitres.ToString("N0", CultureInfo.CurrentCulture);
     public string LastOperationLabel => LastOperationAt?.ToString("dd/MM/yyyy", CultureInfo.CurrentCulture) ?? "—";
 
     public bool ShowMortalite => EstTerminee;
     public bool ShowAgrandissement => EstTerminee && DureeAgrandissementJours.HasValue;
+    public bool ShowFacteur => EstTerminee && FacteurQualite.HasValue;
 
     public string EtatLabel { get; set; } = string.Empty;
     public string NaissainChipPrefix { get; set; } = string.Empty;
     public string MortaliteChipLabel { get; set; } = string.Empty;
     public string AgrandissementChipLabel { get; set; } = string.Empty;
+    public string FacteurChipLabel { get; set; } = string.Empty;
     public string OperationsChipLabel { get; set; } = string.Empty;
     public string WaterOrDeadHuitresChipLabel { get; set; } = string.Empty;
     public string ExpirationChipLabel { get; set; } = string.Empty;
@@ -88,6 +93,27 @@ public sealed class CommandeProductionListItem
     {
         <= 30 => "#16A34A",
         <= 60 => "#D97706",
+        _ => "#DC2626"
+    };
+
+    public string FacteurBadgeBackground => FacteurQualite switch
+    {
+        >= 70m => "#F0FDF4",
+        >= 50m => "#FFF7ED",
+        _ => "#FEF2F2"
+    };
+
+    public string FacteurBadgeBorder => FacteurQualite switch
+    {
+        >= 70m => "#86EFAC",
+        >= 50m => "#FDBA74",
+        _ => "#FECACA"
+    };
+
+    public string FacteurBadgeForeground => FacteurQualite switch
+    {
+        >= 70m => "#16A34A",
+        >= 50m => "#D97706",
         _ => "#DC2626"
     };
 

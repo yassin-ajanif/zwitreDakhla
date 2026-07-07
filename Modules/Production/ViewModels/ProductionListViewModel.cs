@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionCommerciale.Modules.Auth.Services;
 using GestionCommerciale.Modules.Production.Models;
+using GestionCommerciale.Modules.Production.Services;
 using GestionCommerciale.Modules.Tiers.Models;
 using GestionCommerciale.Shared.Database;
 using GestionCommerciale.Shared.Services;
@@ -19,6 +20,7 @@ public partial class ProductionListViewModel : BaseViewModel
     private readonly IDialogService _dialog;
     private readonly ILocaleService _locale;
     private readonly ICurrentUserSession _session;
+    private readonly IAppSettingsService _settings;
     private readonly WorkspaceNavigator _workspace;
     private readonly IServiceProvider _sp;
 
@@ -31,6 +33,7 @@ public partial class ProductionListViewModel : BaseViewModel
         IDialogService dialog,
         ILocaleService locale,
         ICurrentUserSession session,
+        IAppSettingsService settings,
         WorkspaceNavigator workspaceNavigator,
         IServiceProvider sp)
     {
@@ -38,6 +41,7 @@ public partial class ProductionListViewModel : BaseViewModel
         _dialog = dialog;
         _locale = locale;
         _session = session;
+        _settings = settings;
         _workspace = workspaceNavigator;
         _sp = sp;
         _dateFrom = DateTime.Today;
@@ -69,9 +73,10 @@ public partial class ProductionListViewModel : BaseViewModel
     [ObservableProperty] private string _lblSortDefault = string.Empty;
     [ObservableProperty] private string _lblSortBestMortality = string.Empty;
     [ObservableProperty] private string _lblSortBestAgrandissement = string.Empty;
+    [ObservableProperty] private string _lblSortBestCommande = string.Empty;
     /// <summary>0 = all, 1 = en cours, 2 = expirée (terminée).</summary>
     [ObservableProperty] private int _expirationFilterIndex;
-    /// <summary>0 = date, 1 = lowest mortality first, 2 = shortest growth duration first (terminée).</summary>
+    /// <summary>0 = date, 1 = lowest mortality, 2 = shortest growth, 3 = best quality factor.</summary>
     [ObservableProperty] private int _sortFilterIndex;
     [ObservableProperty] private ProductionListFilterOption? _selectedFilterFournisseur;
     [ObservableProperty] private ProductionListFilterOption? _selectedFilterCategorie;
@@ -125,6 +130,7 @@ public partial class ProductionListViewModel : BaseViewModel
         LblSortDefault = _locale.T("CmdProd_SortDefault");
         LblSortBestMortality = _locale.T("CmdProd_SortBestMortality");
         LblSortBestAgrandissement = _locale.T("CmdProd_SortBestAgrandissement");
+        LblSortBestCommande = _locale.T("CmdProd_SortBestCommande");
         UpdateFilterAllLabels();
         ApplyListLabels();
     }
@@ -297,6 +303,8 @@ public partial class ProductionListViewModel : BaseViewModel
                 _ => q
             };
 
+            var settings = await _settings.GetAsync(cancellationToken);
+
             var rows = await q
                 .OrderByDescending(c => c.DateCommande)
                 .ThenByDescending(c => c.Id)
@@ -335,6 +343,14 @@ public partial class ProductionListViewModel : BaseViewModel
                         : null
                 };
                 ApplyItemLabels(item);
+                item.FacteurQualite = ProductionQualityScore.ComputeFacteurQualite(
+                    item.TauxMortalite,
+                    item.DureeAgrandissementJours,
+                    settings.ImportanceTauxMortalite,
+                    settings.ImportanceTauxAgrandissement,
+                    settings.AgrandissementMaxJours,
+                    item.EstTerminee);
+                item.FacteurChipLabel = _locale.Tf("CmdProd_ChipFacteurFmt", item.FacteurQualiteLabel);
                 items.Add(item);
             }
 
@@ -349,6 +365,13 @@ public partial class ProductionListViewModel : BaseViewModel
             {
                 items = items
                     .OrderBy(i => i.DureeAgrandissementJours ?? int.MaxValue)
+                    .ThenByDescending(i => i.DateCommande)
+                    .ToList();
+            }
+            else if (SortFilterIndex == 3)
+            {
+                items = items
+                    .OrderByDescending(i => i.FacteurQualite ?? -1m)
                     .ThenByDescending(i => i.DateCommande)
                     .ToList();
             }

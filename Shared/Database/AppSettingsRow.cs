@@ -47,4 +47,13 @@ public class AppSettingsRow
 
     /// <summary>Per-prefix, per-year last sequence used outside the app (JSON).</summary>
     public string DocumentNumberingFloorsJson { get; set; } = "{}";
+
+    /// <summary>Weight (0–100) for mortality in production command quality score.</summary>
+    public int ImportanceTauxMortalite { get; set; } = 50;
+
+    /// <summary>Weight (0–100) for growth duration in production command quality score.</summary>
+    public int ImportanceTauxAgrandissement { get; set; } = 50;
+
+    /// <summary>Reference max days for normalizing agrandissement score (settings).</summary>
+    public int AgrandissementMaxJours { get; set; } = 365;
 }
