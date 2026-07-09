@@ -7,6 +7,7 @@ using GestionCommerciale.Modules.Production.Models;
 using GestionCommerciale.Modules.Production.Services;
 using GestionCommerciale.Modules.Tiers.Models;
 using GestionCommerciale.Shared.Database;
+using GestionCommerciale.Shared.Helpers;
 using GestionCommerciale.Shared.Services;
 using GestionCommerciale.Shared.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -49,8 +50,11 @@ public partial class ProductionListViewModel : BaseViewModel
         _locale.CultureApplied += (_, _) => RefreshUi();
         RefreshUi();
         Title = _locale.T("CmdProd_ListTitle");
-        _ = LoadAsync(CancellationToken.None);
+        Pagination = new PaginationHelper(() => _ = LoadPageAsync(CancellationToken.None, reloadFilters: false));
+        _ = LoadPageAsync(CancellationToken.None, resetPage: true, reloadFilters: true);
     }
+
+    public PaginationHelper Pagination { get; }
 
     public ObservableCollection<CommandeProductionListItem> Commandes { get; } = [];
     public ObservableCollection<ProductionListFilterOption> FilterFournisseurs { get; } = [];
@@ -85,31 +89,31 @@ public partial class ProductionListViewModel : BaseViewModel
     partial void OnSelectedFilterFournisseurChanged(ProductionListFilterOption? value)
     {
         if (_suppressFilterReload) return;
-        _ = LoadAsync(CancellationToken.None, reloadFilters: false);
+        _ = LoadPageAsync(CancellationToken.None, resetPage: true, reloadFilters: false);
     }
 
     partial void OnSelectedFilterCategorieChanged(ProductionListFilterOption? value)
     {
         if (_suppressFilterReload) return;
-        _ = LoadAsync(CancellationToken.None, reloadFilters: false);
+        _ = LoadPageAsync(CancellationToken.None, resetPage: true, reloadFilters: false);
     }
 
     partial void OnSelectedFilterTypeChanged(ProductionListFilterOption? value)
     {
         if (_suppressFilterReload) return;
-        _ = LoadAsync(CancellationToken.None, reloadFilters: false);
+        _ = LoadPageAsync(CancellationToken.None, resetPage: true, reloadFilters: false);
     }
 
     partial void OnExpirationFilterIndexChanged(int value)
     {
         if (_suppressFilterReload) return;
-        _ = LoadAsync(CancellationToken.None, reloadFilters: false);
+        _ = LoadPageAsync(CancellationToken.None, resetPage: true, reloadFilters: false);
     }
 
     partial void OnSortFilterIndexChanged(int value)
     {
         if (_suppressFilterReload) return;
-        _ = LoadAsync(CancellationToken.None, reloadFilters: false);
+        _ = LoadPageAsync(CancellationToken.None, resetPage: true, reloadFilters: false);
     }
 
     private void RefreshUi()
@@ -151,38 +155,38 @@ public partial class ProductionListViewModel : BaseViewModel
         var categorieId = SelectedFilterCategorie?.Id;
         var typeId = SelectedFilterType?.Id;
 
-        FilterFournisseurs.Clear();
-        FilterFournisseurs.Add(ProductionListFilterOption.All(_locale.T("CmdProd_FilterSupplierAll")));
-        var fournisseurs = await db.Tiers.AsNoTracking()
-            .Where(t => t.Actif && (t.Type == TypeTiers.Fournisseur || t.Type == TypeTiers.LesDeux))
-            .OrderBy(t => t.Nom)
-            .ToListAsync(cancellationToken);
-        foreach (var row in fournisseurs)
-            FilterFournisseurs.Add(ProductionListFilterOption.From(row.Id, row.Nom));
-
-        FilterCategories.Clear();
-        FilterCategories.Add(ProductionListFilterOption.All(_locale.T("CmdProd_FilterCategorieAll")));
-        var categories = await db.CategoriesCommande.AsNoTracking()
-            .Where(c => c.Actif)
-            .OrderBy(c => c.Ordre)
-            .ThenBy(c => c.Nom)
-            .ToListAsync(cancellationToken);
-        foreach (var row in categories)
-            FilterCategories.Add(ProductionListFilterOption.From(row.Id, row.Nom));
-
-        FilterTypes.Clear();
-        FilterTypes.Add(ProductionListFilterOption.All(_locale.T("CmdProd_FilterTypeAll")));
-        var types = await db.TypesHuitre.AsNoTracking()
-            .Where(t => t.Actif)
-            .OrderBy(t => t.Ordre)
-            .ThenBy(t => t.Nom)
-            .ToListAsync(cancellationToken);
-        foreach (var row in types)
-            FilterTypes.Add(ProductionListFilterOption.From(row.Id, row.Nom));
-
         _suppressFilterReload = true;
         try
         {
+            FilterFournisseurs.Clear();
+            FilterFournisseurs.Add(ProductionListFilterOption.All(_locale.T("CmdProd_FilterSupplierAll")));
+            var fournisseurs = await db.Tiers.AsNoTracking()
+                .Where(t => t.Actif && (t.Type == TypeTiers.Fournisseur || t.Type == TypeTiers.LesDeux))
+                .OrderBy(t => t.Nom)
+                .ToListAsync(cancellationToken);
+            foreach (var row in fournisseurs)
+                FilterFournisseurs.Add(ProductionListFilterOption.From(row.Id, row.Nom));
+
+            FilterCategories.Clear();
+            FilterCategories.Add(ProductionListFilterOption.All(_locale.T("CmdProd_FilterCategorieAll")));
+            var categories = await db.CategoriesCommande.AsNoTracking()
+                .Where(c => c.Actif)
+                .OrderBy(c => c.Ordre)
+                .ThenBy(c => c.Nom)
+                .ToListAsync(cancellationToken);
+            foreach (var row in categories)
+                FilterCategories.Add(ProductionListFilterOption.From(row.Id, row.Nom));
+
+            FilterTypes.Clear();
+            FilterTypes.Add(ProductionListFilterOption.All(_locale.T("CmdProd_FilterTypeAll")));
+            var types = await db.TypesHuitre.AsNoTracking()
+                .Where(t => t.Actif)
+                .OrderBy(t => t.Ordre)
+                .ThenBy(t => t.Nom)
+                .ToListAsync(cancellationToken);
+            foreach (var row in types)
+                FilterTypes.Add(ProductionListFilterOption.From(row.Id, row.Nom));
+
             SelectedFilterFournisseur = FindFilterOption(FilterFournisseurs, fournisseurId);
             SelectedFilterCategorie = FindFilterOption(FilterCategories, categorieId);
             SelectedFilterType = FindFilterOption(FilterTypes, typeId);
@@ -253,138 +257,202 @@ public partial class ProductionListViewModel : BaseViewModel
         }
     }
 
-    private async Task LoadAsync(CancellationToken cancellationToken, bool reloadFilters = true)
+    private async Task LoadPageAsync(CancellationToken cancellationToken, bool resetPage = false, bool reloadFilters = false)
     {
         if (!_session.CanAccessProduction)
         {
             Commandes.Clear();
+            Pagination.TotalCount = 0;
             return;
         }
 
         IsBusy = true;
         try
         {
+            if (resetPage)
+                Pagination.CurrentPage = 1;
+
             await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
             if (reloadFilters)
                 await LoadFiltersAsync(db, cancellationToken);
 
-            var q = db.CommandesProduction.AsNoTracking()
-                .Include(c => c.Fournisseur)
-                .Include(c => c.CategorieCommande)
-                .Include(c => c.TypeHuitre)
-                .Include(c => c.Operations)
-                .AsQueryable();
+            var q = BuildFilteredQuery(db);
+            Pagination.TotalCount = await q.CountAsync(cancellationToken);
 
-            if (_dateFrom.HasValue)
-            {
-                var from = _dateFrom.Value.Date;
-                q = q.Where(c => c.DateCommande >= from);
-            }
-
-            if (_dateTo.HasValue)
-            {
-                var toExclusive = _dateTo.Value.Date.AddDays(1);
-                q = q.Where(c => c.DateCommande < toExclusive);
-            }
-
-            if (SelectedFilterFournisseur?.Id is int fournisseurId)
-                q = q.Where(c => c.FournisseurId == fournisseurId);
-
-            if (SelectedFilterCategorie?.Id is int categorieId)
-                q = q.Where(c => c.CategorieCommandeId == categorieId);
-
-            if (SelectedFilterType?.Id is int typeId)
-                q = q.Where(c => c.TypeHuitreId == typeId);
-
-            q = ExpirationFilterIndex switch
-            {
-                1 => q.Where(c => !c.EstTerminee),
-                2 => q.Where(c => c.EstTerminee),
-                _ => q
-            };
-
+            var projected = ProjectQuery(q);
             var settings = await _settings.GetAsync(cancellationToken);
+            var selId = Selected?.Id;
 
-            var rows = await q
-                .OrderByDescending(c => c.DateCommande)
-                .ThenByDescending(c => c.Id)
-                .ToListAsync(cancellationToken);
-
-            var items = new List<CommandeProductionListItem>();
-            foreach (var row in rows)
+            List<ProductionListQueryRow> pageRows;
+            if (SortFilterIndex == 0)
             {
-                var item = new CommandeProductionListItem
+                pageRows = await projected
+                    .OrderByDescending(c => c.DateCommande)
+                    .ThenByDescending(c => c.Id)
+                    .Skip(Pagination.Skip)
+                    .Take(Pagination.PageSize)
+                    .ToListAsync(cancellationToken);
+            }
+            else
+            {
+                var allRows = await projected.ToListAsync(cancellationToken);
+                var sorted = SortFilterIndex switch
                 {
-                    Id = row.Id,
-                    Numero = row.Numero,
-                    FournisseurNom = row.Fournisseur?.Nom ?? "—",
-                    DateCommande = row.DateCommande,
-                    CategorieCommandeNom = row.CategorieCommande?.Nom ?? "—",
-                    TypeHuitreNom = row.TypeHuitre?.Nom ?? "—",
-                    QuantiteNaissain = row.QuantiteNaissain,
-                    EstTerminee = row.EstTerminee,
-                    DateExpiration = row.DateExpiration,
-                    DureeAgrandissementJours = row.EstTerminee
-                        ? ProductionOperation.ComputeDureeAgrandissementJours(row.DateCommande, row.DateExpiration)
-                        : null,
-                    TauxMortalite = row.EstTerminee
-                        ? ProductionOperation.ComputeTauxMortalitePercent(
-                            row.QuantiteNaissain,
-                            ProductionOperation.SumGrandHuitres(row.Operations))
-                        : 0,
-                    SumGrandHuitres = ProductionOperation.SumGrandHuitres(row.Operations),
-                    OperationCount = row.Operations.Count,
-                    TotalHuitres = row.Operations.Sum(o =>
-                        o.PochetteGrand * ProductionOperation.MultiplierGrand
-                        + o.PochetteMoyenne * ProductionOperation.MultiplierMoyenne
-                        + o.PochettePetit * ProductionOperation.MultiplierPetit),
-                    LastOperationAt = row.Operations.Count > 0
-                        ? row.Operations.Max(o => o.OperationAt)
-                        : null
+                    1 => allRows
+                        .OrderBy(i => i.EstTerminee ? ComputeTauxMortalite(i) : decimal.MaxValue)
+                        .ThenByDescending(i => i.DateCommande)
+                        .ToList(),
+                    2 => allRows
+                        .OrderBy(i => i.DureeAgrandissementJours ?? int.MaxValue)
+                        .ThenByDescending(i => i.DateCommande)
+                        .ToList(),
+                    3 => allRows
+                        .OrderByDescending(i => ComputeFacteurQualite(i, settings) ?? -1m)
+                        .ThenByDescending(i => i.DateCommande)
+                        .ToList(),
+                    _ => allRows
+                        .OrderByDescending(i => i.DateCommande)
+                        .ThenByDescending(i => i.Id)
+                        .ToList()
                 };
-                ApplyItemLabels(item);
-                item.FacteurQualite = ProductionQualityScore.ComputeFacteurQualite(
-                    item.TauxMortalite,
-                    item.DureeAgrandissementJours,
-                    settings.ImportanceTauxMortalite,
-                    settings.ImportanceTauxAgrandissement,
-                    settings.AgrandissementMaxJours,
-                    item.EstTerminee);
-                item.FacteurChipLabel = _locale.Tf("CmdProd_ChipFacteurFmt", item.FacteurQualiteLabel);
-                items.Add(item);
-            }
 
-            if (SortFilterIndex == 1)
-            {
-                items = items
-                    .OrderBy(i => i.EstTerminee ? i.TauxMortalite : decimal.MaxValue)
-                    .ThenByDescending(i => i.DateCommande)
-                    .ToList();
-            }
-            else if (SortFilterIndex == 2)
-            {
-                items = items
-                    .OrderBy(i => i.DureeAgrandissementJours ?? int.MaxValue)
-                    .ThenByDescending(i => i.DateCommande)
-                    .ToList();
-            }
-            else if (SortFilterIndex == 3)
-            {
-                items = items
-                    .OrderByDescending(i => i.FacteurQualite ?? -1m)
-                    .ThenByDescending(i => i.DateCommande)
+                pageRows = sorted
+                    .Skip(Pagination.Skip)
+                    .Take(Pagination.PageSize)
                     .ToList();
             }
 
             Commandes.Clear();
-            foreach (var item in items)
+            foreach (var row in pageRows)
+            {
+                var item = MapQueryRow(row, settings);
+                ApplyItemLabels(item);
                 Commandes.Add(item);
+            }
+
+            if (selId is { } id)
+                Selected = Commandes.FirstOrDefault(x => x.Id == id);
         }
         finally
         {
             IsBusy = false;
         }
     }
+
+    private IQueryable<CommandeProduction> BuildFilteredQuery(AppDbContext db)
+    {
+        var q = db.CommandesProduction.AsNoTracking().AsQueryable();
+
+        if (_dateFrom.HasValue)
+        {
+            var from = _dateFrom.Value.Date;
+            q = q.Where(c => c.DateCommande >= from);
+        }
+
+        if (_dateTo.HasValue)
+        {
+            var toExclusive = _dateTo.Value.Date.AddDays(1);
+            q = q.Where(c => c.DateCommande < toExclusive);
+        }
+
+        if (SelectedFilterFournisseur?.Id is int fournisseurId)
+            q = q.Where(c => c.FournisseurId == fournisseurId);
+
+        if (SelectedFilterCategorie?.Id is int categorieId)
+            q = q.Where(c => c.CategorieCommandeId == categorieId);
+
+        if (SelectedFilterType?.Id is int typeId)
+            q = q.Where(c => c.TypeHuitreId == typeId);
+
+        return ExpirationFilterIndex switch
+        {
+            1 => q.Where(c => !c.EstTerminee),
+            2 => q.Where(c => c.EstTerminee),
+            _ => q
+        };
+    }
+
+    private static IQueryable<ProductionListQueryRow> ProjectQuery(IQueryable<CommandeProduction> q) =>
+        q.Select(c => new ProductionListQueryRow
+        {
+            Id = c.Id,
+            Numero = c.Numero,
+            FournisseurNom = c.Fournisseur != null ? c.Fournisseur.Nom : "—",
+            DateCommande = c.DateCommande,
+            CategorieCommandeNom = c.CategorieCommande != null ? c.CategorieCommande.Nom : "—",
+            TypeHuitreNom = c.TypeHuitre != null ? c.TypeHuitre.Nom : "—",
+            QuantiteNaissain = c.QuantiteNaissain,
+            EstTerminee = c.EstTerminee,
+            DateExpiration = c.DateExpiration,
+            OperationCount = c.Operations.Count,
+            SumGrandHuitres = c.Operations.Sum(o => o.PochetteGrand * ProductionOperation.MultiplierGrand),
+            TotalHuitres = c.Operations.Sum(o =>
+                o.PochetteGrand * ProductionOperation.MultiplierGrand
+                + o.PochetteMoyenne * ProductionOperation.MultiplierMoyenne
+                + o.PochettePetit * ProductionOperation.MultiplierPetit),
+            LastOperationAt = c.Operations.Select(o => (DateTime?)o.OperationAt).Max()
+        });
+
+    private CommandeProductionListItem MapQueryRow(ProductionListQueryRow row, AppSettingsRow settings)
+    {
+        var item = new CommandeProductionListItem
+        {
+            Id = row.Id,
+            Numero = row.Numero,
+            FournisseurNom = row.FournisseurNom,
+            DateCommande = row.DateCommande,
+            CategorieCommandeNom = row.CategorieCommandeNom,
+            TypeHuitreNom = row.TypeHuitreNom,
+            QuantiteNaissain = row.QuantiteNaissain,
+            EstTerminee = row.EstTerminee,
+            DateExpiration = row.DateExpiration,
+            DureeAgrandissementJours = row.DureeAgrandissementJours,
+            TauxMortalite = row.EstTerminee ? ComputeTauxMortalite(row) : 0,
+            SumGrandHuitres = row.SumGrandHuitres,
+            OperationCount = row.OperationCount,
+            TotalHuitres = row.TotalHuitres,
+            LastOperationAt = row.LastOperationAt
+        };
+        item.FacteurQualite = ComputeFacteurQualite(row, settings);
+        item.FacteurChipLabel = _locale.Tf("CmdProd_ChipFacteurFmt", item.FacteurQualiteLabel);
+        return item;
+    }
+
+    private static decimal ComputeTauxMortalite(ProductionListQueryRow row) =>
+        ProductionOperation.ComputeTauxMortalitePercent(row.QuantiteNaissain, row.SumGrandHuitres);
+
+    private static decimal? ComputeFacteurQualite(ProductionListQueryRow row, AppSettingsRow settings) =>
+        ProductionQualityScore.ComputeFacteurQualite(
+            row.EstTerminee ? ComputeTauxMortalite(row) : 0,
+            row.DureeAgrandissementJours,
+            settings.ImportanceTauxMortalite,
+            settings.ImportanceTauxAgrandissement,
+            settings.AgrandissementMaxJours,
+            row.EstTerminee);
+
+    private sealed class ProductionListQueryRow
+    {
+        public int Id { get; init; }
+        public string Numero { get; init; } = string.Empty;
+        public string FournisseurNom { get; init; } = string.Empty;
+        public DateTime DateCommande { get; init; }
+        public string CategorieCommandeNom { get; init; } = string.Empty;
+        public string TypeHuitreNom { get; init; } = string.Empty;
+        public int QuantiteNaissain { get; init; }
+        public bool EstTerminee { get; init; }
+        public DateTime? DateExpiration { get; init; }
+        public int OperationCount { get; init; }
+        public int SumGrandHuitres { get; init; }
+        public int TotalHuitres { get; init; }
+        public DateTime? LastOperationAt { get; init; }
+
+        public int? DureeAgrandissementJours => EstTerminee
+            ? ProductionOperation.ComputeDureeAgrandissementJours(DateCommande, DateExpiration)
+            : null;
+    }
+
+    private async Task LoadAsync(CancellationToken cancellationToken, bool reloadFilters = true) =>
+        await LoadPageAsync(cancellationToken, resetPage: true, reloadFilters);
 
     [RelayCommand]
     private void NewCommande()
@@ -437,7 +505,7 @@ public partial class ProductionListViewModel : BaseViewModel
             await db.SaveChangesAsync(cancellationToken);
 
             await productionStock.RemoveLinkedBonReceptionAsync(db, brId, cancellationToken);
-            await LoadAsync(cancellationToken);
+            await LoadPageAsync(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -471,7 +539,7 @@ public partial class ProductionListViewModel : BaseViewModel
         }
 
         UpdateBtnFilterDateText();
-        await LoadAsync(cancellationToken);
+        await LoadPageAsync(cancellationToken, resetPage: true);
     }
 
     [RelayCommand]
@@ -497,6 +565,6 @@ public partial class ProductionListViewModel : BaseViewModel
             _suppressFilterReload = false;
         }
 
-        await LoadAsync(cancellationToken, reloadFilters: false);
+        await LoadPageAsync(cancellationToken, resetPage: true, reloadFilters: false);
     }
 }
