@@ -73,6 +73,7 @@ public static class DependencyInjection
         services.AddSingleton<IProductImportExportService, ProductImportExportService>();
         services.AddSingleton<VirtualKeyboardService>();
         services.AddSingleton<PerformanceTestService>();
+        services.AddSingleton<ProductionPerformanceTestService>();
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<LoginViewModel>();
         services.AddTransient<AppShellViewModel>();

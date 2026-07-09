@@ -30,6 +30,7 @@ public partial class AppShellViewModel : BaseViewModel
     private readonly ICurrentUserSession _session;
     private readonly ILocaleService _locale;
     private readonly PerformanceTestService _testService;
+    private readonly ProductionPerformanceTestService _productionTestService;
     private readonly IAppUpdateService _updateService;
     private readonly IDialogService _dialog;
 
@@ -42,6 +43,7 @@ public partial class AppShellViewModel : BaseViewModel
         ICurrentUserSession session,
         ILocaleService locale,
         PerformanceTestService testService,
+        ProductionPerformanceTestService productionTestService,
         IAppUpdateService updateService,
         IDialogService dialog)
     {
@@ -50,6 +52,7 @@ public partial class AppShellViewModel : BaseViewModel
         _session = session;
         _locale = locale;
         _testService = testService;
+        _productionTestService = productionTestService;
         _updateService = updateService;
         _dialog = dialog;
         UserLabel = session.Nom ?? string.Empty;
@@ -337,6 +340,24 @@ public partial class AppShellViewModel : BaseViewModel
 
     [RelayCommand]
     private void GoProduction() => _workspace.Open(_sp.GetRequiredService<ProductionListViewModel>());
+
+    [RelayCommand]
+    private async Task RunProductionPerfTestAsync(CancellationToken ct)
+    {
+        if (IsTestRunning) return;
+        IsTestRunning = true;
+        TestProgress = string.Empty;
+        try
+        {
+            var progress = new Progress<string>(msg => TestProgress = msg);
+            var result = await _productionTestService.RunAsync(progress, ct);
+            TestProgress = result;
+        }
+        finally
+        {
+            IsTestRunning = false;
+        }
+    }
 
     [RelayCommand]
     private async Task RunPerfTestAsync(CancellationToken ct)
