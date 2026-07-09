@@ -212,6 +212,19 @@ public partial class BRListViewModel : BaseViewModel
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+            var linkedCmdNumero = await db.CommandesProduction.AsNoTracking()
+                .Where(c => c.BonReceptionId == item.Id)
+                .Select(c => c.Numero)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (linkedCmdNumero != null)
+            {
+                await _dialog.ShowErrorAsync(
+                    _locale.T("BR_DlgShort"),
+                    _locale.Tf("BR_ErrDeleteLinkedCommande", linkedCmdNumero),
+                    cancellationToken);
+                return;
+            }
+
             var entity = await db.BonsReception.Include(b => b.Lignes).FirstAsync(b => b.Id == item.Id, cancellationToken);
             await _stock.SyncBonReceptionStockAsync(db, entity.Id, entity.Numero, [], null, cancellationToken);
             db.BonsReception.Remove(entity);

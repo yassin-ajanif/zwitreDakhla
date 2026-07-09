@@ -139,6 +139,7 @@ public static class UiTranslations
         ["BR_MenuDelete"] = ("Supprimer le bon de réception…", "حذف أمر الاستلام…"),
         ["BR_ConfirmDelete"] = ("Supprimer définitivement le bon de réception {0} ?", "حذف أمر الاستلام {0} نهائياً؟"),
         ["BR_Deleted"] = ("Bon de réception supprimé.", "تم حذف أمر الاستلام."),
+        ["BR_ErrDeleteLinkedCommande"] = ("Impossible de supprimer ce bon de réception : il est lié à la commande de production {0}.", "لا يمكن حذف أمر الاستلام هذا : مرتبط بأمر الإنتاج {0}."),
         ["Devis_Title"] = ("Devis", "عرض سعر"),
         ["Devis_NewTitle"] = ("Nouveau devis", "عرض سعر جديد"),
         ["Devis_TitleNum"] = ("Devis {0}", "ع.س {0}"),
