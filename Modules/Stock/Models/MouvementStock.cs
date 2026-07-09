@@ -103,6 +103,10 @@ public class MouvementStock : BaseEntity
     [NotMapped]
     public bool HasUnitPriceDetail => !string.IsNullOrEmpty(UnitPriceDetail);
 
+    [NotMapped]
+    public bool ShowAdjustmentDetail =>
+        Type == TypeMouvement.Ajustement && !string.IsNullOrWhiteSpace(NoteBody);
+
     // ---- Note parsing (source of truth) ----
 
     [NotMapped]
