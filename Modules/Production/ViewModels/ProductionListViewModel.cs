@@ -45,8 +45,7 @@ public partial class ProductionListViewModel : BaseViewModel
         _settings = settings;
         _workspace = workspaceNavigator;
         _sp = sp;
-        _dateFrom = DateTime.Today;
-        _dateTo = DateTime.Today;
+        (_dateFrom, _dateTo) = ThisYearRange();
         _locale.CultureApplied += (_, _) => RefreshUi();
         RefreshUi();
         Title = _locale.T("CmdProd_ListTitle");
@@ -247,14 +246,28 @@ public partial class ProductionListViewModel : BaseViewModel
     {
         if (_dateFrom is { } from && _dateTo is { } to)
         {
-            BtnFilterDate = from.Date == DateTime.Today && to.Date == DateTime.Today
-                ? _locale.T("Btn_Today")
-                : $"{from:dd/MM/yy} — {to:dd/MM/yy}";
+            BtnFilterDate = IsThisYearRange(from, to)
+                ? _locale.T("Btn_ThisYear")
+                : from.Date == DateTime.Today && to.Date == DateTime.Today
+                    ? _locale.T("Btn_Today")
+                    : $"{from:dd/MM/yy} — {to:dd/MM/yy}";
         }
         else
         {
             BtnFilterDate = _locale.T("Btn_FilterDate");
         }
+    }
+
+    private static (DateTime From, DateTime To) ThisYearRange()
+    {
+        var today = DateTime.Today;
+        return (new DateTime(today.Year, 1, 1), new DateTime(today.Year, 12, 31));
+    }
+
+    private static bool IsThisYearRange(DateTime from, DateTime to)
+    {
+        var (yearFrom, yearTo) = ThisYearRange();
+        return from.Date == yearFrom && to.Date == yearTo;
     }
 
     private async Task LoadPageAsync(CancellationToken cancellationToken, bool resetPage = false, bool reloadFilters = false)
@@ -529,8 +542,7 @@ public partial class ProductionListViewModel : BaseViewModel
 
         if (range.Value.from == DateTime.MinValue && range.Value.to == DateTime.MinValue)
         {
-            _dateFrom = DateTime.Today;
-            _dateTo = DateTime.Today;
+            (_dateFrom, _dateTo) = ThisYearRange();
         }
         else
         {
@@ -556,8 +568,7 @@ public partial class ProductionListViewModel : BaseViewModel
                 SelectedFilterCategorie = FilterCategories[0];
             if (FilterTypes.Count > 0)
                 SelectedFilterType = FilterTypes[0];
-            _dateFrom = DateTime.Today;
-            _dateTo = DateTime.Today;
+            (_dateFrom, _dateTo) = ThisYearRange();
             UpdateBtnFilterDateText();
         }
         finally
