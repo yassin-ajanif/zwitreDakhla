@@ -29,7 +29,8 @@ public partial class ProductionOperation : ObservableObject
         int pochetteMoyenne,
         int pochettePetit,
         int maxRemainingHuitresAtWater) =>
-        tables > 0
+        maxRemainingHuitresAtWater > 0
+        && tables > 0
         && ComputeGrandHuitres(pochetteGrand) <= maxRemainingHuitresAtWater;
 
     public static string FormatTauxMortaliteLabel(decimal percent) =>
