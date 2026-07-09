@@ -46,16 +46,27 @@ public sealed class BonReceptionWorkflowService : IBonReceptionWorkflowService
         await trx.CommitAsync(cancellationToken);
     }
 
-    private Task ReplayBonReceptionLinesIntoStockAsync(
+    private async Task ReplayBonReceptionLinesIntoStockAsync(
         AppDbContext db,
         BonReception br,
         int? userId,
         CancellationToken cancellationToken)
     {
-        return _stock.SyncBonReceptionStockAsync(
+        var noteDetail = br.Numero;
+        if (br.CommandeProductionId is int commandeId)
+        {
+            var commandeNumero = await db.CommandesProduction.AsNoTracking()
+                .Where(c => c.Id == commandeId)
+                .Select(c => c.Numero)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (!string.IsNullOrWhiteSpace(commandeNumero))
+                noteDetail = $"{commandeNumero.Trim()} | {br.Numero}";
+        }
+
+        await _stock.SyncBonReceptionStockAsync(
             db,
             br.Id,
-            br.Numero,
+            noteDetail,
             br.Lignes
                 .Where(l => l.QuantiteRecue > 0)
                 .Select(l => (l.ProduitId, l.QuantiteRecue, l.PrixUnitaireHT)),

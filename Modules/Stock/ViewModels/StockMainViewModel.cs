@@ -395,46 +395,25 @@ public partial class StockMainViewModel : BaseViewModel
 
             m.LinkedCommandeProductionId = null;
             m.LinkedOperationProductionId = null;
-            m.LinkedCommandeProductionLabel = string.Empty;
-            m.LinkedBonReceptionId = null;
-            m.LinkedBonReceptionLabel = string.Empty;
-            m.PrimaryDocumentId = null;
-            m.PrimaryDocumentType = string.Empty;
-            m.PrimaryDocumentLabel = string.Empty;
+            m.CommandeFallbackLabel = string.Empty;
 
-            if (m.OrigineId is int originDocId)
+            // Primary document existence: the party maps only contain rows that still exist.
+            m.PrimaryDocumentExists = m.OrigineId is int primaryDocId && m.OrigineType switch
             {
-                switch (m.OrigineType)
-                {
-                    case StockMovementService.OrigineTypeBonLivraison:
-                        m.PrimaryDocumentId = originDocId;
-                        m.PrimaryDocumentType = m.OrigineType;
-                        m.PrimaryDocumentLabel = m.DocumentTitle;
-                        break;
-                    case StockMovementService.OrigineTypeBonReception:
-                        m.PrimaryDocumentId = originDocId;
-                        m.PrimaryDocumentType = m.OrigineType;
-                        m.PrimaryDocumentLabel = m.DocumentTitle;
-                        break;
-                    case StockMovementService.OrigineTypeAvoir:
-                        m.PrimaryDocumentId = originDocId;
-                        m.PrimaryDocumentType = m.OrigineType;
-                        m.PrimaryDocumentLabel = m.DocumentTitle;
-                        break;
-                    case StockMovementService.OrigineTypeAvoirFournisseur:
-                        m.PrimaryDocumentId = originDocId;
-                        m.PrimaryDocumentType = m.OrigineType;
-                        m.PrimaryDocumentLabel = m.DocumentTitle;
-                        break;
-                }
-            }
+                StockMovementService.OrigineTypeBonLivraison => blMap.ContainsKey(primaryDocId),
+                StockMovementService.OrigineTypeBonReception => brMap.ContainsKey(primaryDocId),
+                StockMovementService.OrigineTypeAvoir => avoirMap.ContainsKey(primaryDocId),
+                StockMovementService.OrigineTypeAvoirFournisseur => avoirFournisseurMap.ContainsKey(primaryDocId),
+                _ => false
+            };
 
+            // Command navigation resolved via live joins; null id means the command was deleted.
             if (m.OrigineType == StockMovementService.OrigineTypeBonReception
                 && m.OrigineId is int receptionBrId
                 && brCommandeMap.TryGetValue(receptionBrId, out var linkedCmd))
             {
                 m.LinkedCommandeProductionId = linkedCmd.CommandeId;
-                m.LinkedCommandeProductionLabel = linkedCmd.Numero;
+                m.CommandeFallbackLabel = linkedCmd.Numero;
             }
             else if (m.OrigineType == StockMovementService.OrigineTypeProduction
                      && m.OrigineId is int prodOpId
@@ -442,56 +421,72 @@ public partial class StockMainViewModel : BaseViewModel
             {
                 m.LinkedCommandeProductionId = linkedProdCmd.CommandeId;
                 m.LinkedOperationProductionId = prodOpId;
-                m.LinkedCommandeProductionLabel = linkedProdCmd.CmdNumero;
+                m.CommandeFallbackLabel = linkedProdCmd.CmdNumero;
                 m.PartyName = linkedProdCmd.FournisseurNom;
                 m.PartyIsSupplier = true;
-                m.LinkedBonReceptionId = linkedProdCmd.BrId;
-                m.LinkedBonReceptionLabel = linkedProdCmd.BrNumero;
             }
         }
     }
 
     [RelayCommand]
-    private void OpenLinkedDocument(StockMovementDocumentLink? link)
+    private async Task OpenPrimaryDocumentAsync(MouvementStock? movement, CancellationToken cancellationToken)
     {
-        if (link is not { DocumentId: > 0 } navigation)
+        if (movement is null || !movement.HasPrimaryChip)
             return;
 
-        switch (navigation.DocumentType)
+        if (!movement.PrimaryDocumentExists || movement.OrigineId is not int documentId || documentId <= 0)
+        {
+            await ShowDocumentRemovedAsync(movement.PrimaryChipLabel, cancellationToken);
+            return;
+        }
+
+        switch (movement.OrigineType)
         {
             case StockMovementService.OrigineTypeBonLivraison:
                 var blVm = _sp.GetRequiredService<BLEditViewModel>();
-                blVm.Load(navigation.DocumentId);
+                blVm.Load(documentId);
                 _workspace.Open(blVm);
                 break;
             case StockMovementService.OrigineTypeBonReception:
                 var brVm = _sp.GetRequiredService<BREditViewModel>();
-                brVm.Load(navigation.DocumentId);
+                brVm.Load(documentId);
                 _workspace.Open(brVm);
                 break;
             case StockMovementService.OrigineTypeAvoir:
                 var avoirVm = _sp.GetRequiredService<AvoirEditViewModel>();
-                avoirVm.Load(navigation.DocumentId);
+                avoirVm.Load(documentId);
                 _workspace.Open(avoirVm);
                 break;
             case StockMovementService.OrigineTypeAvoirFournisseur:
                 var avoirFournisseurVm = _sp.GetRequiredService<AvoirFournisseurEditViewModel>();
-                avoirFournisseurVm.Load(navigation.DocumentId);
+                avoirFournisseurVm.Load(documentId);
                 _workspace.Open(avoirFournisseurVm);
                 break;
         }
     }
 
     [RelayCommand]
-    private void OpenLinkedCommandeProduction(CommandeProductionLink? link)
+    private async Task OpenCommandeProductionAsync(MouvementStock? movement, CancellationToken cancellationToken)
     {
-        if (link is not { CommandeId: > 0 } navigation)
+        if (movement is null || !movement.HasCommandeChip)
             return;
 
+        if (movement.LinkedCommandeProductionId is not int commandeId || commandeId <= 0)
+        {
+            await ShowDocumentRemovedAsync(movement.CommandeChipLabel, cancellationToken);
+            return;
+        }
+
         var vm = _sp.GetRequiredService<CommandeProductionEditViewModel>();
-        vm.Load(navigation.CommandeId, navigation.OperationId);
+        vm.Load(commandeId, movement.LinkedOperationProductionId);
         _workspace.Open(vm);
     }
+
+    private Task ShowDocumentRemovedAsync(string label, CancellationToken cancellationToken) =>
+        _dialog.ShowInfoAsync(
+            _locale.T("Stock_Title"),
+            _locale.Tf("Stock_DocumentRemoved", label),
+            cancellationToken);
 
     [RelayCommand]
     private async Task AjustementAsync(CancellationToken cancellationToken)

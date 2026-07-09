@@ -405,6 +405,7 @@ internal static class UiTranslationExtras
         ["Stock_ImportNote"] = ("Import CSV", "استيراد CSV"),
         ["Stock_AnnulationNote"] = ("Annulation {0}", "إلغاء {0}"),
         ["Stock_ModificationNote"] = ("Modif {0}", "تعديل {0}"),
+        ["Stock_DocumentRemoved"] = ("Ce document ({0}) a été supprimé. Seul l'historique de stock est conservé.", "تم حذف هذا المستند ({0}). يُحفظ سجل المخزون فقط."),
         ["ModePaiement_TPE"] = ("TPE", "محطة دفع"),
     };
 

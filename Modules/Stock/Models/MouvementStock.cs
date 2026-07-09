@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using GestionCommerciale.Shared.Models;
-using GestionCommerciale.Shared.Navigation;
 
 namespace GestionCommerciale.Modules.Stock.Models;
 
@@ -11,6 +10,10 @@ public class MouvementStock : BaseEntity
     private static readonly Regex TrailingDateTimeRegex = new(
         @"\s(\d{2}/\d{2}/\d{4} \d{2}:\d{2})$",
         RegexOptions.Compiled);
+
+    private static readonly Regex CommandeNumeroRegex = new(
+        @"\bCMD-\d{4}-\d{4}\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     public int ProduitId { get; set; }
     public Produit? Produit { get; set; }
@@ -92,10 +95,7 @@ public class MouvementStock : BaseEntity
 
     [NotMapped]
     public bool ShowDocumentDateTime =>
-        HasDocumentDateTime && !(OrigineType == "Production" && HasLinkedCommandeProduction);
-
-    [NotMapped]
-    public string TraceDetail => DocumentRef;
+        HasDocumentDateTime && !(OrigineType == "Production" && HasCommandeChip);
 
     [NotMapped]
     public string UnitPriceDetail { get; set; } = string.Empty;
@@ -103,6 +103,98 @@ public class MouvementStock : BaseEntity
     [NotMapped]
     public bool HasUnitPriceDetail => !string.IsNullOrEmpty(UnitPriceDetail);
 
+    // ---- Note parsing (source of truth) ----
+
+    [NotMapped]
+    public string StatusLabel
+    {
+        get
+        {
+            var title = DocumentTitle;
+            if (title.StartsWith("Annulation ", StringComparison.Ordinal))
+                return "Annulation";
+            if (title.StartsWith("Modification ", StringComparison.Ordinal))
+                return "Modification";
+            if (title.StartsWith("Modif ", StringComparison.Ordinal))
+                return "Modification";
+            return string.Empty;
+        }
+    }
+
+    [NotMapped]
+    public bool HasStatus => StatusLabel.Length > 0;
+
+    [NotMapped]
+    public bool IsAnnulation => StatusLabel == "Annulation";
+
+    [NotMapped]
+    public bool IsModification => StatusLabel == "Modification";
+
+    [NotMapped]
+    public string NoteBody
+    {
+        get
+        {
+            var title = DocumentTitle;
+            if (title.StartsWith("Annulation ", StringComparison.Ordinal))
+                return title["Annulation ".Length..].Trim();
+            if (title.StartsWith("Modification ", StringComparison.Ordinal))
+                return title["Modification ".Length..].Trim();
+            if (title.StartsWith("Modif ", StringComparison.Ordinal))
+                return title["Modif ".Length..].Trim();
+            return title;
+        }
+    }
+
+    [NotMapped]
+    public string ParsedCommandeNumero
+    {
+        get
+        {
+            var match = CommandeNumeroRegex.Match(NoteBody);
+            return match.Success ? match.Value : string.Empty;
+        }
+    }
+
+    [NotMapped]
+    public string ParsedPrimaryLabel
+    {
+        get
+        {
+            var parts = NoteBody
+                .Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(p => !CommandeNumeroRegex.IsMatch(p))
+                .ToArray();
+            return string.Join(" ", parts).Trim();
+        }
+    }
+
+    // ---- Chips: labels from Note, navigation from joins ----
+
+    [NotMapped]
+    public string CommandeFallbackLabel { get; set; } = string.Empty;
+
+    [NotMapped]
+    public string CommandeChipLabel =>
+        !string.IsNullOrEmpty(ParsedCommandeNumero) ? ParsedCommandeNumero : CommandeFallbackLabel;
+
+    [NotMapped]
+    public bool HasCommandeChip => !string.IsNullOrEmpty(CommandeChipLabel);
+
+    [NotMapped]
+    public bool IsOpenablePrimaryType =>
+        OrigineType is "BL" or "BR" or "Avoir" or "AvoirFournisseur";
+
+    [NotMapped]
+    public string PrimaryChipLabel => IsOpenablePrimaryType ? ParsedPrimaryLabel : string.Empty;
+
+    [NotMapped]
+    public bool HasPrimaryChip => !string.IsNullOrEmpty(PrimaryChipLabel);
+
+    [NotMapped]
+    public bool PrimaryChipIsBonReception => OrigineType == "BR";
+
+    // Navigation targets resolved via live joins (null => document/command removed).
     [NotMapped]
     public int? LinkedCommandeProductionId { get; set; }
 
@@ -110,56 +202,5 @@ public class MouvementStock : BaseEntity
     public int? LinkedOperationProductionId { get; set; }
 
     [NotMapped]
-    public string LinkedCommandeProductionLabel { get; set; } = string.Empty;
-
-    [NotMapped]
-    public int? PrimaryDocumentId { get; set; }
-
-    [NotMapped]
-    public string PrimaryDocumentType { get; set; } = string.Empty;
-
-    [NotMapped]
-    public string PrimaryDocumentLabel { get; set; } = string.Empty;
-
-    [NotMapped]
-    public bool HasPrimaryDocument => PrimaryDocumentId is > 0;
-
-    [NotMapped]
-    public bool ShowPrimaryDocument => HasPrimaryDocument && !HasLinkedCommandeProduction;
-
-    [NotMapped]
-    public StockMovementDocumentLink? PrimaryDocumentLink =>
-        PrimaryDocumentId is int docId && docId > 0 && !string.IsNullOrEmpty(PrimaryDocumentType)
-            ? new StockMovementDocumentLink(PrimaryDocumentType, docId)
-            : null;
-
-    [NotMapped]
-    public int? LinkedBonReceptionId { get; set; }
-
-    [NotMapped]
-    public string LinkedBonReceptionLabel { get; set; } = string.Empty;
-
-    [NotMapped]
-    public bool HasLinkedBonReception => !string.IsNullOrWhiteSpace(LinkedBonReceptionLabel);
-
-    [NotMapped]
-    public bool ShowLinkedBonReception => HasLinkedBonReception && !HasLinkedCommandeProduction;
-
-    [NotMapped]
-    public StockMovementDocumentLink? LinkedBonReceptionLink =>
-        LinkedBonReceptionId is int brId && brId > 0
-            ? new StockMovementDocumentLink("BR", brId)
-            : null;
-
-    [NotMapped]
-    public bool HasLinkedCommandeProduction => LinkedCommandeProductionId is > 0;
-
-    [NotMapped]
-    public CommandeProductionLink? LinkedCommandeProductionLink =>
-        LinkedCommandeProductionId is int cmdId && cmdId > 0
-            ? new CommandeProductionLink(cmdId, LinkedOperationProductionId)
-            : null;
-
-    [NotMapped]
-    public bool ShowDocumentTitle => ShowPrimaryDocument;
+    public bool PrimaryDocumentExists { get; set; }
 }

@@ -93,7 +93,7 @@ public sealed class ProductionStockService : IProductionStockService
     {
         var produitId = await EnsureHuitreGrandProductAsync(db, cancellationToken);
         var totalHuitres = pochetteGrand * ProductionOperation.MultiplierGrand;
-        var note = BuildNote(operationAt);
+        var note = await BuildNoteAsync(db, operationId, operationAt, cancellationToken);
 
         await _stock.SyncProductionStockAsync(
             db,
@@ -113,7 +113,7 @@ public sealed class ProductionStockService : IProductionStockService
         CancellationToken cancellationToken = default)
     {
         var produitId = await EnsureHuitreGrandProductAsync(db, cancellationToken);
-        var note = BuildNote(operationAt);
+        var note = await BuildNoteAsync(db, operationId, operationAt, cancellationToken);
 
         await _stock.SyncProductionStockAsync(
             db,
@@ -149,10 +149,18 @@ public sealed class ProductionStockService : IProductionStockService
         if (br is null || br.FactureFournisseurId is not null)
             return;
 
+        var commandeNumero = await db.CommandesProduction.AsNoTracking()
+            .Where(c => c.Id == commandeId)
+            .Select(c => c.Numero)
+            .FirstOrDefaultAsync(cancellationToken);
+        var noteDetail = string.IsNullOrWhiteSpace(commandeNumero)
+            ? br.Numero
+            : $"{commandeNumero.Trim()} | {br.Numero}";
+
         await _stock.SyncBonReceptionStockAsync(
             db,
             br.Id,
-            br.Numero,
+            noteDetail,
             [],
             createdByUserId,
             cancellationToken);
@@ -160,6 +168,20 @@ public sealed class ProductionStockService : IProductionStockService
         db.BonsReception.Remove(br);
     }
 
-    private string BuildNote(DateTime operationAt) =>
-        _locale.Tf("Prod_StockNoteFmt", operationAt.ToString("dd/MM/yyyy HH:mm"));
+    private async Task<string> BuildNoteAsync(
+        AppDbContext db,
+        int operationId,
+        DateTime operationAt,
+        CancellationToken cancellationToken)
+    {
+        var commandeNumero = await db.OperationsProduction.AsNoTracking()
+            .Where(o => o.Id == operationId && o.CommandeProductionId != null)
+            .Select(o => o.CommandeProduction!.Numero)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var dateSuffix = operationAt.ToString("dd/MM/yyyy HH:mm");
+        return string.IsNullOrWhiteSpace(commandeNumero)
+            ? _locale.Tf("Prod_StockNoteFmt", dateSuffix)
+            : $"{commandeNumero.Trim()} {dateSuffix}";
+    }
 }
