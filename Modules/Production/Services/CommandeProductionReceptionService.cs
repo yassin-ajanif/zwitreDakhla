@@ -82,4 +82,24 @@ public sealed class CommandeProductionReceptionService : ICommandeProductionRece
         await db.SaveChangesAsync(cancellationToken);
         await _brWorkflow.ValiderAsync(br.Id, userId, cancellationToken);
     }
+
+    public async Task SyncCommandeProductionAsync(
+        AppDbContext db,
+        BonReception bonReception,
+        CancellationToken cancellationToken = default)
+    {
+        var commande = await db.CommandesProduction
+            .FirstOrDefaultAsync(c => c.BonReceptionId == bonReception.Id, cancellationToken);
+        if (commande is null)
+            return;
+
+        var produitId = await _productionStock.EnsureNaissainProductAsync(db, cancellationToken);
+        var naissainLine = bonReception.Lignes.FirstOrDefault(l => l.ProduitId == produitId);
+        if (naissainLine is null || naissainLine.QuantiteRecue <= 0)
+            return;
+
+        commande.QuantiteNaissain = (int)naissainLine.QuantiteRecue;
+        commande.PrixAchatNaissainHT = naissainLine.PrixUnitaireHT;
+        await db.SaveChangesAsync(cancellationToken);
+    }
 }

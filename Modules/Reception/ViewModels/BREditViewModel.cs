@@ -10,6 +10,7 @@ using GestionCommerciale.Modules.Stock.Models;
 using GestionCommerciale.Modules.CommandeFournisseur.Models;
 using GestionCommerciale.Modules.FactureFournisseur.Services;
 using GestionCommerciale.Modules.FactureFournisseur.ViewModels;
+using GestionCommerciale.Modules.Production.Services;
 using GestionCommerciale.Modules.Production.ViewModels;
 using GestionCommerciale.Modules.Reception.Models;
 using GestionCommerciale.Modules.Reception.Services;
@@ -581,6 +582,9 @@ public partial class BREditViewModel : BaseViewModel
                 DocumentTotalsHelper.SyncBonReceptionTotalTtc(entity);
                 await db.SaveChangesAsync(cancellationToken);
             }
+
+            await _sp.GetRequiredService<ICommandeProductionReceptionService>()
+                .SyncCommandeProductionAsync(db, entity, cancellationToken);
 
             try
             {

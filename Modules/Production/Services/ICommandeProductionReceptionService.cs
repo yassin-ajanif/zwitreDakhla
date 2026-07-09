@@ -1,4 +1,5 @@
 using GestionCommerciale.Modules.Production.Models;
+using GestionCommerciale.Modules.Reception.Models;
 using GestionCommerciale.Shared.Database;
 
 namespace GestionCommerciale.Modules.Production.Services;
@@ -17,5 +18,11 @@ public interface ICommandeProductionReceptionService
         AppDbContext db,
         CommandeProduction commande,
         int? userId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Updates the linked commande production from bon de réception lines (naissain qty/price).</summary>
+    Task SyncCommandeProductionAsync(
+        AppDbContext db,
+        BonReception bonReception,
         CancellationToken cancellationToken = default);
 }
