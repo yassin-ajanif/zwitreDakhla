@@ -142,20 +142,23 @@ public sealed class ProductionStockService : IProductionStockService
                 cancellationToken);
         }
 
+        var commande = await db.CommandesProduction
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == commandeId, cancellationToken);
+
+        if (commande is null)
+            return;
+
         var br = await db.BonsReception
-            .Include(b => b.Lignes)
-            .FirstOrDefaultAsync(b => b.CommandeProductionId == commandeId, cancellationToken);
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.Id == commande.BonReceptionId, cancellationToken);
 
         if (br is null || br.FactureFournisseurId is not null)
             return;
 
-        var commandeNumero = await db.CommandesProduction.AsNoTracking()
-            .Where(c => c.Id == commandeId)
-            .Select(c => c.Numero)
-            .FirstOrDefaultAsync(cancellationToken);
-        var noteDetail = string.IsNullOrWhiteSpace(commandeNumero)
+        var noteDetail = string.IsNullOrWhiteSpace(commande.Numero)
             ? br.Numero
-            : $"{commandeNumero.Trim()} | {br.Numero}";
+            : $"{commande.Numero.Trim()} | {br.Numero}";
 
         await _stock.SyncBonReceptionStockAsync(
             db,
@@ -164,8 +167,21 @@ public sealed class ProductionStockService : IProductionStockService
             [],
             createdByUserId,
             cancellationToken);
+    }
+
+    public async Task RemoveLinkedBonReceptionAsync(
+        AppDbContext db,
+        int bonReceptionId,
+        CancellationToken cancellationToken = default)
+    {
+        var br = await db.BonsReception
+            .FirstOrDefaultAsync(b => b.Id == bonReceptionId, cancellationToken);
+
+        if (br is null || br.FactureFournisseurId is not null)
+            return;
 
         db.BonsReception.Remove(br);
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<string> BuildNoteAsync(

@@ -1,3 +1,4 @@
+using GestionCommerciale.Modules.Reception.Models;
 using GestionCommerciale.Shared.Models;
 using TiersEntity = GestionCommerciale.Modules.Tiers.Models.Tiers;
 
@@ -6,6 +7,8 @@ namespace GestionCommerciale.Modules.Production.Models;
 public class CommandeProduction : BaseEntity
 {
     public string Numero { get; set; } = string.Empty;
+    public int BonReceptionId { get; set; }
+    public BonReception? BonReception { get; set; }
     public int FournisseurId { get; set; }
     public TiersEntity? Fournisseur { get; set; }
     public int TypeHuitreId { get; set; }

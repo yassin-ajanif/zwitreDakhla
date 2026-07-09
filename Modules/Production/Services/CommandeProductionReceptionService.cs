@@ -24,6 +24,29 @@ public sealed class CommandeProductionReceptionService : ICommandeProductionRece
         _brWorkflow = brWorkflow;
     }
 
+    public async Task<int> EnsureBonReceptionIdAsync(
+        AppDbContext db,
+        CommandeProduction commande,
+        int? userId,
+        CancellationToken cancellationToken = default)
+    {
+        if (commande.BonReceptionId > 0)
+            return commande.BonReceptionId;
+
+        var br = new BonReception
+        {
+            Numero = await _numbers.NextBRAsync(cancellationToken),
+            FournisseurId = commande.FournisseurId,
+            Date = commande.DateCommande,
+            Note = commande.Note,
+            CreatedByUserId = userId
+        };
+        db.BonsReception.Add(br);
+        await db.SaveChangesAsync(cancellationToken);
+        commande.BonReceptionId = br.Id;
+        return br.Id;
+    }
+
     public async Task SyncBonReceptionAsync(
         AppDbContext db,
         CommandeProduction commande,
@@ -35,32 +58,16 @@ public sealed class CommandeProductionReceptionService : ICommandeProductionRece
 
         var br = await db.BonsReception
             .Include(b => b.Lignes)
-            .FirstOrDefaultAsync(b => b.CommandeProductionId == commande.Id, cancellationToken);
+            .FirstAsync(b => b.Id == commande.BonReceptionId, cancellationToken);
 
-        if (br is { FactureFournisseurId: not null })
+        if (br.FactureFournisseurId is not null)
             return;
 
-        if (br == null)
-        {
-            br = new BonReception
-            {
-                Numero = await _numbers.NextBRAsync(cancellationToken),
-                CommandeProductionId = commande.Id,
-                FournisseurId = commande.FournisseurId,
-                Date = commande.DateCommande,
-                Note = commande.Note,
-                CreatedByUserId = userId
-            };
-            db.BonsReception.Add(br);
-        }
-        else
-        {
-            br.FournisseurId = commande.FournisseurId;
-            br.Date = commande.DateCommande;
-            br.Note = commande.Note;
-            db.BonReceptionLignes.RemoveRange(br.Lignes);
-            br.Lignes.Clear();
-        }
+        br.FournisseurId = commande.FournisseurId;
+        br.Date = commande.DateCommande;
+        br.Note = commande.Note;
+        db.BonReceptionLignes.RemoveRange(br.Lignes);
+        br.Lignes.Clear();
 
         br.Lignes.Add(new BonReceptionLigne
         {

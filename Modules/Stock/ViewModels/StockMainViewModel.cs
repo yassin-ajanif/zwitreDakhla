@@ -265,13 +265,13 @@ public partial class StockMainViewModel : BaseViewModel
 
         var brCommandeMap = brIds.Count == 0
             ? new Dictionary<int, (int CommandeId, string Numero)>()
-            : (await db.BonsReception.AsNoTracking()
-                .Where(b => brIds.Contains(b.Id) && b.CommandeProductionId != null)
-                .Select(b => new
+            : (await db.CommandesProduction.AsNoTracking()
+                .Where(c => brIds.Contains(c.BonReceptionId))
+                .Select(c => new
                 {
-                    BrId = b.Id,
-                    CommandeId = b.CommandeProductionId!.Value,
-                    Numero = b.CommandeProduction!.Numero
+                    BrId = c.BonReceptionId,
+                    CommandeId = c.Id,
+                    c.Numero
                 })
                 .ToListAsync(cancellationToken))
                 .ToDictionary(x => x.BrId, x => (CommandeId: x.CommandeId, x.Numero));
@@ -287,7 +287,7 @@ public partial class StockMainViewModel : BaseViewModel
                     Numero = o.CommandeProduction!.Numero,
                     FournisseurNom = o.CommandeProduction!.Fournisseur!.Nom,
                     Br = db.BonsReception
-                        .Where(b => b.CommandeProductionId == o.CommandeProductionId)
+                        .Where(b => b.Id == o.CommandeProduction!.BonReceptionId)
                         .Select(b => new { b.Id, b.Numero })
                         .FirstOrDefault()
                 })

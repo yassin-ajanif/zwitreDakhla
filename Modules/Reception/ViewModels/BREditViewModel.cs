@@ -345,12 +345,15 @@ public partial class BREditViewModel : BaseViewModel
 
         var b = await db.BonsReception
             .Include(x => x.Lignes)
-            .Include(x => x.CommandeProduction)
             .FirstAsync(x => x.Id == id, cancellationToken);
         Numero = b.Numero;
-        CommandeProductionId = b.CommandeProductionId;
-        var cmdNumero = b.CommandeProduction?.Numero;
-        if (b.CommandeProductionId is int cmdId && string.IsNullOrWhiteSpace(cmdNumero))
+        var linkedCmd = await db.CommandesProduction.AsNoTracking()
+            .Where(c => c.BonReceptionId == id)
+            .Select(c => new { c.Id, c.Numero })
+            .FirstOrDefaultAsync(cancellationToken);
+        CommandeProductionId = linkedCmd?.Id;
+        var cmdNumero = linkedCmd?.Numero;
+        if (linkedCmd is { Id: var cmdId } && string.IsNullOrWhiteSpace(cmdNumero))
         {
             cmdNumero = await db.CommandesProduction.AsNoTracking()
                 .Where(c => c.Id == cmdId)

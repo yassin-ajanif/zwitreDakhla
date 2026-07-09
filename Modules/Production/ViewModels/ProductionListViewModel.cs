@@ -425,6 +425,7 @@ public partial class ProductionListViewModel : BaseViewModel
             if (entity == null) return;
 
             var productionStock = _sp.GetRequiredService<IProductionStockService>();
+            var brId = entity.BonReceptionId;
             await productionStock.RemoveCommandeStockAsync(
                 db,
                 entity.Id,
@@ -434,6 +435,8 @@ public partial class ProductionListViewModel : BaseViewModel
 
             db.CommandesProduction.Remove(entity);
             await db.SaveChangesAsync(cancellationToken);
+
+            await productionStock.RemoveLinkedBonReceptionAsync(db, brId, cancellationToken);
             await LoadAsync(cancellationToken);
         }
         catch (Exception ex)

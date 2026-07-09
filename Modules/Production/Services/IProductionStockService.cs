@@ -23,11 +23,17 @@ public interface IProductionStockService
         int? createdByUserId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Reverses stock for all operations and removes the linked auto-created BR (if not invoiced).</summary>
+    /// <summary>Reverses stock for all operations and the linked auto-created BR (if not invoiced).</summary>
     Task RemoveCommandeStockAsync(
         AppDbContext db,
         int commandeId,
         IReadOnlyList<Models.OperationProduction> operations,
         int? createdByUserId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Deletes the linked BR after its commande has been removed.</summary>
+    Task RemoveLinkedBonReceptionAsync(
+        AppDbContext db,
+        int bonReceptionId,
         CancellationToken cancellationToken = default);
 }

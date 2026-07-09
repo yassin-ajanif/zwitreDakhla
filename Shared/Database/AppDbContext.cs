@@ -105,7 +105,6 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<BonReception>(e =>
         {
             e.HasOne(b => b.BonCommande).WithMany().HasForeignKey(b => b.BonCommandeId).OnDelete(DeleteBehavior.SetNull);
-            e.HasOne(b => b.CommandeProduction).WithMany().HasForeignKey(b => b.CommandeProductionId).OnDelete(DeleteBehavior.SetNull);
             e.HasMany(b => b.Lignes).WithOne(l => l.BonReception).HasForeignKey(l => l.BRId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne<FactureFournisseur>().WithMany()
                 .HasForeignKey(b => b.FactureFournisseurId)
@@ -213,6 +212,12 @@ public class AppDbContext : DbContext
                 .WithOne(o => o.CommandeProduction)
                 .HasForeignKey(o => o.CommandeProductionId)
                 .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(c => c.BonReception)
+                .WithMany()
+                .HasForeignKey(c => c.BonReceptionId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+            e.HasIndex(c => c.BonReceptionId).IsUnique();
             e.HasIndex(c => c.FournisseurId);
             e.HasIndex(c => c.TypeHuitreId);
             e.HasIndex(c => c.CategorieCommandeId);

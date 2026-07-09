@@ -53,15 +53,12 @@ public sealed class BonReceptionWorkflowService : IBonReceptionWorkflowService
         CancellationToken cancellationToken)
     {
         var noteDetail = br.Numero;
-        if (br.CommandeProductionId is int commandeId)
-        {
-            var commandeNumero = await db.CommandesProduction.AsNoTracking()
-                .Where(c => c.Id == commandeId)
-                .Select(c => c.Numero)
-                .FirstOrDefaultAsync(cancellationToken);
-            if (!string.IsNullOrWhiteSpace(commandeNumero))
-                noteDetail = $"{commandeNumero.Trim()} | {br.Numero}";
-        }
+        var commandeNumero = await db.CommandesProduction.AsNoTracking()
+            .Where(c => c.BonReceptionId == br.Id)
+            .Select(c => c.Numero)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (!string.IsNullOrWhiteSpace(commandeNumero))
+            noteDetail = $"{commandeNumero.Trim()} | {br.Numero}";
 
         await _stock.SyncBonReceptionStockAsync(
             db,

@@ -529,7 +529,6 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
                     Numero = num,
                     CreatedByUserId = _session.UserId
                 };
-                db.CommandesProduction.Add(entity);
             }
             else
             {
@@ -546,6 +545,12 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             entity.DateCommande = DateCommande.DateTime;
             entity.DateExpiration = DateExpiration?.DateTime;
             entity.Note = Note.Trim();
+
+            if (CommandeId == null)
+            {
+                await _commandeReception.EnsureBonReceptionIdAsync(db, entity, _session.UserId, cancellationToken);
+                db.CommandesProduction.Add(entity);
+            }
 
             await db.SaveChangesAsync(cancellationToken);
 
@@ -578,9 +583,11 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
 
     private async Task RefreshLinkedBonReceptionAsync(AppDbContext db, int commandeId, CancellationToken cancellationToken)
     {
-        var br = await db.BonsReception.AsNoTracking()
-            .FirstOrDefaultAsync(b => b.CommandeProductionId == commandeId, cancellationToken);
-        SetLinkedBonReception(br?.Numero, br?.Id);
+        var linked = await db.CommandesProduction.AsNoTracking()
+            .Where(c => c.Id == commandeId)
+            .Select(c => new { c.BonReceptionId, Numero = c.BonReception != null ? c.BonReception.Numero : null })
+            .FirstOrDefaultAsync(cancellationToken);
+        SetLinkedBonReception(linked?.Numero, linked?.BonReceptionId);
     }
 
     private void SetLinkedBonReception(string? numero, int? id)
