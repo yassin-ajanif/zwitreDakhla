@@ -415,15 +415,35 @@ public partial class ProductionListViewModel : BaseViewModel
             cancellationToken);
         if (!ok) return;
 
-        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
-        var entity = await db.CommandesProduction
-            .Include(c => c.Operations)
-            .FirstOrDefaultAsync(c => c.Id == item.Id, cancellationToken);
-        if (entity == null) return;
+        IsBusy = true;
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+            var entity = await db.CommandesProduction
+                .Include(c => c.Operations)
+                .FirstOrDefaultAsync(c => c.Id == item.Id, cancellationToken);
+            if (entity == null) return;
 
-        db.CommandesProduction.Remove(entity);
-        await db.SaveChangesAsync(cancellationToken);
-        await LoadAsync(cancellationToken);
+            var productionStock = _sp.GetRequiredService<IProductionStockService>();
+            await productionStock.RemoveCommandeStockAsync(
+                db,
+                entity.Id,
+                entity.Operations,
+                _session.UserId,
+                cancellationToken);
+
+            db.CommandesProduction.Remove(entity);
+            await db.SaveChangesAsync(cancellationToken);
+            await LoadAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            await _dialog.ShowExceptionAsync(Title, ex, cancellationToken);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]

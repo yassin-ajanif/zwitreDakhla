@@ -22,4 +22,12 @@ public interface IProductionStockService
         DateTime operationAt,
         int? createdByUserId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Reverses stock for all operations and removes the linked auto-created BR (if not invoiced).</summary>
+    Task RemoveCommandeStockAsync(
+        AppDbContext db,
+        int commandeId,
+        IReadOnlyList<Models.OperationProduction> operations,
+        int? createdByUserId,
+        CancellationToken cancellationToken = default);
 }

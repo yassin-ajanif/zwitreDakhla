@@ -1,3 +1,4 @@
+using GestionCommerciale.Modules.Production.Models;
 using GestionCommerciale.Modules.Production.ViewModels;
 using GestionCommerciale.Modules.Stock.Models;
 using GestionCommerciale.Modules.Stock.Services;
@@ -122,6 +123,41 @@ public sealed class ProductionStockService : IProductionStockService
             note,
             createdByUserId,
             cancellationToken);
+    }
+
+    public async Task RemoveCommandeStockAsync(
+        AppDbContext db,
+        int commandeId,
+        IReadOnlyList<OperationProduction> operations,
+        int? createdByUserId,
+        CancellationToken cancellationToken = default)
+    {
+        foreach (var operation in operations)
+        {
+            await RemoveOperationStockAsync(
+                db,
+                operation.Id,
+                operation.OperationAt,
+                createdByUserId,
+                cancellationToken);
+        }
+
+        var br = await db.BonsReception
+            .Include(b => b.Lignes)
+            .FirstOrDefaultAsync(b => b.CommandeProductionId == commandeId, cancellationToken);
+
+        if (br is null || br.FactureFournisseurId is not null)
+            return;
+
+        await _stock.SyncBonReceptionStockAsync(
+            db,
+            br.Id,
+            br.Numero,
+            [],
+            createdByUserId,
+            cancellationToken);
+
+        db.BonsReception.Remove(br);
     }
 
     private string BuildNote(DateTime operationAt) =>
