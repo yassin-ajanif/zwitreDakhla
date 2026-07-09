@@ -138,11 +138,14 @@
 
           <Border Height="8"/>
 
-          <Button Content="Test perf production (500×365)"
+          <!--<Button Content="Test perf production (500×365)"
                   Command="{Binding RunProductionPerfTestCommand}"
                   IsEnabled="{Binding !IsTestRunning}"
                   HorizontalAlignment="Stretch"/>
-          <TextBlock Text="{Binding TestProgress}" TextWrapping="Wrap" FontSize="11" Classes="subtle" IsVisible="{Binding IsTestRunning}"/>
+
+          <TextBlock Text="{Binding TestProgress}" TextWrapping="Wrap"
+           FontSize="11" Classes="subtle" IsVisible="{Binding IsTestRunning}"/>-->
+
          </StackPanel>
        
       </ScrollViewer>
