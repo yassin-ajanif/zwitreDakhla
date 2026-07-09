@@ -355,7 +355,7 @@ public static class UiTranslations
         ["CmdProd_SortBestMortality"] = ("Meilleure mortalité", "أفضل نسبة وفيات"),
         ["CmdProd_SortBestAgrandissement"] = ("Meilleur agrandissement", "أفضل نمو"),
         ["CmdProd_SortBestCommande"] = ("Meilleure commande", "أفضل أمر"),
-        ["CmdProd_ChipFacteurFmt"] = ("Facteur {0}", "معامل {0}"),
+        ["CmdProd_ChipFacteurFmt"] = ("Qualité {0}", "جودة {0}"),
         ["CmdProd_NoteRemainingHuitresFmt"] = ("Huîtres restantes à l'eau : {0}", "محار متبقية في الماء : {0}"),
         ["CmdProd_RemainingHuitresChipPrefix"] = ("Huîtres restantes à l'eau :", "محار متبقية في الماء :"),
         ["CmdProd_Title"] = ("Commande production", "أمر إنتاج"),
