@@ -88,6 +88,11 @@ public partial class ReportsListViewModel : BaseViewModel
     [ObservableProperty] private string _lblStockValTtcLabel = string.Empty;
     [ObservableProperty] private string _lblStockValHt = string.Empty;
     [ObservableProperty] private string _lblStockValTtc = string.Empty;
+    [ObservableProperty] private string _lblStockValueColProduit = string.Empty;
+    [ObservableProperty] private string _lblStockValueColStock = string.Empty;
+    [ObservableProperty] private string _lblStockValueColPrixAchat = string.Empty;
+    [ObservableProperty] private string _lblStockValueColValeurHt = string.Empty;
+    [ObservableProperty] private string _lblStockValueColValeurTtc = string.Empty;
     [ObservableProperty] private string _lblProfitChargesColType = string.Empty;
     [ObservableProperty] private string _lblProfitChargesColLibelle = string.Empty;
     [ObservableProperty] private string _lblProfitChargesColDate = string.Empty;
@@ -122,7 +127,7 @@ public partial class ReportsListViewModel : BaseViewModel
     private List<ReportRefundRow> _allRefunds = [];
     private List<ReportDailySaleRow> _allDailySales = [];
     private List<ReportUnpaidRow> _allUnpaidSales = [];
-    private List<ReportStockMovementRow> _allStockMovements = [];
+    private List<ReportStockValueByProductRow> _allStockValues = [];
     private List<ReportProfitChargeRow> _allProfitCharges = [];
 
     public ObservableCollection<ReportSaleByProductRow> SalesByProduct { get; } = [];
@@ -130,7 +135,7 @@ public partial class ReportsListViewModel : BaseViewModel
     public ObservableCollection<ReportRefundRow> Refunds { get; } = [];
     public ObservableCollection<ReportDailySaleRow> DailySales { get; } = [];
     public ObservableCollection<ReportUnpaidRow> UnpaidSales { get; } = [];
-    public ObservableCollection<ReportStockMovementRow> StockMovements { get; } = [];
+    public ObservableCollection<ReportStockValueByProductRow> StockValues { get; } = [];
     public ObservableCollection<ReportProfitChargeRow> ProfitCharges { get; } = [];
 
     private void RefreshLabels()
@@ -150,7 +155,7 @@ public partial class ReportsListViewModel : BaseViewModel
         BtnRefunds = _locale.T("Reports_BtnRefunds");
         BtnDailySales = _locale.T("Reports_BtnDailySales");
         BtnUnpaid = _locale.T("Reports_BtnUnpaid");
-        BtnStockMovements = _locale.T("Reports_BtnStockMovements");
+        BtnStockMovements = _locale.T("Reports_BtnStockValueByProduct");
         BtnProfitCharges = _locale.T("Reports_BtnProfitCharges");
         EmptyMessage = _locale.T("Reports_Empty");
         LblSaleByCustomerLabelHt = _locale.T("Reports_LblTotalHt");
@@ -158,6 +163,11 @@ public partial class ReportsListViewModel : BaseViewModel
         LblSaleByCustomerLabelProfit = _locale.T("Reports_LblTotalProfit");
         LblStockValHtLabel = _locale.T("Reports_LblStockValHt");
         LblStockValTtcLabel = _locale.T("Reports_LblStockValTtc");
+        LblStockValueColProduit = _locale.T("Reports_ColProduit");
+        LblStockValueColStock = _locale.T("Reports_ColStock");
+        LblStockValueColPrixAchat = _locale.T("Reports_ColPrixAchatHt");
+        LblStockValueColValeurHt = _locale.T("Reports_ColValeurHt");
+        LblStockValueColValeurTtc = _locale.T("Reports_ColValeurTtc");
         LblProfitChargesColType = _locale.T("Reports_ColType");
         LblProfitChargesColLibelle = _locale.T("Reports_ColLibelle");
         LblProfitChargesColDate = _locale.T("Reports_ColDate");
@@ -334,7 +344,7 @@ public partial class ReportsListViewModel : BaseViewModel
                     await LoadUnpaidAsync(cancellationToken);
                     break;
                 case 6:
-                    await LoadStockMovementsAsync(from, to, cancellationToken);
+                    await LoadStockValueByProductAsync(cancellationToken);
                     break;
             }
         }
@@ -385,13 +395,15 @@ public partial class ReportsListViewModel : BaseViewModel
         FinishPagedLoad(_allUnpaidSales.Count);
     }
 
-    private async Task LoadStockMovementsAsync(DateTime from, DateTime to, CancellationToken ct)
+    private async Task LoadStockValueByProductAsync(CancellationToken ct)
     {
-        _allStockMovements = await Task.Run(() => _reportService.GetStockMovementsAsync(from, to, ct), ct);
-        var valuation = await Task.Run(() => _reportService.GetStockValuationAsync(ct), ct);
-        LblStockValHt = $"{valuation.ht:N2} {valuation.devise}";
-        LblStockValTtc = $"{valuation.ttc:N2} {valuation.devise}";
-        FinishPagedLoad(_allStockMovements.Count);
+        _allStockValues = await Task.Run(() => _reportService.GetStockValueByProductAsync(ct), ct);
+        var devise = _allStockValues.Count > 0 ? _allStockValues[0].Devise : "MAD";
+        var totalHt = _allStockValues.Sum(r => r.ValeurHt);
+        var totalTtc = _allStockValues.Sum(r => r.ValeurTtc);
+        LblStockValHt = $"{totalHt:N2} {devise}";
+        LblStockValTtc = $"{totalTtc:N2} {devise}";
+        FinishPagedLoad(_allStockValues.Count);
     }
 
     private async Task LoadProfitChargesAsync(DateTime from, DateTime to, CancellationToken ct)
@@ -490,7 +502,7 @@ public partial class ReportsListViewModel : BaseViewModel
                 ApplyPage(UnpaidSales, _allUnpaidSales);
                 break;
             case 6:
-                ApplyPage(StockMovements, _allStockMovements);
+                ApplyPage(StockValues, _allStockValues);
                 break;
         }
     }

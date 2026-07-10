@@ -293,31 +293,39 @@ public sealed class ReportProfitChargeRow
     public string LblAmount { get; }
 }
 
-public sealed class ReportStockMovementRow
+public sealed class ReportStockValueByProductRow
 {
-    public ReportStockMovementRow(DateTime date, string produitRef, string produitDesignation,
-        string typeMvt, decimal quantite, string origine, decimal stockApres)
+    public ReportStockValueByProductRow(
+        string reference,
+        string designation,
+        decimal stockActuel,
+        decimal prixAchatHt,
+        decimal valeurHt,
+        decimal valeurTtc,
+        string devise)
     {
-        Date = date;
-        ProduitRef = produitRef;
-        ProduitDesignation = produitDesignation;
-        TypeMvt = typeMvt;
-        Quantite = quantite;
-        Origine = origine;
-        StockApres = stockApres;
-        LblDate = date.ToString("g");
-        LblQty = quantite.ToString("N2");
-        LblStockApres = stockApres.ToString("N2");
+        Reference = reference;
+        Designation = designation;
+        StockActuel = stockActuel;
+        PrixAchatHt = prixAchatHt;
+        ValeurHt = valeurHt;
+        ValeurTtc = valeurTtc;
+        Devise = devise;
+        LblStock = stockActuel.ToString("N2");
+        LblPrixAchatHt = $"{prixAchatHt:N2} {devise}";
+        LblValeurHt = $"{valeurHt:N2} {devise}";
+        LblValeurTtc = $"{valeurTtc:N2} {devise}";
     }
 
-    public DateTime Date { get; }
-    public string ProduitRef { get; }
-    public string ProduitDesignation { get; }
-    public string TypeMvt { get; }
-    public decimal Quantite { get; }
-    public string Origine { get; }
-    public decimal StockApres { get; }
-    public string LblDate { get; }
-    public string LblQty { get; }
-    public string LblStockApres { get; }
+    public string Reference { get; }
+    public string Designation { get; }
+    public decimal StockActuel { get; }
+    public decimal PrixAchatHt { get; }
+    public decimal ValeurHt { get; }
+    public decimal ValeurTtc { get; }
+    public string Devise { get; }
+    public string LblStock { get; }
+    public string LblPrixAchatHt { get; }
+    public string LblValeurHt { get; }
+    public string LblValeurTtc { get; }
 }

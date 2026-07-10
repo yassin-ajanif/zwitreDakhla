@@ -405,38 +405,41 @@ public sealed class ReportService : IReportService
         return rows;
     }
 
-    public async Task<List<ReportStockMovementRow>> GetStockMovementsAsync(
-        DateTime from, DateTime to, CancellationToken ct = default)
+    public async Task<List<ReportStockValueByProductRow>> GetStockValueByProductAsync(CancellationToken ct = default)
     {
+        var dev = await GetDeviseAsync(ct);
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
-        var toEnd = to.Date.AddDays(1);
 
-        var mouvements = await db.MouvementsStock.AsNoTracking()
-            .Where(m => m.CreatedAt >= from && m.CreatedAt < toEnd)
-            .Include(m => m.Produit)
-            .OrderByDescending(m => m.CreatedAt)
-            .ThenBy(m => m.Id)
-            .Take(500)
+        var produits = await db.Produits.AsNoTracking()
+            .Where(p => p.Actif && p.StockActuel != 0)
+            .OrderBy(p => p.Reference)
+            .Select(p => new
+            {
+                p.Reference,
+                p.Designation,
+                p.StockActuel,
+                p.PrixAchatHT,
+                p.TauxTVA
+            })
             .ToListAsync(ct);
 
-        return mouvements.Select(m =>
-        {
-            var typeStr = m.Type switch
+        return produits
+            .Select(p =>
             {
-                TypeMouvement.Entree => _locale.T("TypeMvt_Entree"),
-                TypeMouvement.Sortie => _locale.T("TypeMvt_Sortie"),
-                TypeMouvement.Ajustement => _locale.T("TypeMvt_Ajustement"),
-                _ => m.Type.ToString()
-            };
-            return new ReportStockMovementRow(
-                m.CreatedAt,
-                m.Produit?.Reference ?? string.Empty,
-                m.Produit?.Designation ?? string.Empty,
-                typeStr,
-                m.Quantite,
-                m.OrigineType,
-                m.StockApres);
-        }).ToList();
+                var valeurHt = p.StockActuel * p.PrixAchatHT;
+                var valeurTtc = valeurHt * (1 + p.TauxTVA / 100m);
+                return new ReportStockValueByProductRow(
+                    p.Reference,
+                    p.Designation,
+                    p.StockActuel,
+                    p.PrixAchatHT,
+                    valeurHt,
+                    valeurTtc,
+                    dev);
+            })
+            .OrderByDescending(r => r.ValeurHt)
+            .ThenBy(r => r.Reference)
+            .ToList();
     }
 
     public async Task<List<ReportProfitChargeRow>> GetProfitChargesAsync(
@@ -717,20 +720,9 @@ public sealed class ReportService : IReportService
 
     public async Task<(decimal ht, decimal ttc, string devise)> GetStockValuationAsync(CancellationToken ct = default)
     {
-        var dev = await GetDeviseAsync(ct);
-        await using var db = await _dbFactory.CreateDbContextAsync(ct);
-        var produits = await db.Produits.AsNoTracking()
-            .Where(p => p.StockActuel > 0)
-            .Select(p => new { p.StockActuel, p.PrixAchatHT, p.PrixVenteHT, p.TauxTVA })
-            .ToListAsync(ct);
-
-        decimal totalHt = 0, totalTtc = 0;
-        foreach (var p in produits)
-        {
-            totalHt += p.StockActuel * p.PrixAchatHT;
-            totalTtc += p.StockActuel * p.PrixVenteHT * (1 + p.TauxTVA / 100m);
-        }
-        return (totalHt, totalTtc, dev);
+        var rows = await GetStockValueByProductAsync(ct);
+        var devise = rows.Count > 0 ? rows[0].Devise : await GetDeviseAsync(ct);
+        return (rows.Sum(r => r.ValeurHt), rows.Sum(r => r.ValeurTtc), devise);
     }
 
     private async Task<string> GetDeviseAsync(CancellationToken ct = default)
