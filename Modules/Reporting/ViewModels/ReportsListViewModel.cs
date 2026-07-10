@@ -107,7 +107,15 @@ public partial class ReportsListViewModel : BaseViewModel
     [ObservableProperty] private string _lblProfitChargesNetResult = string.Empty;
     [ObservableProperty] private string _lblProfitChargesPeriod = string.Empty;
     [ObservableProperty] private decimal _profitChargesNetResultAmount;
+    [ObservableProperty] private ReportProfitChargeKind? _profitChargesFilterKind;
     [ObservableProperty] private bool _showPagination;
+
+    public bool IsProfitFilterVente => ProfitChargesFilterKind == ReportProfitChargeKind.Vente;
+    public bool IsProfitFilterAvoir => ProfitChargesFilterKind == ReportProfitChargeKind.Avoir;
+    public bool IsProfitFilterAchat => ProfitChargesFilterKind == ReportProfitChargeKind.Achat;
+    public bool IsProfitFilterAvoirFournisseur => ProfitChargesFilterKind == ReportProfitChargeKind.AvoirFournisseur;
+    public bool IsProfitFilterCharge => ProfitChargesFilterKind == ReportProfitChargeKind.Charge;
+    public bool HasProfitChargesFilter => ProfitChargesFilterKind is not null;
 
     private List<ReportSaleByProductRow> _allSalesByProduct = [];
     private List<ReportSaleByCustomerRow> _allSalesByCustomer = [];
@@ -411,7 +419,43 @@ public partial class ReportsListViewModel : BaseViewModel
         LblProfitChargesTotalCharges = $"-{totalCharges:N0} {dev}";
         LblProfitChargesNetResult = $"{(net >= 0 ? "+" : "")}{net:N0} {dev}";
         ProfitChargesNetResultAmount = net;
-        FinishPagedLoad(_allProfitCharges.Count);
+        ProfitChargesFilterKind = null;
+        RefreshProfitChargesFilterFlags();
+        FinishPagedLoad(GetVisibleProfitCharges().Count);
+    }
+
+    [RelayCommand]
+    private void FilterProfitCharges(ReportProfitChargeKind kind)
+    {
+        ProfitChargesFilterKind = ProfitChargesFilterKind == kind ? null : kind;
+        RefreshProfitChargesFilterFlags();
+        FinishPagedLoad(GetVisibleProfitCharges().Count);
+    }
+
+    [RelayCommand]
+    private void ClearProfitChargesFilter()
+    {
+        if (ProfitChargesFilterKind is null) return;
+        ProfitChargesFilterKind = null;
+        RefreshProfitChargesFilterFlags();
+        FinishPagedLoad(GetVisibleProfitCharges().Count);
+    }
+
+    private void RefreshProfitChargesFilterFlags()
+    {
+        OnPropertyChanged(nameof(IsProfitFilterVente));
+        OnPropertyChanged(nameof(IsProfitFilterAvoir));
+        OnPropertyChanged(nameof(IsProfitFilterAchat));
+        OnPropertyChanged(nameof(IsProfitFilterAvoirFournisseur));
+        OnPropertyChanged(nameof(IsProfitFilterCharge));
+        OnPropertyChanged(nameof(HasProfitChargesFilter));
+    }
+
+    private IReadOnlyList<ReportProfitChargeRow> GetVisibleProfitCharges()
+    {
+        if (ProfitChargesFilterKind is not { } kind)
+            return _allProfitCharges;
+        return _allProfitCharges.Where(r => r.Kind == kind).ToList();
     }
 
     private void FinishPagedLoad(int totalCount)
@@ -428,7 +472,7 @@ public partial class ReportsListViewModel : BaseViewModel
         switch (SelectedReportIndex)
         {
             case 0:
-                ApplyPage(ProfitCharges, _allProfitCharges);
+                ApplyPage(ProfitCharges, GetVisibleProfitCharges());
                 break;
             case 1:
                 ApplyPage(SalesByProduct, _allSalesByProduct);

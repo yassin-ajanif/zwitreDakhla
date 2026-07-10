@@ -517,51 +517,87 @@
                            HorizontalAlignment="Center"
                            TextAlignment="Center"/>
               </Border>
-              <Border Padding="14,10" CornerRadius="8"
+              <Border Padding="10,8" CornerRadius="8"
                       Background="{DynamicResource CourseraSurfaceMutedBrush}"
-                      BorderBrush="{DynamicResource CourseraBorderBrush}" BorderThickness="1">
+                      BorderBrush="{DynamicResource CourseraBorderBrush}" BorderThickness="1"
+                      PointerPressed="OnProfitSummaryHostPressed"
+                      Cursor="Hand">
                 <Grid ColumnDefinitions="*,*,*,*,*,*">
-                  <StackPanel Spacing="4">
-                    <TextBlock Text="{Binding LblProfitChargesTotalMarginsLabel}" FontWeight="SemiBold"
-                               FontSize="12" Opacity="0.75"/>
-                    <TextBlock Text="{Binding LblProfitChargesTotalMargins}" FontSize="14" FontWeight="Bold"
-                               Foreground="{DynamicResource CourseraSuccessBrush}"/>
-                  </StackPanel>
-                  <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Center">
-                    <TextBlock Text="{Binding LblProfitChargesTotalAvoirClientLabel}" FontWeight="SemiBold"
-                               FontSize="12" Opacity="0.75" HorizontalAlignment="Center"/>
-                    <TextBlock Text="{Binding LblProfitChargesTotalAvoirClient}" FontSize="14" FontWeight="Bold"
-                               HorizontalAlignment="Center"
-                               Foreground="{DynamicResource CourseraDangerBrush}"/>
-                  </StackPanel>
-                  <StackPanel Grid.Column="2" Spacing="4" HorizontalAlignment="Center">
-                    <TextBlock Text="{Binding LblProfitChargesTotalAchatsLabel}" FontWeight="SemiBold"
-                               FontSize="12" Opacity="0.75" HorizontalAlignment="Center"/>
-                    <TextBlock Text="{Binding LblProfitChargesTotalAchats}" FontSize="14" FontWeight="Bold"
-                               HorizontalAlignment="Center"
-                               Foreground="{DynamicResource CourseraDangerBrush}"/>
-                  </StackPanel>
-                  <StackPanel Grid.Column="3" Spacing="4" HorizontalAlignment="Center">
-                    <TextBlock Text="{Binding LblProfitChargesTotalAvoirFournisseurLabel}" FontWeight="SemiBold"
-                               FontSize="12" Opacity="0.75" HorizontalAlignment="Center"/>
-                    <TextBlock Text="{Binding LblProfitChargesTotalAvoirFournisseur}" FontSize="14" FontWeight="Bold"
-                               HorizontalAlignment="Center"
-                               Foreground="{DynamicResource CourseraSuccessBrush}"/>
-                  </StackPanel>
-                  <StackPanel Grid.Column="4" Spacing="4" HorizontalAlignment="Center">
-                    <TextBlock Text="{Binding LblProfitChargesTotalChargesLabel}" FontWeight="SemiBold"
-                               FontSize="12" Opacity="0.75" HorizontalAlignment="Center"/>
-                    <TextBlock Text="{Binding LblProfitChargesTotalCharges}" FontSize="14" FontWeight="Bold"
-                               HorizontalAlignment="Center"
-                               Foreground="{DynamicResource CourseraDangerBrush}"/>
-                  </StackPanel>
-                  <StackPanel Grid.Column="5" Spacing="4" HorizontalAlignment="Right">
-                    <TextBlock Text="{Binding LblProfitChargesNetResultLabel}" FontWeight="SemiBold"
-                               FontSize="12" Opacity="0.75" HorizontalAlignment="Right"/>
-                    <TextBlock Text="{Binding LblProfitChargesNetResult}" FontSize="15" FontWeight="Bold"
-                               HorizontalAlignment="Right"
-                               Foreground="{Binding ProfitChargesNetResultAmount, Converter={x:Static conv:PositiveNegativeForegroundConverter.Instance}}"/>
-                  </StackPanel>
+                  <Button Classes="profit-filter-chip" Margin="0,0,4,0"
+                          Classes.selected="{Binding IsProfitFilterVente}"
+                          Command="{Binding FilterProfitChargesCommand}"
+                          CommandParameter="{x:Static vm:ReportProfitChargeKind.Vente}"
+                          HorizontalContentAlignment="Left">
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="{Binding LblProfitChargesTotalMarginsLabel}" FontWeight="SemiBold"
+                                 FontSize="12" Opacity="0.75"/>
+                      <TextBlock Text="{Binding LblProfitChargesTotalMargins}" FontSize="14" FontWeight="Bold"
+                                 Foreground="{DynamicResource CourseraSuccessBrush}"/>
+                    </StackPanel>
+                  </Button>
+                  <Button Grid.Column="1" Classes="profit-filter-chip" Margin="4,0"
+                          Classes.selected="{Binding IsProfitFilterAvoir}"
+                          Command="{Binding FilterProfitChargesCommand}"
+                          CommandParameter="{x:Static vm:ReportProfitChargeKind.Avoir}"
+                          HorizontalContentAlignment="Center">
+                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                      <TextBlock Text="{Binding LblProfitChargesTotalAvoirClientLabel}" FontWeight="SemiBold"
+                                 FontSize="12" Opacity="0.75" HorizontalAlignment="Center"/>
+                      <TextBlock Text="{Binding LblProfitChargesTotalAvoirClient}" FontSize="14" FontWeight="Bold"
+                                 HorizontalAlignment="Center"
+                                 Foreground="{DynamicResource CourseraDangerBrush}"/>
+                    </StackPanel>
+                  </Button>
+                  <Button Grid.Column="2" Classes="profit-filter-chip" Margin="4,0"
+                          Classes.selected="{Binding IsProfitFilterAchat}"
+                          Command="{Binding FilterProfitChargesCommand}"
+                          CommandParameter="{x:Static vm:ReportProfitChargeKind.Achat}"
+                          HorizontalContentAlignment="Center">
+                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                      <TextBlock Text="{Binding LblProfitChargesTotalAchatsLabel}" FontWeight="SemiBold"
+                                 FontSize="12" Opacity="0.75" HorizontalAlignment="Center"/>
+                      <TextBlock Text="{Binding LblProfitChargesTotalAchats}" FontSize="14" FontWeight="Bold"
+                                 HorizontalAlignment="Center"
+                                 Foreground="{DynamicResource CourseraDangerBrush}"/>
+                    </StackPanel>
+                  </Button>
+                  <Button Grid.Column="3" Classes="profit-filter-chip" Margin="4,0"
+                          Classes.selected="{Binding IsProfitFilterAvoirFournisseur}"
+                          Command="{Binding FilterProfitChargesCommand}"
+                          CommandParameter="{x:Static vm:ReportProfitChargeKind.AvoirFournisseur}"
+                          HorizontalContentAlignment="Center">
+                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                      <TextBlock Text="{Binding LblProfitChargesTotalAvoirFournisseurLabel}" FontWeight="SemiBold"
+                                 FontSize="12" Opacity="0.75" HorizontalAlignment="Center"/>
+                      <TextBlock Text="{Binding LblProfitChargesTotalAvoirFournisseur}" FontSize="14" FontWeight="Bold"
+                                 HorizontalAlignment="Center"
+                                 Foreground="{DynamicResource CourseraSuccessBrush}"/>
+                    </StackPanel>
+                  </Button>
+                  <Button Grid.Column="4" Classes="profit-filter-chip" Margin="4,0"
+                          Classes.selected="{Binding IsProfitFilterCharge}"
+                          Command="{Binding FilterProfitChargesCommand}"
+                          CommandParameter="{x:Static vm:ReportProfitChargeKind.Charge}"
+                          HorizontalContentAlignment="Center">
+                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                      <TextBlock Text="{Binding LblProfitChargesTotalChargesLabel}" FontWeight="SemiBold"
+                                 FontSize="12" Opacity="0.75" HorizontalAlignment="Center"/>
+                      <TextBlock Text="{Binding LblProfitChargesTotalCharges}" FontSize="14" FontWeight="Bold"
+                                 HorizontalAlignment="Center"
+                                 Foreground="{DynamicResource CourseraDangerBrush}"/>
+                    </StackPanel>
+                  </Button>
+                  <Button Grid.Column="5" Classes="profit-filter-chip" Margin="4,0,0,0"
+                          Command="{Binding ClearProfitChargesFilterCommand}"
+                          HorizontalContentAlignment="Right">
+                    <StackPanel Spacing="4" HorizontalAlignment="Right">
+                      <TextBlock Text="{Binding LblProfitChargesNetResultLabel}" FontWeight="SemiBold"
+                                 FontSize="12" Opacity="0.75" HorizontalAlignment="Right"/>
+                      <TextBlock Text="{Binding LblProfitChargesNetResult}" FontSize="15" FontWeight="Bold"
+                                 HorizontalAlignment="Right"
+                                 Foreground="{Binding ProfitChargesNetResultAmount, Converter={x:Static conv:PositiveNegativeForegroundConverter.Instance}}"/>
+                    </StackPanel>
+                  </Button>
                 </Grid>
               </Border>
 
