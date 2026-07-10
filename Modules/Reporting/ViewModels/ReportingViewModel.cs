@@ -288,9 +288,10 @@ public partial class ReportingViewModel : BaseViewModel
         foreach (var f in unpaidProj)
         {
             var reste = f.TTC - f.Paye;
-            if (reste <= 0.01m) continue;
+            // EstPayee is the source of truth: include every unpaid invoice (incl. POS crédit).
+            var montant = reste > 0.01m ? reste : f.TTC;
 
-            encoursTotal += reste;
+            encoursTotal += montant;
             encoursCount++;
 
             var due = f.DateEcheance.Date;
@@ -312,7 +313,7 @@ public partial class ReportingViewModel : BaseViewModel
 
             unpaidRows.Add(new ReportUnpaidRow(
                 f.Numero,
-                CurrencyHelper.Format(reste, dev),
+                CurrencyHelper.Format(montant, dev),
                 f.DateEcheance.ToString("d", CultureInfo.CurrentCulture),
                 dueStatus,
                 isOverdue,

@@ -374,7 +374,8 @@ public sealed class ReportService : IReportService
             var (_, _, ttc) = DocumentTotalsHelper.FactureTotals(lignes, f.RemiseGlobale);
             var paye = f.Paiements.Sum();
             var reste = ttc - paye;
-            if (reste <= 0.01m) continue;
+            // EstPayee is the source of truth: include every unpaid invoice (incl. POS crédit).
+            var montant = reste > 0.01m ? reste : ttc;
 
             var due = f.DateEcheance.Date;
             var daysFromDue = (now - due).Days;
@@ -395,7 +396,7 @@ public sealed class ReportService : IReportService
 
             rows.Add(new ReportUnpaidRow(
                 f.Numero ?? string.Empty,
-                CurrencyHelper.Format(reste, dev),
+                CurrencyHelper.Format(montant, dev),
                 f.DateEcheance.ToString("d"),
                 dueStatus,
                 isOverdue,
