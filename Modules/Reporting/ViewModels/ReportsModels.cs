@@ -242,7 +242,9 @@ public sealed partial class ReportDailySaleRow : ObservableObject
 public enum ReportProfitChargeKind
 {
     Vente,
+    Avoir,
     Achat,
+    AvoirFournisseur,
     Charge
 }
 
@@ -270,7 +272,13 @@ public sealed class ReportProfitChargeRow
         LblAmount = $"{prefix}{signedAmount:N0} {devise}";
     }
 
-    public decimal ColorSignal => Kind == ReportProfitChargeKind.Vente ? 1m : -1m;
+    /// <summary>Positive = green type label (sales / supplier credit); negative = red (purchases / client credit / charges).</summary>
+    public decimal ColorSignal => Kind switch
+    {
+        ReportProfitChargeKind.Vente => 1m,
+        ReportProfitChargeKind.AvoirFournisseur => 1m,
+        _ => -1m
+    };
 
     public ReportProfitChargeKind Kind { get; }
     public bool IsVente => Kind == ReportProfitChargeKind.Vente;

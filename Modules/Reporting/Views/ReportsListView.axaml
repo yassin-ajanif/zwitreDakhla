@@ -520,7 +520,7 @@
               <Border Padding="14,10" CornerRadius="8"
                       Background="{DynamicResource CourseraSurfaceMutedBrush}"
                       BorderBrush="{DynamicResource CourseraBorderBrush}" BorderThickness="1">
-                <Grid ColumnDefinitions="*,*,*,*">
+                <Grid ColumnDefinitions="*,*,*,*,*,*">
                   <StackPanel Spacing="4">
                     <TextBlock Text="{Binding LblProfitChargesTotalMarginsLabel}" FontWeight="SemiBold"
                                FontSize="12" Opacity="0.75"/>
@@ -528,20 +528,34 @@
                                Foreground="{DynamicResource CourseraSuccessBrush}"/>
                   </StackPanel>
                   <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding LblProfitChargesTotalAvoirClientLabel}" FontWeight="SemiBold"
+                               FontSize="12" Opacity="0.75" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding LblProfitChargesTotalAvoirClient}" FontSize="14" FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               Foreground="{DynamicResource CourseraDangerBrush}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="2" Spacing="4" HorizontalAlignment="Center">
                     <TextBlock Text="{Binding LblProfitChargesTotalAchatsLabel}" FontWeight="SemiBold"
                                FontSize="12" Opacity="0.75" HorizontalAlignment="Center"/>
                     <TextBlock Text="{Binding LblProfitChargesTotalAchats}" FontSize="14" FontWeight="Bold"
                                HorizontalAlignment="Center"
                                Foreground="{DynamicResource CourseraDangerBrush}"/>
                   </StackPanel>
-                  <StackPanel Grid.Column="2" Spacing="4" HorizontalAlignment="Center">
+                  <StackPanel Grid.Column="3" Spacing="4" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding LblProfitChargesTotalAvoirFournisseurLabel}" FontWeight="SemiBold"
+                               FontSize="12" Opacity="0.75" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding LblProfitChargesTotalAvoirFournisseur}" FontSize="14" FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               Foreground="{DynamicResource CourseraSuccessBrush}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="4" Spacing="4" HorizontalAlignment="Center">
                     <TextBlock Text="{Binding LblProfitChargesTotalChargesLabel}" FontWeight="SemiBold"
                                FontSize="12" Opacity="0.75" HorizontalAlignment="Center"/>
                     <TextBlock Text="{Binding LblProfitChargesTotalCharges}" FontSize="14" FontWeight="Bold"
                                HorizontalAlignment="Center"
                                Foreground="{DynamicResource CourseraDangerBrush}"/>
                   </StackPanel>
-                  <StackPanel Grid.Column="3" Spacing="4" HorizontalAlignment="Right">
+                  <StackPanel Grid.Column="5" Spacing="4" HorizontalAlignment="Right">
                     <TextBlock Text="{Binding LblProfitChargesNetResultLabel}" FontWeight="SemiBold"
                                FontSize="12" Opacity="0.75" HorizontalAlignment="Right"/>
                     <TextBlock Text="{Binding LblProfitChargesNetResult}" FontSize="15" FontWeight="Bold"

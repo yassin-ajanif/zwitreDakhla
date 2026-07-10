@@ -94,11 +94,15 @@ public partial class ReportsListViewModel : BaseViewModel
     [ObservableProperty] private string _lblProfitChargesColMontantHt = string.Empty;
     [ObservableProperty] private string _lblProfitChargesColAmount = string.Empty;
     [ObservableProperty] private string _lblProfitChargesTotalMarginsLabel = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesTotalAvoirClientLabel = string.Empty;
     [ObservableProperty] private string _lblProfitChargesTotalAchatsLabel = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesTotalAvoirFournisseurLabel = string.Empty;
     [ObservableProperty] private string _lblProfitChargesTotalChargesLabel = string.Empty;
     [ObservableProperty] private string _lblProfitChargesNetResultLabel = string.Empty;
     [ObservableProperty] private string _lblProfitChargesTotalMargins = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesTotalAvoirClient = string.Empty;
     [ObservableProperty] private string _lblProfitChargesTotalAchats = string.Empty;
+    [ObservableProperty] private string _lblProfitChargesTotalAvoirFournisseur = string.Empty;
     [ObservableProperty] private string _lblProfitChargesTotalCharges = string.Empty;
     [ObservableProperty] private string _lblProfitChargesNetResult = string.Empty;
     [ObservableProperty] private string _lblProfitChargesPeriod = string.Empty;
@@ -152,7 +156,9 @@ public partial class ReportsListViewModel : BaseViewModel
         LblProfitChargesColMontantHt = _locale.T("Reports_ColMontantHt");
         LblProfitChargesColAmount = _locale.T("Reports_ColMargeCharge");
         LblProfitChargesTotalMarginsLabel = _locale.T("Reports_LblTotalMargins");
+        LblProfitChargesTotalAvoirClientLabel = _locale.T("Reports_LblTotalAvoirClient");
         LblProfitChargesTotalAchatsLabel = _locale.T("Reports_LblTotalAchats");
+        LblProfitChargesTotalAvoirFournisseurLabel = _locale.T("Reports_LblTotalAvoirFournisseur");
         LblProfitChargesTotalChargesLabel = _locale.T("Reports_LblTotalCharges");
         LblProfitChargesNetResultLabel = _locale.T("Reports_LblNetResult");
         UpdateDateFilterUi();
@@ -384,12 +390,24 @@ public partial class ReportsListViewModel : BaseViewModel
     {
         _allProfitCharges = await Task.Run(() => _reportService.GetProfitChargesAsync(from, to, ct), ct);
         var dev = _allProfitCharges.Count > 0 ? _allProfitCharges[0].Devise : "MAD";
-        var totalMargins = _allProfitCharges.Where(r => r.Kind == ReportProfitChargeKind.Vente).Sum(r => r.SignedAmount);
-        var totalAchats = _allProfitCharges.Where(r => r.Kind == ReportProfitChargeKind.Achat).Sum(r => -r.SignedAmount);
+        var totalMargins = _allProfitCharges
+            .Where(r => r.Kind == ReportProfitChargeKind.Vente)
+            .Sum(r => r.SignedAmount);
+        var totalAvoirClient = _allProfitCharges
+            .Where(r => r.Kind == ReportProfitChargeKind.Avoir)
+            .Sum(r => r.SignedAmount);
+        var totalAchats = _allProfitCharges
+            .Where(r => r.Kind == ReportProfitChargeKind.Achat)
+            .Sum(r => -r.SignedAmount);
+        var totalAvoirFournisseur = _allProfitCharges
+            .Where(r => r.Kind == ReportProfitChargeKind.AvoirFournisseur)
+            .Sum(r => r.SignedAmount);
         var totalCharges = _allProfitCharges.Where(r => r.Kind == ReportProfitChargeKind.Charge).Sum(r => -r.SignedAmount);
-        var net = totalMargins - totalAchats - totalCharges;
+        var net = totalMargins + totalAvoirClient - totalAchats + totalAvoirFournisseur - totalCharges;
         LblProfitChargesTotalMargins = $"+{totalMargins:N0} {dev}";
+        LblProfitChargesTotalAvoirClient = $"{(totalAvoirClient >= 0 ? "+" : "")}{totalAvoirClient:N0} {dev}";
         LblProfitChargesTotalAchats = $"-{totalAchats:N0} {dev}";
+        LblProfitChargesTotalAvoirFournisseur = $"{(totalAvoirFournisseur >= 0 ? "+" : "")}{totalAvoirFournisseur:N0} {dev}";
         LblProfitChargesTotalCharges = $"-{totalCharges:N0} {dev}";
         LblProfitChargesNetResult = $"{(net >= 0 ? "+" : "")}{net:N0} {dev}";
         ProfitChargesNetResultAmount = net;

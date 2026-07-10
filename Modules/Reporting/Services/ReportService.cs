@@ -1,3 +1,4 @@
+using GestionCommerciale.Modules.AvoirFournisseur.Models;
 using GestionCommerciale.Modules.Facturation.Models;
 using GestionCommerciale.Modules.FactureFournisseur.Models;
 using GestionCommerciale.Modules.Reporting.ViewModels;
@@ -443,7 +444,9 @@ public sealed class ReportService : IReportService
     {
         var dev = await GetDeviseAsync(ct);
         var typeVente = _locale.T("Reports_TypeVente");
+        var typeAvoir = _locale.T("Reports_TypeAvoir");
         var typeAchat = _locale.T("Reports_TypeAchat");
+        var typeAvoirFournisseur = _locale.T("Reports_TypeAvoirFournisseur");
         var typeCharge = _locale.T("Reports_TypeCharge");
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
         var toEnd = to.Date.AddDays(1);
@@ -467,14 +470,39 @@ public sealed class ReportService : IReportService
             })
             .ToListAsync(ct);
 
-        var clientIds = factures.Select(f => f.ClientId).Distinct().ToList();
+        var avoirs = await db.Avoirs.AsNoTracking()
+            .Where(a => a.Date >= from && a.Date < toEnd)
+            .Select(a => new
+            {
+                a.ClientId,
+                a.Numero,
+                a.Date,
+                a.RetourMarchandise,
+                Lignes = a.Lignes!.Select(l => new
+                {
+                    l.ProduitId,
+                    l.Quantite,
+                    l.PrixUnitaireHT,
+                    l.Remise,
+                    l.TauxTVA
+                }).ToList()
+            })
+            .ToListAsync(ct);
+
+        var clientIds = factures.Select(f => f.ClientId)
+            .Concat(avoirs.Select(a => a.ClientId))
+            .Distinct()
+            .ToList();
         var clients = await db.Tiers.AsNoTracking()
             .Where(t => clientIds.Contains(t.Id))
             .Select(t => new { t.Id, t.Nom })
             .ToListAsync(ct);
         var clientMap = clients.ToDictionary(c => c.Id);
 
-        var allProdIds = factures.SelectMany(f => f.Lignes).Select(l => l.ProduitId).Distinct().ToList();
+        var allProdIds = factures.SelectMany(f => f.Lignes).Select(l => l.ProduitId)
+            .Concat(avoirs.SelectMany(a => a.Lignes).Select(l => l.ProduitId))
+            .Distinct()
+            .ToList();
         var produits = await db.Produits.AsNoTracking()
             .Where(p => allProdIds.Contains(p.Id))
             .Select(p => new { p.Id, p.PrixAchatHT })
@@ -514,6 +542,38 @@ public sealed class ReportService : IReportService
                 dev));
         }
 
+        foreach (var a in avoirs.OrderBy(a => a.Date))
+        {
+            decimal ht = 0, cost = 0;
+            foreach (var l in a.Lignes)
+            {
+                var lht = DocumentTotalsHelper.LigneHT(l.Quantite, l.PrixUnitaireHT, l.Remise);
+                ht += lht;
+                if (a.RetourMarchandise)
+                {
+                    var prixAchat = prodMap.GetValueOrDefault(l.ProduitId)?.PrixAchatHT ?? 0;
+                    cost += l.Quantite * prixAchat;
+                }
+            }
+
+            // Reverse sale margin: with stock return reverse HT−cost; commercial credit reverses HT only.
+            var marginImpact = -(ht - cost);
+            var client = clientMap.GetValueOrDefault(a.ClientId)?.Nom ?? string.Empty;
+            var numero = string.IsNullOrWhiteSpace(a.Numero) ? string.Empty : a.Numero;
+            var libelle = string.IsNullOrWhiteSpace(client)
+                ? $"Avoir {numero}".Trim()
+                : $"Avoir {numero} — {client}".Trim();
+
+            rows.Add(new ReportProfitChargeRow(
+                ReportProfitChargeKind.Avoir,
+                typeAvoir,
+                libelle,
+                a.Date,
+                ht,
+                marginImpact,
+                dev));
+        }
+
         var facturesFournisseur = await db.FacturesFournisseurs.AsNoTracking()
             .Where(f => f.Date >= from && f.Date < toEnd)
             .Select(f => new
@@ -532,7 +592,27 @@ public sealed class ReportService : IReportService
             })
             .ToListAsync(ct);
 
-        var fournisseurIds = facturesFournisseur.Select(f => f.FournisseurId).Distinct().ToList();
+        var avoirsFournisseur = await db.AvoirsFournisseurs.AsNoTracking()
+            .Where(a => a.Date >= from && a.Date < toEnd)
+            .Select(a => new
+            {
+                a.FournisseurId,
+                a.Numero,
+                a.Date,
+                Lignes = a.Lignes!.Select(l => new
+                {
+                    l.Quantite,
+                    l.PrixUnitaireHT,
+                    l.Remise,
+                    l.TauxTVA
+                }).ToList()
+            })
+            .ToListAsync(ct);
+
+        var fournisseurIds = facturesFournisseur.Select(f => f.FournisseurId)
+            .Concat(avoirsFournisseur.Select(a => a.FournisseurId))
+            .Distinct()
+            .ToList();
         var fournisseurs = await db.Tiers.AsNoTracking()
             .Where(t => fournisseurIds.Contains(t.Id))
             .Select(t => new { t.Id, t.Nom })
@@ -562,6 +642,33 @@ public sealed class ReportService : IReportService
                 f.Date,
                 ht,
                 -ttc,
+                dev));
+        }
+
+        foreach (var a in avoirsFournisseur.OrderBy(a => a.Date))
+        {
+            var lignes = a.Lignes.Select(l => new AvoirFournisseurLigne
+            {
+                Quantite = l.Quantite,
+                PrixUnitaireHT = l.PrixUnitaireHT,
+                Remise = l.Remise,
+                TauxTVA = l.TauxTVA
+            }).ToList();
+            var (ht, _, ttc) = DocumentTotalsHelper.AvoirFournisseurTotals(lignes);
+            var fournisseur = fournisseurMap.GetValueOrDefault(a.FournisseurId)?.Nom ?? string.Empty;
+            var numero = string.IsNullOrWhiteSpace(a.Numero) ? string.Empty : a.Numero;
+            var libelle = string.IsNullOrWhiteSpace(fournisseur)
+                ? $"Avoir {numero}".Trim()
+                : $"Avoir {numero} — {fournisseur}".Trim();
+
+            // Opposite of supplier invoice (−TTC): credit reduces total achats.
+            rows.Add(new ReportProfitChargeRow(
+                ReportProfitChargeKind.AvoirFournisseur,
+                typeAvoirFournisseur,
+                libelle,
+                a.Date,
+                ht,
+                ttc,
                 dev));
         }
 
@@ -600,8 +707,10 @@ public sealed class ReportService : IReportService
             .ThenBy(r => r.Kind switch
             {
                 ReportProfitChargeKind.Vente => 0,
-                ReportProfitChargeKind.Achat => 1,
-                _ => 2
+                ReportProfitChargeKind.Avoir => 1,
+                ReportProfitChargeKind.Achat => 2,
+                ReportProfitChargeKind.AvoirFournisseur => 3,
+                _ => 4
             })
             .ToList();
     }
