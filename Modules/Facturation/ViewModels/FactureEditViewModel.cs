@@ -8,6 +8,7 @@ using GestionCommerciale.Modules.Auth.Services;
 using GestionCommerciale.Modules.Stock;
 using GestionCommerciale.Modules.Facturation.Models;
 using GestionCommerciale.Modules.Facturation.Services;
+using GestionCommerciale.Modules.Livraison.ViewModels;
 using GestionCommerciale.Modules.Tiers.Models;
 using GestionCommerciale.Shared.Database;
 using GestionCommerciale.Shared.Helpers;
@@ -627,6 +628,15 @@ public partial class FactureEditViewModel : BaseViewModel
         }
         LinkedBls.Remove(bl);
         RefreshTotals();
+    }
+
+    [RelayCommand]
+    private void OpenLinkedBl(LinkedBlRow? bl)
+    {
+        if (bl is null) return;
+        var vm = _sp.GetRequiredService<BLEditViewModel>();
+        vm.Load(bl.Id);
+        _workspace.Open(vm);
     }
 
     [RelayCommand]

@@ -110,15 +110,17 @@ public partial class BLEditViewModel : BaseViewModel
     [ObservableProperty] private string _lblDocColMontantTtc = string.Empty;
     [ObservableProperty] private string _lblTotals = string.Empty;
     [ObservableProperty] private string _invoicedLabel = string.Empty;
+    [ObservableProperty] private int? _factureId;
     [ObservableProperty] private string _bccLabel = string.Empty;
     [ObservableProperty] private string _lblLinkedBcc = string.Empty;
     [ObservableProperty] private string _btnAddBcc = string.Empty;
     [ObservableProperty] private string _wmBonCommandeReference = string.Empty;
     [ObservableProperty] private string _bonCommandeReference = string.Empty;
-    public bool HasInvoicedLabel => !string.IsNullOrEmpty(InvoicedLabel);
+    public bool HasInvoicedLabel => FactureId is > 0 && !string.IsNullOrEmpty(InvoicedLabel);
     public bool HasBccLabel => !string.IsNullOrWhiteSpace(BonCommandeReference);
 
     partial void OnInvoicedLabelChanged(string value) => OnPropertyChanged(nameof(HasInvoicedLabel));
+    partial void OnFactureIdChanged(int? value) => OnPropertyChanged(nameof(HasInvoicedLabel));
     partial void OnBonCommandeReferenceChanged(string value)
     {
         UpdateBccLabel();
@@ -332,6 +334,7 @@ public partial class BLEditViewModel : BaseViewModel
         Devise = CurrencyHelper.FromSettings(cfg);
 
         InvoicedLabel = string.Empty;
+        FactureId = null;
 
         if (id == null)
         {
@@ -348,6 +351,7 @@ public partial class BLEditViewModel : BaseViewModel
             InvoicedLabel = _locale.Tf("BL_FacturedOn", factNum);
 
         var b = await db.BonsLivraison.Include(x => x.Lignes).FirstAsync(x => x.Id == id, cancellationToken);
+        FactureId = b.FactureId;
         DevisId = b.DevisId;
         var (storedBccRef, userNote) = BonCommandeReferenceStorage.Parse(b.Note);
         BonCommandeReference = storedBccRef;
@@ -720,6 +724,17 @@ public partial class BLEditViewModel : BaseViewModel
 
         var vm = _sp.GetRequiredService<FactureEditViewModel>();
         vm.LoadFromBL(BlId.Value);
+        _workspace.Open(vm);
+    }
+
+    [RelayCommand]
+    private void OpenLinkedFacture()
+    {
+        if (FactureId is not { } factureId)
+            return;
+
+        var vm = _sp.GetRequiredService<FactureEditViewModel>();
+        vm.Load(factureId);
         _workspace.Open(vm);
     }
 

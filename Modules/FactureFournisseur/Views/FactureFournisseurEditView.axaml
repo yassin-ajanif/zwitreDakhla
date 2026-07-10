@@ -91,7 +91,13 @@
             <DataTemplate DataType="vm:LinkedBrRow">
               <Border Padding="6,4" Background="#DBEAFE" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="6">
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                  <TextBlock Text="{Binding Numero}" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="12" Foreground="#1E40AF"/>
+                  <Button Padding="0" MinHeight="0" MinWidth="0"
+                          Background="Transparent" BorderThickness="0"
+                          Cursor="Hand"
+                          Command="{Binding $parent[UserControl].((vm:FactureFournisseurEditViewModel)DataContext).OpenLinkedBrCommand}"
+                          CommandParameter="{Binding}">
+                    <TextBlock Text="{Binding Numero}" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="12" Foreground="#1E40AF"/>
+                  </Button>
                   <Button Content="×" FontSize="12" Padding="2,0" MinWidth="0" MinHeight="0"
                           ToolTip.Tip="{Binding $parent[UserControl].((vm:FactureFournisseurEditViewModel)DataContext).LblLinkedBrs}"
                           Command="{Binding $parent[UserControl].((vm:FactureFournisseurEditViewModel)DataContext).RemoveBrGroupCommand}"
