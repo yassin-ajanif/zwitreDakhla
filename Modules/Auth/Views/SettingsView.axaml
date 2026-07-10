@@ -173,6 +173,13 @@
                 <Button Grid.Column="1" Margin="8,0,0,0" Content="{Binding LblPickBackupDir}" Command="{Binding PickBackupDirectoryCommand}" VerticalAlignment="Center"/>
               </Grid>
             </StackPanel>
+            <StackPanel Spacing="4">
+              <TextBlock Text="{Binding LblBackupDirectory2}" FontWeight="SemiBold"/>
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0" Text="{Binding BackupDirectory2}" IsReadOnly="True" VerticalContentAlignment="Center"/>
+                <Button Grid.Column="1" Margin="8,0,0,0" Content="{Binding LblPickBackupDir}" Command="{Binding PickBackupDirectory2Command}" VerticalAlignment="Center"/>
+              </Grid>
+            </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="8">
               <Button Content="{Binding LblBackupNow}" Command="{Binding CreateBackupNowCommand}"/>
               <TextBlock VerticalAlignment="Center" Text="{Binding LblLastBackup}"/>
@@ -180,6 +187,9 @@
             </StackPanel>
             <TextBlock Classes="subtle" FontSize="12">
               <Run Text="{Binding LblBackupDirectory}"/><Run Text=": "/><Run Text="{Binding BackupDirectory}"/>
+            </TextBlock>
+            <TextBlock Classes="subtle" FontSize="12">
+              <Run Text="{Binding LblBackupDirectory2}"/><Run Text=": "/><Run Text="{Binding BackupDirectory2}"/>
             </TextBlock>
           </StackPanel>
         </StackPanel>

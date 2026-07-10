@@ -87,6 +87,7 @@ public partial class SettingsViewModel : BaseViewModel
     [ObservableProperty] private int _backupIntervalHours = 24;
     [ObservableProperty] private int _backupRetentionDays = 30;
     [ObservableProperty] private string _backupDirectory = string.Empty;
+    [ObservableProperty] private string _backupDirectory2 = string.Empty;
     [ObservableProperty] private int _backupCount;
     [ObservableProperty] private string _lastBackupDateStr = string.Empty;
     [ObservableProperty] private string _backupIntervalUnit = "Hours";
@@ -98,6 +99,7 @@ public partial class SettingsViewModel : BaseViewModel
     [ObservableProperty] private string _lblBackupInterval = string.Empty;
     [ObservableProperty] private string _lblBackupRetention = string.Empty;
     [ObservableProperty] private string _lblBackupDirectory = string.Empty;
+    [ObservableProperty] private string _lblBackupDirectory2 = string.Empty;
     [ObservableProperty] private string _lblPickBackupDir = string.Empty;
     [ObservableProperty] private string _lblBackupNow = string.Empty;
     [ObservableProperty] private string _lblLastBackup = string.Empty;
@@ -170,6 +172,7 @@ public partial class SettingsViewModel : BaseViewModel
         LblBackupIntervalUnit = _locale.T("Settings_BackupIntervalUnit");
         LblBackupRetention = _locale.T("Settings_BackupRetention");
         LblBackupDirectory = _locale.T("Settings_BackupDirectory");
+        LblBackupDirectory2 = _locale.T("Settings_BackupDirectory2");
         LblPickBackupDir = _locale.T("Settings_PickBackupDir");
         LblBackupNow = _locale.T("Settings_BackupNow");
         LblLastBackup = _locale.T("Settings_LastBackup");
@@ -265,6 +268,7 @@ public partial class SettingsViewModel : BaseViewModel
         BackupIntervalUnit = string.IsNullOrWhiteSpace(row.BackupIntervalUnit) ? "Hours" : row.BackupIntervalUnit;
         BackupRetentionDays = row.BackupRetentionDays;
         BackupDirectory = row.BackupDirectory;
+        BackupDirectory2 = row.BackupDirectory2;
         BackupCount = await _backup.GetBackupCountAsync(row.BackupDirectory, cancellationToken);
         LastBackupDateStr = row.LastBackupDate.HasValue
             ? row.LastBackupDate.Value.ToLocalTime().ToString("g")
@@ -329,6 +333,7 @@ public partial class SettingsViewModel : BaseViewModel
             BackupIntervalUnit = BackupIntervalUnit,
             BackupRetentionDays = BackupRetentionDays,
             BackupDirectory = BackupDirectory,
+            BackupDirectory2 = BackupDirectory2,
             TrialStartedAt = existing.TrialStartedAt,
             LicenseKey = existing.LicenseKey,
             LastBackupDate = existing.LastBackupDate,
@@ -355,6 +360,17 @@ public partial class SettingsViewModel : BaseViewModel
     }
 
     [RelayCommand]
+    private async Task PickBackupDirectory2Async(CancellationToken cancellationToken)
+    {
+        var path = await _dialog.PickFolderAsync(cancellationToken);
+        if (!string.IsNullOrWhiteSpace(path))
+        {
+            BackupDirectory2 = path;
+            await SaveAsync(cancellationToken);
+        }
+    }
+
+    [RelayCommand]
     private async Task CreateBackupNowAsync(CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(BackupDirectory))
@@ -366,7 +382,7 @@ public partial class SettingsViewModel : BaseViewModel
         IsBusy = true;
         try
         {
-            var result = await _backup.CreateBackupAsync(BackupDirectory, cancellationToken);
+            var result = await _backup.CreateBackupAsync(BackupDirectory, BackupDirectory2, cancellationToken);
             if (result is null)
             {
                 await _dialog.ShowErrorAsync(_locale.T("Settings_Backup"), _locale.T("Settings_BackupFailed"), cancellationToken);
@@ -375,7 +391,7 @@ public partial class SettingsViewModel : BaseViewModel
 
             LastBackupDateStr = DateTime.Now.ToString("g");
             BackupCount = await _backup.GetBackupCountAsync(BackupDirectory, cancellationToken);
-            await _backup.CleanupOldBackupsAsync(BackupDirectory, BackupRetentionDays, cancellationToken);
+            await _backup.CleanupOldBackupsAsync(BackupDirectory, BackupRetentionDays, BackupDirectory2, cancellationToken);
             await _dialog.ShowInfoAsync(_locale.T("Settings_Backup"), _locale.T("Settings_BackupDone"), cancellationToken);
         }
         catch (Exception ex)

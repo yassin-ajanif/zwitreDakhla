@@ -42,6 +42,9 @@ public class AppSettingsRow
     /// <summary>Directory where backup files are stored.</summary>
     public string BackupDirectory { get; set; } = string.Empty;
 
+    /// <summary>Optional second directory that also receives each backup copy.</summary>
+    public string BackupDirectory2 { get; set; } = string.Empty;
+
     /// <summary>UTC date of the last successful automatic backup.</summary>
     public DateTime? LastBackupDate { get; set; }
 

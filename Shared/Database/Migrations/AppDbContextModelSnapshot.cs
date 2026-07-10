@@ -1377,6 +1377,10 @@ namespace GestionCommerciale.Shared.Database.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("BackupDirectory2")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("BackupEnabled")
                         .HasColumnType("INTEGER");
 

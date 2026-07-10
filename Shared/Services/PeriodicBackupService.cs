@@ -51,12 +51,12 @@ public sealed class PeriodicBackupService : IPeriodicBackupService, IDisposable
                 (now - settings.LastBackupDate.Value) < threshold)
                 return;
 
-            var result = await _backup.CreateBackupAsync(settings.BackupDirectory, default);
+            var result = await _backup.CreateBackupAsync(settings.BackupDirectory, settings.BackupDirectory2, default);
             if (result is not null)
             {
                 settings.LastBackupDate = now;
                 await _settings.SaveAsync(settings, default);
-                await _backup.CleanupOldBackupsAsync(settings.BackupDirectory, settings.BackupRetentionDays, default);
+                await _backup.CleanupOldBackupsAsync(settings.BackupDirectory, settings.BackupRetentionDays, settings.BackupDirectory2, default);
             }
         }
         catch
