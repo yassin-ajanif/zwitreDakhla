@@ -110,13 +110,15 @@ public partial class BREditViewModel : BaseViewModel
     [ObservableProperty] private string _lblTotals = string.Empty;
     [ObservableProperty] private string _wmNote = string.Empty;
     [ObservableProperty] private string _invoicedLabel = string.Empty;
+    [ObservableProperty] private int? _factureFournisseurId;
     [ObservableProperty] private string _commandeProductionLabel = string.Empty;
     [ObservableProperty] private int? _commandeProductionId;
 
-    public bool HasInvoicedLabel => !string.IsNullOrEmpty(InvoicedLabel);
+    public bool HasInvoicedLabel => FactureFournisseurId is > 0 && !string.IsNullOrEmpty(InvoicedLabel);
     public bool HasLinkedCommandeProductionLabel => CommandeProductionId is > 0;
 
     partial void OnInvoicedLabelChanged(string value) => OnPropertyChanged(nameof(HasInvoicedLabel));
+    partial void OnFactureFournisseurIdChanged(int? value) => OnPropertyChanged(nameof(HasInvoicedLabel));
 
     partial void OnCommandeProductionIdChanged(int? value) => OnPropertyChanged(nameof(HasLinkedCommandeProductionLabel));
 
@@ -357,6 +359,7 @@ public partial class BREditViewModel : BaseViewModel
         var cfg = await _settings.GetAsync(cancellationToken);
         Devise = CurrencyHelper.FromSettings(cfg);
         InvoicedLabel = string.Empty;
+        FactureFournisseurId = null;
         CommandeProductionLabel = string.Empty;
         CommandeProductionId = null;
 
@@ -372,12 +375,13 @@ public partial class BREditViewModel : BaseViewModel
 
         var factNum = await _brLinkService.GetInvoicingStatusAsync(id.Value, cancellationToken);
         if (factNum != null)
-            InvoicedLabel = _locale.Tf("BR_FacturedOn", factNum);
+            InvoicedLabel = _locale.Tf("BR_LinkedFacture", factNum);
 
         var b = await db.BonsReception
             .Include(x => x.Lignes)
             .FirstAsync(x => x.Id == id, cancellationToken);
         Numero = b.Numero;
+        FactureFournisseurId = b.FactureFournisseurId;
         var linkedCmd = await db.CommandesProduction.AsNoTracking()
             .Where(c => c.BonReceptionId == id)
             .Select(c => new { c.Id, c.Numero })
@@ -429,6 +433,17 @@ public partial class BREditViewModel : BaseViewModel
 
         var vm = _sp.GetRequiredService<CommandeProductionEditViewModel>();
         vm.Load(cmdId);
+        _workspace.Open(vm);
+    }
+
+    [RelayCommand]
+    private void OpenLinkedFactureFournisseur()
+    {
+        if (FactureFournisseurId is not { } factureId)
+            return;
+
+        var vm = _sp.GetRequiredService<FactureFournisseurEditViewModel>();
+        vm.Load(factureId);
         _workspace.Open(vm);
     }
 
