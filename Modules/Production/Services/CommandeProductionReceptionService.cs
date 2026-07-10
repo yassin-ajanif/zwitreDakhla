@@ -1,3 +1,4 @@
+using GestionCommerciale.Modules.FactureFournisseur.Models;
 using GestionCommerciale.Modules.Production.Models;
 using GestionCommerciale.Modules.Reception.Models;
 using GestionCommerciale.Modules.Reception.Services;
@@ -53,53 +54,132 @@ public sealed class CommandeProductionReceptionService : ICommandeProductionRece
         int? userId,
         CancellationToken cancellationToken = default)
     {
-        var produitId = await _productionStock.EnsureNaissainProductAsync(db, cancellationToken);
-        var produit = await db.Produits.AsNoTracking().FirstAsync(p => p.Id == produitId, cancellationToken);
-
         var br = await db.BonsReception
-            .Include(b => b.Lignes)
             .FirstAsync(b => b.Id == commande.BonReceptionId, cancellationToken);
-
-        if (br.FactureFournisseurId is not null)
-            return;
 
         br.FournisseurId = commande.FournisseurId;
         br.Date = commande.DateCommande;
         br.Note = commande.Note;
-        db.BonReceptionLignes.RemoveRange(br.Lignes);
-        br.Lignes.Clear();
-
-        br.Lignes.Add(new BonReceptionLigne
-        {
-            ProduitId = produitId,
-            Designation = produit.Designation,
-            QuantiteRecue = commande.QuantiteNaissain,
-            PrixUnitaireHT = commande.PrixAchatNaissainHT,
-            TauxTVA = produit.TauxTVA
-        });
-
-        DocumentTotalsHelper.SyncBonReceptionTotalTtc(br);
         await db.SaveChangesAsync(cancellationToken);
-        await _brWorkflow.ValiderAsync(br.Id, userId, cancellationToken);
+
+        await SyncNaissainQtyPriceAsync(
+            db,
+            commande.BonReceptionId,
+            commande.QuantiteNaissain,
+            commande.PrixAchatNaissainHT,
+            userId,
+            cancellationToken);
     }
 
     public async Task SyncCommandeProductionAsync(
         AppDbContext db,
         BonReception bonReception,
+        int? userId,
         CancellationToken cancellationToken = default)
     {
-        var commande = await db.CommandesProduction
-            .FirstOrDefaultAsync(c => c.BonReceptionId == bonReception.Id, cancellationToken);
-        if (commande is null)
-            return;
-
         var produitId = await _productionStock.EnsureNaissainProductAsync(db, cancellationToken);
         var naissainLine = bonReception.Lignes.FirstOrDefault(l => l.ProduitId == produitId);
         if (naissainLine is null || naissainLine.QuantiteRecue <= 0)
             return;
 
-        commande.QuantiteNaissain = (int)naissainLine.QuantiteRecue;
-        commande.PrixAchatNaissainHT = naissainLine.PrixUnitaireHT;
+        await SyncNaissainQtyPriceAsync(
+            db,
+            bonReception.Id,
+            naissainLine.QuantiteRecue,
+            naissainLine.PrixUnitaireHT,
+            userId,
+            cancellationToken);
+    }
+
+    public async Task SyncNaissainQtyPriceAsync(
+        AppDbContext db,
+        int bonReceptionId,
+        decimal quantite,
+        decimal prixUnitaireHt,
+        int? userId,
+        CancellationToken cancellationToken = default)
+    {
+        if (quantite <= 0)
+            return;
+
+        var produitId = await _productionStock.EnsureNaissainProductAsync(db, cancellationToken);
+        var produit = await db.Produits.AsNoTracking().FirstAsync(p => p.Id == produitId, cancellationToken);
+
+        var br = await db.BonsReception
+            .Include(b => b.Lignes)
+            .FirstAsync(b => b.Id == bonReceptionId, cancellationToken);
+
+        var naissainLine = br.Lignes.FirstOrDefault(l => l.ProduitId == produitId);
+        if (naissainLine is null)
+        {
+            naissainLine = new BonReceptionLigne
+            {
+                ProduitId = produitId,
+                Designation = produit.Designation,
+                QuantiteRecue = quantite,
+                PrixUnitaireHT = prixUnitaireHt,
+                TauxTVA = produit.TauxTVA
+            };
+            br.Lignes.Add(naissainLine);
+        }
+        else
+        {
+            naissainLine.Designation = produit.Designation;
+            naissainLine.QuantiteRecue = quantite;
+            naissainLine.PrixUnitaireHT = prixUnitaireHt;
+            naissainLine.TauxTVA = produit.TauxTVA;
+        }
+
+        DocumentTotalsHelper.SyncBonReceptionTotalTtc(br);
+
+        var commande = await db.CommandesProduction
+            .FirstOrDefaultAsync(c => c.BonReceptionId == bonReceptionId, cancellationToken);
+        if (commande is not null)
+        {
+            commande.QuantiteNaissain = (int)Math.Round(quantite, MidpointRounding.AwayFromZero);
+            commande.PrixAchatNaissainHT = prixUnitaireHt;
+        }
+
+        if (br.FactureFournisseurId is { } factureId)
+        {
+            var invoiceLines = await db.FactureFournisseurLignes
+                .Where(l => l.FactureFournisseurId == factureId
+                            && l.BonReceptionId == bonReceptionId
+                            && l.ProduitId == produitId)
+                .ToListAsync(cancellationToken);
+
+            if (invoiceLines.Count == 0)
+            {
+                db.FactureFournisseurLignes.Add(new FactureFournisseurLigne
+                {
+                    FactureFournisseurId = factureId,
+                    BonReceptionId = bonReceptionId,
+                    ProduitId = produitId,
+                    Designation = produit.Designation,
+                    Quantite = quantite,
+                    PrixUnitaireHT = prixUnitaireHt,
+                    TauxTVA = produit.TauxTVA
+                });
+            }
+            else
+            {
+                var primary = invoiceLines[0];
+                primary.Designation = produit.Designation;
+                primary.Quantite = quantite;
+                primary.PrixUnitaireHT = prixUnitaireHt;
+                primary.TauxTVA = produit.TauxTVA;
+
+                foreach (var duplicate in invoiceLines.Skip(1))
+                    db.FactureFournisseurLignes.Remove(duplicate);
+            }
+
+            var facture = await db.FacturesFournisseurs
+                .Include(f => f.Lignes)
+                .FirstAsync(f => f.Id == factureId, cancellationToken);
+            DocumentTotalsHelper.SyncFactureFournisseurTotalTtc(facture);
+        }
+
         await db.SaveChangesAsync(cancellationToken);
+        await _brWorkflow.ValiderAsync(br.Id, userId, cancellationToken);
     }
 }

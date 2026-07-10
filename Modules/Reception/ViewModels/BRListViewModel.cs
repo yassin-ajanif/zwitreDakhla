@@ -225,6 +225,23 @@ public partial class BRListViewModel : BaseViewModel
                 return;
             }
 
+            var invoiceNumero = await db.BonsReception.AsNoTracking()
+                .Where(b => b.Id == item.Id && b.FactureFournisseurId != null)
+                .Join(
+                    db.FacturesFournisseurs.AsNoTracking(),
+                    b => b.FactureFournisseurId,
+                    f => f.Id,
+                    (_, f) => f.Numero)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (!string.IsNullOrWhiteSpace(invoiceNumero))
+            {
+                await _dialog.ShowErrorAsync(
+                    _locale.T("BR_DlgShort"),
+                    _locale.Tf("BR_ErrDeleteInvoiced", invoiceNumero),
+                    cancellationToken);
+                return;
+            }
+
             var entity = await db.BonsReception.Include(b => b.Lignes).FirstAsync(b => b.Id == item.Id, cancellationToken);
             await _stock.SyncBonReceptionStockAsync(db, entity.Id, entity.Numero, [], null, cancellationToken);
             db.BonsReception.Remove(entity);

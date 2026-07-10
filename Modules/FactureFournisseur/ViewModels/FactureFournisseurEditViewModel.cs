@@ -9,6 +9,7 @@ using GestionCommerciale.Modules.Stock;
 using GestionCommerciale.Modules.Facturation.Models;
 using GestionCommerciale.Modules.FactureFournisseur.Models;
 using GestionCommerciale.Modules.FactureFournisseur.Services;
+using GestionCommerciale.Modules.Production.Services;
 using GestionCommerciale.Modules.Tiers.Models;
 using GestionCommerciale.Shared.Database;
 using GestionCommerciale.Shared.Helpers;
@@ -793,6 +794,8 @@ public partial class FactureFournisseurEditViewModel : BaseViewModel
 
             await db.SaveChangesAsync(cancellationToken);
 
+            await SyncLinkedNaissainAsync(db, cancellationToken);
+
             Numero = entity.Numero;
             await _dialog.ShowInfoAsync(_locale.T("Faf_Title"), _locale.T("Faf_Saved"), cancellationToken);
             await LoadAsync(FactureFournisseurId, cancellationToken);
@@ -800,6 +803,29 @@ public partial class FactureFournisseurEditViewModel : BaseViewModel
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    private async Task SyncLinkedNaissainAsync(AppDbContext db, CancellationToken cancellationToken)
+    {
+        var productionStock = _sp.GetRequiredService<IProductionStockService>();
+        var naissainProduitId = await productionStock.EnsureNaissainProductAsync(db, cancellationToken);
+        var sync = _sp.GetRequiredService<ICommandeProductionReceptionService>();
+
+        var naissainByBr = Lignes
+            .Where(l => l.BonReceptionId is > 0 && l.ProduitId == naissainProduitId && l.Quantite > 0)
+            .GroupBy(l => l.BonReceptionId!.Value)
+            .Select(g => g.First());
+
+        foreach (var line in naissainByBr)
+        {
+            await sync.SyncNaissainQtyPriceAsync(
+                db,
+                line.BonReceptionId!.Value,
+                line.Quantite,
+                line.PrixUnitaireHt,
+                _session.UserId,
+                cancellationToken);
         }
     }
 

@@ -140,6 +140,9 @@ public static class UiTranslations
         ["BR_ConfirmDelete"] = ("Supprimer définitivement le bon de réception {0} ?", "حذف أمر الاستلام {0} نهائياً؟"),
         ["BR_Deleted"] = ("Bon de réception supprimé.", "تم حذف أمر الاستلام."),
         ["BR_ErrDeleteLinkedCommande"] = ("Impossible de supprimer ce bon de réception : il est lié à la commande de production {0}.", "لا يمكن حذف أمر الاستلام هذا : مرتبط بأمر الإنتاج {0}."),
+        ["BR_ErrDeleteInvoiced"] = (
+            "Impossible de supprimer ce bon de réception : il est facturé sur {0}. Supprimez d'abord la facture.",
+            "لا يمكن حذف أمر الاستلام هذا: تم فوترته على {0}. احذف الفاتورة أولاً."),
         ["Devis_Title"] = ("Devis", "عرض سعر"),
         ["Devis_NewTitle"] = ("Nouveau devis", "عرض سعر جديد"),
         ["Devis_TitleNum"] = ("Devis {0}", "ع.س {0}"),
@@ -325,6 +328,9 @@ public static class UiTranslations
         ["CmdProd_BtnNew"] = ("Nouvelle commande", "أمر جديد"),
         ["CmdProd_MenuDelete"] = ("Supprimer la commande…", "حذف الأمر…"),
         ["CmdProd_ConfirmDelete"] = ("Supprimer définitivement la commande {0} ?", "حذف الأمر {0} نهائياً؟"),
+        ["CmdProd_ErrDeleteInvoiced"] = (
+            "Impossible de supprimer cette commande : elle est facturée sur {0}. Supprimez d'abord la facture.",
+            "لا يمكن حذف هذا الأمر: تم فوترته على {0}. احذف الفاتورة أولاً."),
         ["CmdProd_SummaryLine2Fmt"] = ("{0}  •  {1}  •  Naissain {2}  •  Mortalité {3}", "{0}  •  {1}  •  زريع {2}  •  نسبة الوفيات {3}"),
         ["CmdProd_SummaryLine2EnCoursFmt"] = ("{0}  •  {1}  •  Naissain {2}  •  En cours", "{0}  •  {1}  •  زريع {2}  •  جارية"),
         ["CmdProd_SummaryLine2TermineeFmt"] = ("{0}  •  {1}  •  Naissain {2}  •  Mortalité {3}  •  Terminée", "{0}  •  {1}  •  زريع {2}  •  نسبة الوفيات {3}  •  منتهية"),

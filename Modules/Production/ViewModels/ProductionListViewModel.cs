@@ -490,13 +490,6 @@ public partial class ProductionListViewModel : BaseViewModel
     {
         if (item == null || !_session.CanAccessProduction) return;
 
-        var ok = await _dialog.ConfirmAsync(
-            Title,
-            _locale.Tf("CmdProd_ConfirmDelete", item.Numero),
-            cancellationToken);
-        if (!ok) return;
-
-        IsBusy = true;
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
@@ -505,6 +498,31 @@ public partial class ProductionListViewModel : BaseViewModel
                 .FirstOrDefaultAsync(c => c.Id == item.Id, cancellationToken);
             if (entity == null) return;
 
+            var invoiceNumero = await db.BonsReception.AsNoTracking()
+                .Where(b => b.Id == entity.BonReceptionId && b.FactureFournisseurId != null)
+                .Join(
+                    db.FacturesFournisseurs.AsNoTracking(),
+                    b => b.FactureFournisseurId,
+                    f => f.Id,
+                    (_, f) => f.Numero)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(invoiceNumero))
+            {
+                await _dialog.ShowErrorAsync(
+                    Title,
+                    _locale.Tf("CmdProd_ErrDeleteInvoiced", invoiceNumero),
+                    cancellationToken);
+                return;
+            }
+
+            var ok = await _dialog.ConfirmAsync(
+                Title,
+                _locale.Tf("CmdProd_ConfirmDelete", item.Numero),
+                cancellationToken);
+            if (!ok) return;
+
+            IsBusy = true;
             var productionStock = _sp.GetRequiredService<IProductionStockService>();
             var brId = entity.BonReceptionId;
             await productionStock.RemoveCommandeStockAsync(
