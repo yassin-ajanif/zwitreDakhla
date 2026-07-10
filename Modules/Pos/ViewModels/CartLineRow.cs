@@ -7,14 +7,22 @@ public partial class CartLineRow : ObservableObject
     public int ProduitId { get; set; }
     public string Reference { get; set; } = string.Empty;
     public string Designation { get; set; } = string.Empty;
-    public decimal PrixUnitaireHt { get; set; }
     public decimal TauxTva { get; set; }
 
+    [ObservableProperty] private decimal _prixUnitaireHt;
     [ObservableProperty] private decimal _quantite = 1;
     [ObservableProperty] private decimal _remisePct;
     [ObservableProperty] private decimal _remiseMontant;
 
-    public decimal PrixUnitaireTtc => PrixUnitaireHt * (1 + TauxTva / 100m);
+    public decimal PrixUnitaireTtc
+    {
+        get => PrixUnitaireHt * (1 + TauxTva / 100m);
+        set
+        {
+            var factor = 1 + TauxTva / 100m;
+            PrixUnitaireHt = factor == 0 ? value : value / factor;
+        }
+    }
 
     private decimal LigneTtc => Quantite * PrixUnitaireTtc * (1 - RemisePct / 100m) - RemiseMontant;
 
@@ -31,12 +39,15 @@ public partial class CartLineRow : ObservableObject
         }
     }
 
+    partial void OnPrixUnitaireHtChanged(decimal value) => NotifyChange(includeUnitPrice: true);
     partial void OnQuantiteChanged(decimal value) => NotifyChange();
     partial void OnRemisePctChanged(decimal value) => NotifyChange();
     partial void OnRemiseMontantChanged(decimal value) => NotifyChange();
 
-    private void NotifyChange()
+    private void NotifyChange(bool includeUnitPrice = false)
     {
+        if (includeUnitPrice)
+            OnPropertyChanged(nameof(PrixUnitaireTtc));
         OnPropertyChanged(nameof(MontantHt));
         OnPropertyChanged(nameof(MontantTtc));
         OnPropertyChanged(nameof(EffectiveRemisePct));

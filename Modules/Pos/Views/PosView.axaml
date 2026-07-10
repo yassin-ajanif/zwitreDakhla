@@ -58,9 +58,14 @@
                         <TextBlock Text="{Binding Designation}" FontWeight="SemiBold" FontSize="13"/>
                         <TextBlock Text="{Binding Reference}" Classes="subtle" FontSize="11"/>
                       </StackPanel>
-                      <TextBlock Grid.Column="1" Classes="pos-cart-unit-price"
-                                 Text="{Binding PrixUnitaireTtc, StringFormat='{}{0:N2} DH'}"
-                                 Margin="0,0,12,0"/>
+                      <Border Grid.Column="1" Classes="pos-inline-group" Margin="0,0,12,0">
+                        <Grid ColumnDefinitions="Auto,Auto">
+                          <NumericUpDown Grid.Column="0" Classes="pos-unit-price"
+                                         Value="{Binding PrixUnitaireTtc}" FormatString="N2" Minimum="0"
+                                         ShowButtonSpinner="False"/>
+                          <TextBlock Grid.Column="1" Text="DH" Classes="pos-inline-label-tight" Margin="0,0,8,0"/>
+                        </Grid>
+                      </Border>
                       <Border Grid.Column="2" Classes="pos-inline-group" Margin="0,0,12,0">
                         <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto">
                           <Button Grid.Column="0" Content="−" Classes="pos-qty"
