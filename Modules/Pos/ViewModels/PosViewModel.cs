@@ -95,6 +95,16 @@ public partial class PosViewModel : BaseViewModel
     }
 
     public bool HasItems => Cart.Count > 0;
+    public bool CanCheckout => HasItems && TotalTtc > 0 && PaymentsCoverTotal;
+
+    private bool PaymentsCoverTotal
+    {
+        get
+        {
+            var paid = PaymentSplits.Sum(p => p.Montant);
+            return paid + 0.009m >= TotalTtc && paid <= TotalTtc + 0.009m;
+        }
+    }
 
     public string SearchWatermark => _locale.T("Wm_SearchProducts");
     public string CartTitle => _locale.T("Nav_Pos");
@@ -133,7 +143,9 @@ public partial class PosViewModel : BaseViewModel
     {
         if (PaymentSplits.Count == 0)
         {
-            PaymentSplits.Add(new PaymentSplitRow { Mode = ModePaiement.Especes, Montant = TotalTtc });
+            var row = new PaymentSplitRow { Mode = ModePaiement.Especes, Montant = TotalTtc };
+            row.PropertyChanged += OnPaymentSplitPropertyChanged;
+            PaymentSplits.Add(row);
         }
         else if (PaymentSplits.Count == 1)
         {
@@ -149,6 +161,16 @@ public partial class PosViewModel : BaseViewModel
 
         OnPropertyChanged(nameof(TotalPaiements));
         OnPropertyChanged(nameof(CanRemovePaymentSplit));
+        OnPropertyChanged(nameof(CanCheckout));
+    }
+
+    private void OnPaymentSplitPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(PaymentSplitRow.Montant) or nameof(PaymentSplitRow.Mode))
+        {
+            OnPropertyChanged(nameof(TotalPaiements));
+            OnPropertyChanged(nameof(CanCheckout));
+        }
     }
 
     [RelayCommand]
@@ -179,7 +201,9 @@ public partial class PosViewModel : BaseViewModel
     [RelayCommand]
     private void AddPaymentSplit()
     {
-        PaymentSplits.Add(new PaymentSplitRow { Mode = ModePaiement.TPE, Montant = 0 });
+        var row = new PaymentSplitRow { Mode = ModePaiement.TPE, Montant = 0 };
+        row.PropertyChanged += OnPaymentSplitPropertyChanged;
+        PaymentSplits.Add(row);
         SyncPaymentSplits();
     }
 
@@ -187,6 +211,7 @@ public partial class PosViewModel : BaseViewModel
     private void RemovePaymentSplit(PaymentSplitRow? row)
     {
         if (row is null || PaymentSplits.Count <= 1) return;
+        row.PropertyChanged -= OnPaymentSplitPropertyChanged;
         PaymentSplits.Remove(row);
         SyncPaymentSplits();
     }
@@ -279,7 +304,7 @@ public partial class PosViewModel : BaseViewModel
     [RelayCommand]
     private async Task Checkout()
     {
-        if (!HasItems) return;
+        if (!CanCheckout) return;
 
         var requiresNamedClient = PaymentSplits.Any(p => p.Montant > 0 && (p.Mode == ModePaiement.Credit || p.Mode == ModePaiement.Cheque));
         if (requiresNamedClient && SelectedClient is null)
@@ -301,7 +326,12 @@ public partial class PosViewModel : BaseViewModel
         }).ToList();
 
         var totalPaiements = PaymentSplits.Sum(p => p.Montant);
-        if (totalPaiements > TotalTtc)
+        if (totalPaiements + 0.009m < TotalTtc)
+        {
+            await _dialog.ShowErrorAsync("POS", "Le montant payé doit couvrir le total TTC.");
+            return;
+        }
+        if (totalPaiements > TotalTtc + 0.009m)
         {
             await _dialog.ShowErrorAsync("POS", "Le total des paiements ne peut pas dépasser le montant total TTC.");
             return;
@@ -310,6 +340,8 @@ public partial class PosViewModel : BaseViewModel
         var payments = PaymentSplits.Where(p => p.Montant > 0).Select(p => (p.Mode, p.Montant)).ToList();
         var facture = await _posService.CheckoutAsync(clientId, cartData, payments, RemiseGlobale);
 
+        foreach (var split in PaymentSplits)
+            split.PropertyChanged -= OnPaymentSplitPropertyChanged;
         Cart.Clear();
         SelectedClient = null;
         PaymentSplits.Clear();
@@ -420,5 +452,6 @@ public partial class PosViewModel : BaseViewModel
         OnPropertyChanged(nameof(TotalTtc));
         OnPropertyChanged(nameof(ResteARendre));
         SyncPaymentSplits();
+        OnPropertyChanged(nameof(CanCheckout));
     }
 }
