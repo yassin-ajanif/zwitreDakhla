@@ -35,12 +35,12 @@ public sealed class ProductionStockService : IProductionStockService
                 cancellationToken);
         if (existing != null)
         {
+            // One-time legacy key rename only — never overwrite user-edited fields (TVA, designation, prices…).
             if (existing.Reference != HuitreGrandReference)
+            {
                 existing.Reference = HuitreGrandReference;
-            if (existing.Designation != HuitreGrandDesignation)
-                existing.Designation = HuitreGrandDesignation;
-            if (existing.Reference != HuitreGrandReference || existing.Designation != HuitreGrandDesignation)
                 await db.SaveChangesAsync(cancellationToken);
+            }
             return existing.Id;
         }
 
@@ -61,14 +61,7 @@ public sealed class ProductionStockService : IProductionStockService
         var existing = await db.Produits
             .FirstOrDefaultAsync(p => p.Reference == NaissainReference, cancellationToken);
         if (existing != null)
-        {
-            if (existing.Designation != NaissainDesignation)
-            {
-                existing.Designation = NaissainDesignation;
-                await db.SaveChangesAsync(cancellationToken);
-            }
             return existing.Id;
-        }
 
         var product = new Produit
         {

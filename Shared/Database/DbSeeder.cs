@@ -50,22 +50,6 @@ public static class DbSeeder
             });
             db.SaveChanges();
         }
-        else
-        {
-            var changed = false;
-            if (huitre.Designation != ProductionStockService.HuitreGrandDesignation)
-            {
-                huitre.Designation = ProductionStockService.HuitreGrandDesignation;
-                changed = true;
-            }
-            if (huitre.TauxTVA == 0)
-            {
-                huitre.TauxTVA = 20;
-                changed = true;
-            }
-            if (changed)
-                db.SaveChanges();
-        }
 
         var naissain = db.Produits.FirstOrDefault(p => p.Reference == ProductionStockService.NaissainReference);
         if (naissain == null)
@@ -78,11 +62,6 @@ public static class DbSeeder
                 TauxTVA = 20,
                 Actif = true
             });
-            db.SaveChanges();
-        }
-        else if (naissain.Designation != ProductionStockService.NaissainDesignation)
-        {
-            naissain.Designation = ProductionStockService.NaissainDesignation;
             db.SaveChanges();
         }
     }
