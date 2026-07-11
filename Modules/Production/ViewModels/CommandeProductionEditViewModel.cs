@@ -134,7 +134,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     [ObservableProperty] private string _colLookupActif = string.Empty;
 
     public string TotalCommandeLabel => Operations.Sum(o => o.TotalOperation).ToString("N0", CultureInfo.CurrentCulture);
-    public bool CanAddOperation => CommandeId != null;
+    public bool CanAddOperation => CommandeId != null && !EstTerminee;
     public bool HasLinkedBonReceptionLabel => LinkedBonReceptionId is > 0;
     public bool HasOperations => Operations.Count > 0;
 
@@ -185,6 +185,7 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
             DateExpiration = value ? DateTimeOffset.Now : null;
 
         OnPropertyChanged(nameof(ShowTauxMortalite));
+        OnPropertyChanged(nameof(CanAddOperation));
         RefreshTauxMortalite();
         RefreshTauxAgrandissement();
     }
@@ -877,9 +878,10 @@ public partial class CommandeProductionEditViewModel : BaseViewModel
     [RelayCommand]
     private async Task AddOperationAsync(CancellationToken cancellationToken)
     {
-        if (CommandeId == null)
+        if (!CanAddOperation)
         {
-            await _dialog.ShowErrorAsync(Title, _locale.T("CmdProd_ErrSaveFirst"), cancellationToken);
+            if (CommandeId == null)
+                await _dialog.ShowErrorAsync(Title, _locale.T("CmdProd_ErrSaveFirst"), cancellationToken);
             return;
         }
 
