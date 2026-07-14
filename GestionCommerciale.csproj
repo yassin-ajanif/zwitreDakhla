@@ -9,12 +9,12 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <RootNamespace>GestionCommerciale</RootNamespace>
     <AssemblyName>Huitres</AssemblyName>
-    <Product>Huitres</Product>
+    <Product>AQUASAHRA</Product>
     <Version>1.0.7</Version>
     <AssemblyVersion>1.0.7.0</AssemblyVersion>
     <FileVersion>1.0.7.0</FileVersion>
     <InformationalVersion>1.0.7</InformationalVersion>
-    <ApplicationIcon>Assets\faturati.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\huitres.ico</ApplicationIcon>
   </PropertyGroup>
 
   <!-- IDE / dotnet-watch C# hot reload (XAML uses HotAvalonia in Debug). -->

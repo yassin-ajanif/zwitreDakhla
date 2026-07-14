@@ -4,7 +4,7 @@ namespace GestionCommerciale.Shared.Helpers;
 
 public static class AppInfo
 {
-    public const string Name = "Huitres";
+    public const string Name = "AQUASAHRA";
 
     public static string Version { get; } =
         Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";

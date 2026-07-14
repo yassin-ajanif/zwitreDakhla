@@ -76,7 +76,7 @@ public static class UiTranslations
 
     private static readonly IReadOnlyDictionary<string, (string Fr, string Ar)> Vm = new Dictionary<string, (string, string)>
     {
-        ["Win_AppTitle"] = ("faturati", "faturati"),
+        ["Win_AppTitle"] = ("AQUASAHRA", "AQUASAHRA"),
         ["Home_Welcome"] = ("Bienvenue. Utilisez le menu pour accéder aux modules.", "مرحباً. استخدم القائمة للوصول إلى الوحدات."),
         ["Home_TrialDaysRemaining"] = ("{0} jour(s) restant(s) avant expiration de la licence.", "{0} يوم (أيام) متبقية قبل انتهاء الترخيص."),
         ["Home_TrialExpired"] = ("Licence expirée. Veuillez saisir votre clé de licence.", "انتهى الترخيص. يرجى إدخال مفتاح الترخيص."),

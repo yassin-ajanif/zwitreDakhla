@@ -1,4 +1,4 @@
-# Build a Velopack release for Huitres and optionally upload to GitHub Releases.
+# Build a Velopack release for AQUASAHRA and optionally upload to GitHub Releases.
 # Requires: dotnet tool install -g vpk  (same major version as Velopack NuGet package)
 #
 # To publish to GitHub (public repo):
@@ -32,7 +32,7 @@ try {
             "--outputDir", $releasesDir,
             "--publish",
             "--tag", "v$version",
-            "--releaseName", "Huitres v$version"
+            "--releaseName", "AQUASAHRA v$version"
         )
         if ($env:GITHUB_TOKEN) {
             $uploadArgs += @("--token", $env:GITHUB_TOKEN)

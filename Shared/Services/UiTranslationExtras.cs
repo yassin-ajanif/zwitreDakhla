@@ -273,7 +273,7 @@ internal static class UiTranslationExtras
         ["Wm_SearchCategorieCharge"] = ("Rechercher un type…", "بحث عن نوع…"),
         ["Wm_SearchCharges"] = ("Rechercher par n°, libellé, bénéficiaire…", "بحث برقم أو وصف أو مستفيد…"),
 
-        ["Login_AppTitle"] = ("faturati", "faturati"),
+        ["Login_AppTitle"] = ("AQUASAHRA", "AQUASAHRA"),
         ["Login_Subtitle"] = ("Connexion", "تسجيل الدخول"),
         ["Users_FormHint"] = ("Nouvel utilisateur ou modifier la sélection", "مستخدم جديد أو تعديل المحدد"),
 
